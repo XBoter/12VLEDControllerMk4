@@ -47,3 +47,12 @@ void I2C::write8(uint8_t i2cAddres, uint8_t regAddress, uint8_t data)
     Wire.write(data);
     Wire.endTransmission();
 }
+
+void I2C::write16(uint8_t i2cAddres, uint8_t regAddress, uint16_t data)
+{
+    Wire.beginTransmission(i2cAddres);
+    Wire.write(regAddress);
+    Wire.write(highByte(data));
+    Wire.write(lowByte(data));
+    Wire.endTransmission();
+}
