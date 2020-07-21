@@ -15,6 +15,7 @@ namespace LedControllerSoftwareMk5
         I2C *i2c;
         Network *network;
         bool init = false;
+        // Timer
         unsigned long PrevMillis_PowerMessurmentUpdateRate = 0;
         const unsigned long TimeOut_PowerMessurmentUpdateRate = 500; // 0.5 sec
         // Register
@@ -24,14 +25,11 @@ namespace LedControllerSoftwareMk5
         const uint8_t regPower = 0x03;
         const uint8_t regCurrent = 0x04;
         const uint8_t regCalibration = 0x05;
-        double currentDivider_mA;
-        double powerMultiplier_mW;
-        double calibrationValue;
-        double correctedCalibrationValue;
-        double currentLSB;
-        void printDouble(double val, unsigned int precision);
-        void calc();
-
+        // Values
+        double valueShunt_mV = 0.0;
+        double valueBus_V = 0.0;
+        double valuePower_mW = 0.0;
+        double valueCurrent_mA = 0.0;
     public:
         PowerMeasurement(uint8_t i2cAddress, I2C *i2c, Network *network);
         void Init();

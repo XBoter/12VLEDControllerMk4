@@ -1,4 +1,5 @@
 #include "Network.h"
+#include "Main.h"
 
 //++++ Defines for WiFi Secrets +++//
 #define WZ_WIFI_SETTINGS
@@ -12,17 +13,20 @@
 #include <secrets_mqtt.h>
 
 //++++ Defines for MQTT Path Secrets +++//
-#define DEV_CONTROLLER_MQTT_PATHS
-#include <secrets_mqtt_paths.h>
+#define DEV_LED_CONTROLLER_MK4
+#include <secrets_mqtt_paths_mk2.h>
 
 using namespace LedControllerSoftwareMk5;
+
 
 Network::Network(){
 
 };
 
+
 // For compiler
 void mqttCallback(char *topic, byte *payload, unsigned int length);
+
 
 void Network::Init()
 {
@@ -31,6 +35,7 @@ void Network::Init()
     mqttClient.setCallback(mqttCallback);
     Serial.println("Network initialized");
 };
+
 
 void Network::Run()
 {
@@ -85,6 +90,7 @@ void Network::Run()
     }
 };
 
+
 void Network::HandleWifi()
 {
     switch (wifiState)
@@ -133,19 +139,50 @@ void Network::HandleWifi()
     }
 };
 
+
 void Network::HandleMqtt()
 {
+ 
     switch (mqttState)
     {
     case MQTTState::StartMqtt:
         if (mqttClient.connect(MQTT_CLIENT_NAME, MQTT_USERNAME, MQTT_PASSWORD))
         {
+            // ==== Global ==== //
 
-            /*
-            mqttClient.subscribe(mqtt_command_garage_door_up);   //Command for Garage Door Up
-            mqttClient.subscribe(mqtt_command_garage_door_stop); //Command for Garage Door Stop
-            mqttClient.subscribe(mqtt_command_garage_door_down); //Command for Garage Door Down
-            */   
+            // Sun
+            mqttClient.subscribe(mqtt_sun_command);   
+
+            // Time
+            mqttClient.subscribe(mqtt_time_command);   
+
+            // Master
+            mqttClient.subscribe(mqtt_master_present_command);   
+            
+            // PC
+            mqttClient.subscribe(mqtt_pc_present_command);   
+
+            // Motion 
+            mqttClient.subscribe(mqtt_motion_detection_power_command);   
+            mqttClient.subscribe(mqtt_motion_detection_rgb_command); 
+            mqttClient.subscribe(mqtt_motion_detection_timeout_command); 
+
+            // ==== Specific ==== //
+            // Strip 1
+            mqttClient.subscribe(mqtt_strip1_power_command);   
+            mqttClient.subscribe(mqtt_strip1_brightness_command); 
+            mqttClient.subscribe(mqtt_strip1_cold_white_value_command); 
+            mqttClient.subscribe(mqtt_strip1_warm_white_value_command); 
+            mqttClient.subscribe(mqtt_strip1_rgb_command); 
+            mqttClient.subscribe(mqtt_strip1_effect_command); 
+
+            // Strip 2  
+            mqttClient.subscribe(mqtt_strip2_power_command);   
+            mqttClient.subscribe(mqtt_strip2_brightness_command); 
+            mqttClient.subscribe(mqtt_strip2_cold_white_value_command); 
+            mqttClient.subscribe(mqtt_strip2_warm_white_value_command); 
+            mqttClient.subscribe(mqtt_strip2_rgb_command); 
+            mqttClient.subscribe(mqtt_strip2_effect_command); 
 
             mqttState = MQTTState::SuperviseMqttConnection;
         }
@@ -188,6 +225,8 @@ void Network::HandleMqtt()
     }
 };
 
+
+
 void mqttCallback(char *topic, byte *payload, unsigned int length)
 {
 
@@ -199,23 +238,261 @@ void mqttCallback(char *topic, byte *payload, unsigned int length)
     }
     message[length] = '\0';
 
-    //######################################## Specific ########################################//
-    /*
-    //------------------- Parameter [mqtt_garage_door_up] -------------------//
-    if (String(mqtt_command_garage_door_up).equals(topic))
+    //######################################## mqtt_sun_command ########################################//
+    if (String(mqtt_sun_command).equals(topic))
     {
         uint8_t data = atoi(message);
-        //Boundary Check
-        if (data >= 0 and data <= 1)
+        if (data >= 0 && data <= 1)
         {
-            mainController.networkController.commandGarageUp = (bool)data;
-            // For taster functions send only on 1 an off command
-            if (data)
-            {
-                mainController.networkController.mqttClient.publish(mqtt_command_garage_door_up, "0");
-                mainController.networkController.mqttClient.publish(mqtt_state_garage_door_up, "0");
-            }
+            mainController.network.parameter_sun = (bool)data;
         }
     }
-    */
+
+    //######################################## mqtt_time_command ########################################//
+    if (String(mqtt_time_command).equals(topic))
+    {
+        std::string hour_str    = strtok(message, ":");
+        std::string minute_str  = strtok(NULL, "\0"); 
+        mainController.network.parameter_time_hour = atoi(hour_str.c_str());
+        mainController.network.parameter_time_minute = atoi(minute_str.c_str());
+    }
+
+    //######################################## mqtt_master_present_command ########################################//
+    if (String(mqtt_master_present_command).equals(topic))
+    {
+        uint8_t data = atoi(message);
+        if (data >= 0 && data <= 1)
+        {
+            mainController.network.parameter_master_present = (bool)data;
+        }
+    }
+
+    //######################################## mqtt_pc_present_command ########################################//
+    if (String(mqtt_pc_present_command).equals(topic))
+    {
+        uint8_t data = atoi(message);
+        if (data >= 0 && data <= 1)
+        {
+            mainController.network.parameter_pc_present = (bool)data;
+        }
+    }
+
+    //######################################## mqtt_motion_detection_power_command ########################################//
+    if (String(mqtt_motion_detection_power_command).equals(topic))
+    {
+        uint8_t data = atoi(message);
+        if (data >= 0 && data <= 1)
+        {
+            mainController.network.paramter_motion_detection_power = (bool)data;
+        }
+    }
+    
+    //######################################## mqtt_motion_detection_rgb_command ########################################//
+    if (String(mqtt_motion_detection_rgb_command).equals(topic))
+    {
+        uint8_t red = atoi(strtok(message, ",")); 
+        if (red >= 0 && red <= 255)
+        {
+            mainController.network.parameter_motion_red_value = red;
+        }
+        uint8_t green = atoi(strtok(NULL, ",")); 
+        if (green >= 0 && green <= 255)
+        {
+            mainController.network.parameter_motion_green_value = green;
+        }
+        uint8_t blue = atoi(strtok(NULL, ",")); 
+        if (blue >= 0 && blue <= 255)
+        {
+            mainController.network.parameter_motion_blue_value = blue;
+        }
+    }
+
+    //######################################## mqtt_motion_detection_timeout_command ########################################//
+    if (String(mqtt_motion_detection_timeout_command).equals(topic))
+    {
+        uint8_t data = atoi(message);
+        if (data >= 0 && data <= 1000)
+        {
+            mainController.network.parameter_motion_timeout = data;
+        }
+    }
+
+    //######################################## mqtt_strip1_power_command ########################################//
+    if (String(mqtt_strip1_power_command).equals(topic))
+    {
+        uint8_t data = atoi(message);
+        if (data >= 0 && data <= 1)
+        {
+            mainController.network.parameter_led_strip_1_power = (bool)data; 
+            Serial.print("MQTT Connected : ");
+            Serial.println(mainController.network.mqttClient.connected());
+            Serial.print("MQTT State : ");
+            Serial.println(mainController.network.mqttClient.state());
+            bool result =  mainController.network.mqttClient.publish(mqtt_strip1_power_state, message);
+            Serial.println(mqtt_strip1_power_state);
+            Serial.println(message);
+            Serial.print("Result : ");
+            Serial.println(result);
+        }
+    }
+
+    //######################################## mqtt_strip1_brightness_command ########################################//
+    if (String(mqtt_strip1_brightness_command).equals(topic))
+    {
+        uint8_t data = atoi(message);
+        if (data >= 0 && data <= 255)
+        {
+            mainController.network.parameter_led_strip_1_brightness = (bool)data;
+            mainController.network.mqttClient.publish(mqtt_strip1_brightness_state, message);
+        }
+    }
+
+    //######################################## mqtt_strip1_cold_white_value_command ########################################//
+    if (String(mqtt_strip1_cold_white_value_command).equals(topic))
+    {
+        uint8_t data = atoi(message);
+        if (data >= 0 && data <= 255)
+        {
+            mainController.network.parameter_led_strip_1_cold_white_value = (bool)data;
+            mainController.network.mqttClient.publish(mqtt_strip1_cold_white_value_state, message);
+        }
+    }
+
+    //######################################## mqtt_strip1_warm_white_value_command ########################################//
+    if (String(mqtt_strip1_warm_white_value_command).equals(topic))
+    {
+        uint8_t data = atoi(message);
+        if (data >= 0 && data <= 255)
+        {
+            mainController.network.parameter_led_strip_1_warm_white_value = (bool)data;
+            mainController.network.mqttClient.publish(mqtt_strip1_warm_white_value_state, message);
+        }
+    }
+
+        //######################################## mqtt_strip1_rgb_command ########################################//
+    if (String(mqtt_strip1_rgb_command).equals(topic))
+    {
+        uint8_t red = atoi(strtok(message, ",")); 
+        if (red >= 0 && red <= 255)
+        {
+            mainController.network.parameter_led_strip_1_red_value = red;
+        }
+        else
+        {
+            return;
+        }
+        uint8_t green = atoi(strtok(NULL, ",")); 
+        if (green >= 0 && green <= 255)
+        {
+            mainController.network.parameter_led_strip_1_green_value = green;
+        }
+        else
+        {
+            return;
+        }
+        uint8_t blue = atoi(strtok(NULL, ",")); 
+        if (blue >= 0 && blue <= 255)
+        {
+            mainController.network.parameter_led_strip_1_blue_value = blue;
+        }
+        else
+        {
+            return;
+        }
+        mainController.network.mqttClient.publish(mqtt_strip1_rgb_state, message);
+    }
+
+    //######################################## mqtt_strip1_effect_command ########################################//
+    if (String(mqtt_strip1_effect_command).equals(topic))
+    {
+        mainController.network.parameter_led_strip_1_effect = message;
+        mainController.network.mqttClient.publish(mqtt_strip1_effect_state, message);
+    }
+
+    //######################################## mqtt_strip2_power_command ########################################//
+    if (String(mqtt_strip2_power_command).equals(topic))
+    {
+        uint8_t data = atoi(message);
+        if (data >= 0 && data <= 1)
+        {
+            mainController.network.parameter_led_strip_2_power = (bool)data;
+            mainController.network.mqttClient.publish(mqtt_strip2_power_state, message);
+        }
+    }
+
+    //######################################## mqtt_strip2_brightness_command ########################################//
+    if (String(mqtt_strip2_brightness_command).equals(topic))
+    {
+        uint8_t data = atoi(message);
+        if (data >= 0 && data <= 255)
+        {
+            mainController.network.parameter_led_strip_2_brightness = (bool)data;
+            mainController.network.mqttClient.publish(mqtt_strip2_brightness_state, message);
+        }
+    }
+
+    //######################################## mqtt_strip2_cold_white_value_command ########################################//
+    if (String(mqtt_strip2_cold_white_value_command).equals(topic))
+    {
+        uint8_t data = atoi(message);
+        if (data >= 0 && data <= 255)
+        {
+            mainController.network.parameter_led_strip_2_cold_white_value = (bool)data;
+            mainController.network.mqttClient.publish(mqtt_strip2_cold_white_value_state, message);
+        }
+    }
+
+    //######################################## mqtt_strip2_warm_white_value_command ########################################//
+    if (String(mqtt_strip2_warm_white_value_command).equals(topic))
+    {
+        uint8_t data = atoi(message);
+        if (data >= 0 && data <= 255)
+        {
+            mainController.network.parameter_led_strip_2_warm_white_value = (bool)data;
+            mainController.network.mqttClient.publish(mqtt_strip2_warm_white_value_state, message);
+        }
+    }
+
+        //######################################## mqtt_strip2_rgb_command ########################################//
+    if (String(mqtt_strip2_rgb_command).equals(topic))
+    {
+        uint8_t red = atoi(strtok(message, ",")); 
+        if (red >= 0 && red <= 255)
+        {
+            mainController.network.parameter_led_strip_2_red_value = red;
+        }
+        else
+        {
+            return;
+        }
+        uint8_t green = atoi(strtok(NULL, ",")); 
+        if (green >= 0 && green <= 255)
+        {
+            mainController.network.parameter_led_strip_2_green_value = green;
+        }
+        else
+        {
+            return;
+        }
+        uint8_t blue = atoi(strtok(NULL, ",")); 
+        if (blue >= 0 && blue <= 255)
+        {
+            mainController.network.parameter_led_strip_2_blue_value = blue;
+        }
+        else
+        {
+            return;
+        }
+        mainController.network.mqttClient.publish(mqtt_strip2_rgb_state, message);
+    }
+
+    //######################################## mqtt_strip2_effect_command ########################################//
+    if (String(mqtt_strip2_effect_command).equals(topic))
+    {
+        mainController.network.parameter_led_strip_2_effect = message;
+        mainController.network.mqttClient.publish(mqtt_strip2_effect_state, message);
+    }
+
 }
+
+

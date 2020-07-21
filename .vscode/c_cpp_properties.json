@@ -7,7 +7,8 @@
                 "C:\\Users\\XBoter\\AppData\\Local\\Arduino15\\packages\\esp8266\\hardware\\esp8266\\2.6.3\\**",
                 "${workspaceFolder}/**",
                 "C:\\Users\\XBoter\\Documents\\Arduino\\libraries",
-                "C:\\Users\\XBoter\\AppData\\Local\\Arduino15\\packages"
+                "C:\\Users\\XBoter\\AppData\\Local\\Arduino15\\packages",
+                "C:\\Users\\XBoter\\Documents\\Arduino\\libraries\\secrets\\**"
             ],
             "defines": [
                 "_DEBUG",

@@ -15,8 +15,6 @@ void PowerMeasurement::Init()
     {
         i2c->Init();
 
-        calc();
-
         // -- Configuring INA219
         // Bit 15 Reset
         // Bit 14 Not used
@@ -27,11 +25,6 @@ void PowerMeasurement::Init()
         // Bit 2-0 Mode
         uint16_t config = 0b0001100110011111;
         i2c->write16(i2cAddress, regConfig, config);
-
-        // -- Calibrating INA219
-        //uint16_t calibration = (uint16_t)calibrationValue;
-        uint16_t calibration = (uint16_t)correctedCalibrationValue;
-        i2c->write16(i2cAddress, regCalibration, calibration);
 
         Serial.println("Power Measurement Unit initialized");
         init = true;
@@ -48,113 +41,36 @@ void PowerMeasurement::Run()
         {
             PrevMillis_PowerMessurmentUpdateRate = CurMillis_PowerMessurmentUpdateRate;
 
-            uint16_t calibration = (uint16_t)calibrationValue;
-
+            // Get shunt voltage
             uint16_t shuntVoltageRaw = i2c->read16(i2cAddress, regShuntVolt);
-            float shuntVoltage = shuntVoltageRaw * 0.01; // mV
+            valueShunt_mV = shuntVoltageRaw * 0.01; // mV
 
+            // Get bus voltage
             uint16_t _busVoltageRaw = i2c->read16(i2cAddress, regBusVolt);
             int16_t busVoltageRaw = (int16_t)((_busVoltageRaw >> 3) * 4);
-            float busVoltage = busVoltageRaw * 0.001; // V
+            valueBus_V = busVoltageRaw * 0.001; // V
 
-        Serial.println();
+            /* 
+            For calc values look up https://datasheet.lcsc.com/szlcsc/1810181516_Texas-Instruments-INA219AIDR_C138706.pdf
+            */
+            double cal_Value = 122650.0; // Calibration Value
+            double mA_Multiplyer = 0.2;  // 0.2mA/Bit
+            double mW_Multiplyer = 4.0;  // 4mW/Bit
 
-            // Sometimes a sharp load will reset the INA219, which will
-            // reset the cal register, meaning CURRENT and POWER will
-            // not be available ... avoid this by always setting a cal
-            // value even if it's an unfortunate extra step
-            i2c->write16(i2cAddress, regCalibration, calibration);
-            uint16_t currentRaw = i2c->read16(i2cAddress, regCurrent);
-            Serial.print("Current Raw : ");
-            Serial.println(currentRaw);
-            double current_mA = currentRaw * currentLSB;
+            // Calc current
+            double current = (((double)shuntVoltageRaw * (double)cal_Value) / 4096.0);
+            valueCurrent_mA = current * mA_Multiplyer;
 
-            // Sometimes a sharp load will reset the INA219, which will
-            // reset the cal register, meaning CURRENT and POWER will
-            // not be available ... avoid this by always setting a cal
-            // value even if it's an unfortunate extra step
-            i2c->write16(i2cAddress, regCalibration, calibration);
-            uint16_t powerRaw = i2c->read16(i2cAddress, regPower);
-           Serial.print("Power Raw : ");
-            Serial.println(powerRaw); 
-            float power_mW = powerRaw * (currentLSB * 20);
-
-            Serial.println();
-            Serial.print("Shunt Voltage : ");
-            Serial.print(shuntVoltage);
-            Serial.println(" mV");
-
-            Serial.print("Bus Voltage   : ");
-            Serial.print(busVoltage);
-            Serial.println(" V");
-
-            Serial.print("Power         : ");
-            printDouble(power_mW, 10000);
-            Serial.println(" mW");
-
-            Serial.print("Current       : ");
-            printDouble(current_mA, 10000);
-            Serial.println(" mA");
+            // Calc power
+            double power = (((double)current * (double)busVoltageRaw) / 5000.0);
+            valuePower_mW = power * mW_Multiplyer;
         }
     }
     else
     {
+        valueShunt_mV = 0.0;
+        valueBus_V = 0.0;
+        valuePower_mW = 0.0;
+        valueCurrent_mA = 0.0;
     }
-}
-
-void PowerMeasurement::calc()
-{
-    // VOLTAGE_BUS_MAX = 16V             (Assumes 32V, can also be set to 16V)
-    // VOLTAGE_SHUNT_MAX = 0.32          (Assumes Gain 8, 320mV, can also be 0.16, 0.08, 0.04)
-    // RESISTOR_SHUNT = 0.002             (Resistor value in ohms)
-
-    const double VOLTAGE_BUS_MAX = 16.0;   // Voltage
-    const double VOLTAGE_SHUNT_MAX = 0.32; // Voltage
-    const double RESISTOR_SHUNT = 0.002;   // Ohm
-
-    double MaxPossibleCurrent = VOLTAGE_BUS_MAX / RESISTOR_SHUNT;
-    Serial.print("MaxPossibleCurrent : ");
-    printDouble(MaxPossibleCurrent, 10000);
-    Serial.println("");
-
-    const double MAX_EXPECTED_CURRENT = 5.0; // Ampere
-
-    currentLSB = MAX_EXPECTED_CURRENT / 32767.0;
-    Serial.print("CurrentLSB : ");
-    printDouble(currentLSB, 10000);
-    Serial.println("");
-
-    calibrationValue = trunc(0.04096 / (currentLSB * RESISTOR_SHUNT));
-    Serial.print("Calibration Value : ");
-    printDouble(calibrationValue, 10000);
-    Serial.println("");
-
-    correctedCalibrationValue = trunc((calibrationValue * 0.0037) / 0.000001);
-    Serial.print("Corrected Calibration Value : ");
-    printDouble(correctedCalibrationValue, 10000);
-    Serial.println("");
-
-}
-
-void PowerMeasurement::printDouble(double val, unsigned int precision)
-{
-    // prints val with number of decimal places determine by precision
-    // NOTE: precision is 1 followed by the number of zeros for the desired number of decimial places
-    // example: printDouble( 3.1415, 100); // prints 3.14 (two decimal places)
-
-    Serial.print(int(val)); //prints the int part
-    Serial.print(".");      // print the decimal point
-    unsigned int frac;
-    if (val >= 0)
-        frac = (val - int(val)) * precision;
-    else
-        frac = (int(val) - val) * precision;
-    int frac1 = frac;
-    while (frac1 /= 10)
-        precision /= 10;
-    precision /= 10;
-    while (precision /= 10)
-        Serial.print("0");
-
-    Serial.print(frac, DEC);
 }

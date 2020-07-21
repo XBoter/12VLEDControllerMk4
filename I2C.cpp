@@ -16,6 +16,11 @@ void I2C::Init()
     }
 }
 
+void I2C::Run()
+{
+
+}
+
 uint8_t I2C::read8(uint8_t i2cAddress, uint8_t regAddress)
 {
     Wire.beginTransmission(i2cAddress);
