@@ -17,7 +17,6 @@ void Information::Init()
 {
     if (!init)
     {
-
         Serial.println("Information initialized");
         init = true;
     }

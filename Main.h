@@ -13,7 +13,7 @@
 #define Programmer  "Nico Weidenfeller"
 #define Created     "28.06.2020"
 #define LastModifed "23.07.2020"
-#define Version     "0.2.0"
+#define Version     "0.3.0"
 
 /*
 
@@ -27,6 +27,8 @@
                             Basic functions implemented
                      - Version 0.2.0
                             Bug fixes and added info print
+                     - Version 0.3.0
+                            Added mqtt electrical measurements publish and heartbeat mqtt publish.
 */
 
 //++++ Global Defines ++++//

@@ -18,7 +18,7 @@ namespace LedControllerSoftwareMk5
         bool init = false;
         // Timer
         unsigned long PrevMillis_PowerMessurmentUpdateRate = 0;
-        const unsigned long TimeOut_PowerMessurmentUpdateRate = 500; // 0.5 sec
+        const unsigned long TimeOut_PowerMessurmentUpdateRate = 1000; // 1 sec
         // Register
         const uint8_t regConfig = 0x00;
         const uint8_t regShuntVolt = 0x01;
@@ -36,7 +36,7 @@ namespace LedControllerSoftwareMk5
 
     // ## Functions ## //
     private:
-    
+
     public:
         PowerMeasurement(uint8_t i2cAddress, I2C *i2c, Network *network);
         void Init();

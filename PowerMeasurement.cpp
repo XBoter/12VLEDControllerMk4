@@ -9,6 +9,12 @@ PowerMeasurement::PowerMeasurement(uint8_t i2cAddress, I2C *i2c, Network *networ
     this->network = network;
 }
 
+
+/**
+ * Initializes the PowerMeasurement instance
+ * @parameter None
+ * @return None
+ **/
 void PowerMeasurement::Init()
 {
     if (!init)
@@ -31,15 +37,28 @@ void PowerMeasurement::Init()
     }
 }
 
+
+/**
+ * Needs to get called every cycle. 
+ * Handels the electrical measurements from the INA219AIDR
+ * @parameter None
+ * @return None
+ **/
 void PowerMeasurement::Run()
 {
-    // Check if WiFi or Mqtt is connected
-    if (network->wifiConnected || network->mqttConnected)
+    if(!init)
     {
-        unsigned long CurMillis_PowerMessurmentUpdateRate = millis();
-        if (CurMillis_PowerMessurmentUpdateRate - PrevMillis_PowerMessurmentUpdateRate >= TimeOut_PowerMessurmentUpdateRate)
+        return;
+    }
+    
+    unsigned long CurMillis_PowerMessurmentUpdateRate = millis();
+    if (CurMillis_PowerMessurmentUpdateRate - PrevMillis_PowerMessurmentUpdateRate >= TimeOut_PowerMessurmentUpdateRate)
+    {
+        PrevMillis_PowerMessurmentUpdateRate = CurMillis_PowerMessurmentUpdateRate;
+
+        // Check if WiFi or Mqtt is connected
+        if (network->wifiConnected || network->mqttConnected)
         {
-            PrevMillis_PowerMessurmentUpdateRate = CurMillis_PowerMessurmentUpdateRate;
 
             // Get shunt voltage
             uint16_t shuntVoltageRaw = i2c->read16(i2cAddress, regShuntVolt);
@@ -65,12 +84,17 @@ void PowerMeasurement::Run()
             double power = (((double)current * (double)busVoltageRaw) / 5000.0);
             valuePower_mW = power * mW_Multiplyer;
         }
-    }
-    else
-    {
-        valueShunt_mV = 0.0;
-        valueBus_V = 0.0;
-        valuePower_mW = 0.0;
-        valueCurrent_mA = 0.0;
+        else
+        {
+            valueShunt_mV = 0.0;
+            valueBus_V = 0.0;
+            valuePower_mW = 0.0;
+            valueCurrent_mA = 0.0;
+        }
+
+        // Publish update to mqtt
+        this->network->ElectricalMeasurementPowerUpdate(valuePower_mW);
+        this->network->ElectricalMeasurementVoltageUpdate(valueBus_V);
+        this->network->ElectricalMeasurementCurrentUpdate(valueCurrent_mA);
     }
 }

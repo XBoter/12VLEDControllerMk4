@@ -30,8 +30,10 @@ namespace LedControllerSoftwareMk5
 
         unsigned long PrevMillis_WiFiTimeout = 0;
         unsigned long PrevMillis_MQTTTimeout = 0;
+        unsigned long PrevMillis_HeartbeatTimeout = 0;
         const unsigned long TimeOut_WiFiTimeout = 5000; // 5 sec
         const unsigned long TimeOut_MQTTTimeout = 5000; // 5 sec
+        const unsigned long TimeOut_HeartbeatTimeout = 5000; // 5 sec
         bool wifiOneTimePrint = true;
         bool mqttOneTimePrint = true;
         bool memWifiConnected = false;
@@ -86,14 +88,15 @@ namespace LedControllerSoftwareMk5
     private:
         void HandleWifi();
         void HandleMqtt();
+        void Heartbeat();
 
     public:
         Network();
         void Init();
         void Run();
-        void ElectricalMeasurementPowerUpdate();
-        void ElectricalMeasurementVoltageUpdate();
-        void ElectricalMeasurementCurrentUpdate();
+        void ElectricalMeasurementPowerUpdate(double powerValue);
+        void ElectricalMeasurementVoltageUpdate(double voltageValue);
+        void ElectricalMeasurementCurrentUpdate(double currentValue);
     };
 
 } // namespace LedControllerSoftwareMk5

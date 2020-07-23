@@ -29,6 +29,11 @@ Network::Network()
 void mqttCallback(char *topic, byte *payload, unsigned int length);
 
 
+/**
+ * Initializes the network instance
+ * @parameter None
+ * @return None
+ **/
 void Network::Init()
 {
     mqttClient.setClient(wifiMqtt);
@@ -38,11 +43,22 @@ void Network::Init()
 };
 
 
+/**
+ * Needs to get called every cycle. 
+ * Handels all the network stuff (WiFi, MQTT and Heartbeat)
+ * @parameter None
+ * @return None
+ **/
 void Network::Run()
 {
+    if(!init)
+    {
+        return;
+    }
+
     mqttClient.loop();
 
-    // Wifi
+    // -- Wifi
     HandleWifi();
     if (wifiConnected != memWifiConnected)
     {
@@ -70,7 +86,7 @@ void Network::Run()
         wifiOneTimePrint = false;
     }
 
-    //Mqtt
+    // -- Mqtt
     HandleMqtt();
     if (mqttConnected != memMqttConnected)
     {
@@ -89,9 +105,18 @@ void Network::Run()
         }
         mqttOneTimePrint = false;
     }
+
+    // -- Heartbeat
+    Heartbeat();
 };
 
 
+/**
+ * Needs to get called every cycle. 
+ * Handels the WiFi connection
+ * @parameter None
+ * @return None
+ **/
 void Network::HandleWifi()
 {
     switch (wifiState)
@@ -141,6 +166,13 @@ void Network::HandleWifi()
 };
 
 
+/**
+ * Needs to get called every cycle. 
+ * Handels the MQTT connection after the wifi is connected
+ * Subscribes to a list pre defined topics
+ * @parameter None
+ * @return None
+ **/
 void Network::HandleMqtt()
 {
  
@@ -150,7 +182,6 @@ void Network::HandleMqtt()
         if (mqttClient.connect(MQTT_CLIENT_NAME, MQTT_USERNAME, MQTT_PASSWORD))
         {
             // ==== Global ==== //
-
             // Sun
             mqttClient.subscribe(mqtt_sun_command);   
 
@@ -227,7 +258,71 @@ void Network::HandleMqtt()
 };
 
 
+/**
+ * Publishes a heartbeat update to the defined mqtt path,
+ * if mqtt is available
+ * @parameter None
+ * @return Power value
+ **/
+void Network::Heartbeat()
+{
+    if(mqttConnected)
+    {
+        unsigned long CurMillis_HeartbeatTimeout = millis();
+        if (CurMillis_HeartbeatTimeout - PrevMillis_HeartbeatTimeout >= TimeOut_HeartbeatTimeout)
+        {
+            PrevMillis_HeartbeatTimeout = CurMillis_HeartbeatTimeout;
+            mqttClient.publish(mqtt_heartbeat_state, "pulse");
+        }
+    }
+};
 
+
+/**
+ * Publishes a electrical measurement power update to the defined mqtt path
+ * @parameter None
+ * @return Power value
+ **/
+void Network::ElectricalMeasurementPowerUpdate(double powerValue)
+{
+    char message[8];
+    dtostrf(powerValue, 6, 2, message);
+    mqttClient.publish(mqtt_electrical_measurement_power_state, message);
+};
+
+
+/**
+ * Publishes a electrical measurement voltage update to the defined mqtt path
+ * @parameter None
+ * @return Voltage value
+ **/
+void Network::ElectricalMeasurementVoltageUpdate(double voltageValue)
+{
+    char message[8];
+    dtostrf(voltageValue, 6, 2, message);
+    mqttClient.publish(mqtt_electrical_measurement_voltage_state, message);
+};
+
+
+/**
+ * Publishes a electrical measurement current update to the defined mqtt path
+ * @parameter None
+ * @return Current value
+ **/
+void Network::ElectricalMeasurementCurrentUpdate(double currentValue)
+{
+    char message[8];
+    dtostrf(currentValue, 6, 2, message);
+    mqttClient.publish(mqtt_electrical_measurement_current_state, message);
+};
+
+
+/**
+ * MQTT callback function.
+ * Processes all the received commands from the subscribed topics
+ * @parameter None
+ * @return None
+ **/
 void mqttCallback(char *topic, byte *payload, unsigned int length)
 {
 

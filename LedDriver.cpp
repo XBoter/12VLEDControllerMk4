@@ -21,8 +21,13 @@ void LedDriver::Init()
 
 void LedDriver::Run()
 {
-     // Check if WiFi or Mqtt is connected
-    if(network->wifiConnected || network->mqttConnected)
+    if(!init)
+    {
+        return;
+    }
+
+     // Check if WiFi and Mqtt is connected
+    if(network->wifiConnected && network->mqttConnected)
     {
         
     }
