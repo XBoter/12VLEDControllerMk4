@@ -19,7 +19,8 @@
 using namespace LedControllerSoftwareMk5;
 
 
-Network::Network(){
+Network::Network()
+{
 
 };
 
@@ -323,16 +324,8 @@ void mqttCallback(char *topic, byte *payload, unsigned int length)
         uint8_t data = atoi(message);
         if (data >= 0 && data <= 1)
         {
-            mainController.network.parameter_led_strip_1_power = (bool)data; 
-            Serial.print("MQTT Connected : ");
-            Serial.println(mainController.network.mqttClient.connected());
-            Serial.print("MQTT State : ");
-            Serial.println(mainController.network.mqttClient.state());
-            bool result =  mainController.network.mqttClient.publish(mqtt_strip1_power_state, message);
-            Serial.println(mqtt_strip1_power_state);
-            Serial.println(message);
-            Serial.print("Result : ");
-            Serial.println(result);
+            mainController.network.parameter_led_strip_1_power = (bool)data;
+            mainController.network.mqttClient.publish(mqtt_strip1_power_state, message);
         }
     }
 
@@ -342,7 +335,7 @@ void mqttCallback(char *topic, byte *payload, unsigned int length)
         uint8_t data = atoi(message);
         if (data >= 0 && data <= 255)
         {
-            mainController.network.parameter_led_strip_1_brightness = (bool)data;
+            mainController.network.parameter_led_strip_1_brightness = data;
             mainController.network.mqttClient.publish(mqtt_strip1_brightness_state, message);
         }
     }
@@ -353,7 +346,7 @@ void mqttCallback(char *topic, byte *payload, unsigned int length)
         uint8_t data = atoi(message);
         if (data >= 0 && data <= 255)
         {
-            mainController.network.parameter_led_strip_1_cold_white_value = (bool)data;
+            mainController.network.parameter_led_strip_1_cold_white_value = data;
             mainController.network.mqttClient.publish(mqtt_strip1_cold_white_value_state, message);
         }
     }
@@ -364,7 +357,7 @@ void mqttCallback(char *topic, byte *payload, unsigned int length)
         uint8_t data = atoi(message);
         if (data >= 0 && data <= 255)
         {
-            mainController.network.parameter_led_strip_1_warm_white_value = (bool)data;
+            mainController.network.parameter_led_strip_1_warm_white_value = data;
             mainController.network.mqttClient.publish(mqtt_strip1_warm_white_value_state, message);
         }
     }
@@ -426,7 +419,7 @@ void mqttCallback(char *topic, byte *payload, unsigned int length)
         uint8_t data = atoi(message);
         if (data >= 0 && data <= 255)
         {
-            mainController.network.parameter_led_strip_2_brightness = (bool)data;
+            mainController.network.parameter_led_strip_2_brightness = data;
             mainController.network.mqttClient.publish(mqtt_strip2_brightness_state, message);
         }
     }
@@ -437,7 +430,7 @@ void mqttCallback(char *topic, byte *payload, unsigned int length)
         uint8_t data = atoi(message);
         if (data >= 0 && data <= 255)
         {
-            mainController.network.parameter_led_strip_2_cold_white_value = (bool)data;
+            mainController.network.parameter_led_strip_2_cold_white_value = data;
             mainController.network.mqttClient.publish(mqtt_strip2_cold_white_value_state, message);
         }
     }
@@ -448,7 +441,7 @@ void mqttCallback(char *topic, byte *payload, unsigned int length)
         uint8_t data = atoi(message);
         if (data >= 0 && data <= 255)
         {
-            mainController.network.parameter_led_strip_2_warm_white_value = (bool)data;
+            mainController.network.parameter_led_strip_2_warm_white_value = data;
             mainController.network.mqttClient.publish(mqtt_strip2_warm_white_value_state, message);
         }
     }

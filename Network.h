@@ -70,7 +70,7 @@ namespace LedControllerSoftwareMk5
         uint8_t parameter_led_strip_1_red_value         = 0;
         uint8_t parameter_led_strip_1_green_value       = 0;
         uint8_t parameter_led_strip_1_blue_value        = 0;
-        std::string parameter_led_strip_1_effect        = "None";
+        String parameter_led_strip_1_effect             = "None";
 
         // == LED Strip 2
         bool parameter_led_strip_2_power                = false;
@@ -80,7 +80,7 @@ namespace LedControllerSoftwareMk5
         uint8_t parameter_led_strip_2_red_value         = 0;
         uint8_t parameter_led_strip_2_green_value       = 0;
         uint8_t parameter_led_strip_2_blue_value        = 0;
-        std::string parameter_led_strip_2_effect        = "None";
+        String parameter_led_strip_2_effect             = "None";
 
         // ## Functions ## //
     private:
@@ -91,6 +91,9 @@ namespace LedControllerSoftwareMk5
         Network();
         void Init();
         void Run();
+        void ElectricalMeasurementPowerUpdate();
+        void ElectricalMeasurementVoltageUpdate();
+        void ElectricalMeasurementCurrentUpdate();
     };
 
 } // namespace LedControllerSoftwareMk5

@@ -35,6 +35,7 @@ void Main::_setup()
     network.Init();
     powerMessurement.Init();
     ledDriver.Init();
+    information.Init();
 };
 
 
@@ -45,5 +46,6 @@ void Main::_loop()
     network.Run();
     powerMessurement.Run();
     ledDriver.Run();
+    information.Run();
 };
 

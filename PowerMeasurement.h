@@ -10,6 +10,7 @@ namespace LedControllerSoftwareMk5
 
     class PowerMeasurement
     {
+        // ## Data ## //
     private:
         uint8_t i2cAddress;
         I2C *i2c;
@@ -30,6 +31,12 @@ namespace LedControllerSoftwareMk5
         double valueBus_V = 0.0;
         double valuePower_mW = 0.0;
         double valueCurrent_mA = 0.0;
+    
+    public:
+
+    // ## Functions ## //
+    private:
+    
     public:
         PowerMeasurement(uint8_t i2cAddress, I2C *i2c, Network *network);
         void Init();
