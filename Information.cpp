@@ -2,9 +2,10 @@
 
 using namespace LedControllerSoftwareMk5;
 
-Information::Information(Network *network)
+Information::Information(Network *network, PirReader *pirReader)
 {
     this->network = network;
+    this->pirReader = pirReader;
 };
 
 
@@ -76,14 +77,14 @@ void Information::Run()
         memNetwork.parameter_pc_present = this->network->parameter_pc_present;
     }
 
-    // -- Motion
+    // -- Motion Parameter
     if( this->network->paramter_motion_detection_power  != memNetwork.paramter_motion_detection_power
         || this->network->parameter_motion_red_value    != memNetwork.parameter_motion_red_value
         || this->network->parameter_motion_green_value  != memNetwork.parameter_motion_green_value
         || this->network->parameter_motion_blue_value   != memNetwork.parameter_motion_blue_value
         || this->network->parameter_motion_timeout      != memNetwork.parameter_motion_timeout)
     {
-        FormatPrintMotion(  "Motion", 
+        FormatPrintMotion(  "Motion Parameter", 
                             BoolToString(this->network->paramter_motion_detection_power),
                             String(this->network->parameter_motion_red_value ),
                             String(this->network->parameter_motion_green_value),
@@ -155,6 +156,20 @@ void Information::Run()
         memNetwork.parameter_led_strip_2_green_value        = this->network->parameter_led_strip_2_green_value;
         memNetwork.parameter_led_strip_2_blue_value         = this->network->parameter_led_strip_2_blue_value;
         memNetwork.parameter_led_strip_2_effect             = this->network->parameter_led_strip_2_effect;
+    }
+
+    // -- Motion Detection
+    if( this->pirReader->motionDetected         != memPirReader.motionDetected
+        || this->pirReader->sensor1Triggered    != memPirReader.sensor1Triggered
+        || this->pirReader->sensor2Triggered    != memPirReader.sensor2Triggered)
+    {
+        FormatPrintMotionDetected(  BoolToString(this->pirReader->motionDetected),
+                                    BoolToString(this->pirReader->sensor1Triggered),
+                                    BoolToString(this->pirReader->sensor2Triggered));
+
+        memPirReader.motionDetected     = this->pirReader->motionDetected ;
+        memPirReader.sensor1Triggered   = this->pirReader->sensor1Triggered;
+        memPirReader.sensor2Triggered   = this->pirReader->sensor2Triggered ;
     }
 
 };
@@ -299,6 +314,37 @@ void Information::FormatPrintMotion(    String name,
     // Timeout
     InsertPrint();
     Serial.println("Timeout    : " + timeout);
+
+    BottomSpacerPrint();
+};
+
+
+/**
+ * Prints a motion detected formatted paramter to serial
+ * @parameter motionDetected and sensor values
+ * @return None
+ **/
+void Information::FormatPrintMotionDetected(String motionDetected,
+                                            String sensor1Triggered,
+                                            String sensor2Triggered)
+{
+    TopSpacerPrint();
+
+    // Motion Detection change
+    InsertPrint();
+    Serial.println("! Motion Detection Change !");
+
+    // Motion Detected
+    InsertPrint();
+    Serial.println("Motion Detected : " + motionDetected);
+
+    // Sensor 1 Triggered
+    InsertPrint();
+    Serial.println("PIR Sensor 1    : " + sensor1Triggered);
+
+    // Sensor 2 Triggered
+    InsertPrint();
+    Serial.println("PIR Sensor 2     : " + sensor2Triggered);
 
     BottomSpacerPrint();
 };

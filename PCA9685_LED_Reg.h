@@ -4,6 +4,12 @@
 namespace LedControllerSoftwareMk5
 {
 
+    // MODE 1
+    #define MODE1   0x00
+
+    // MODE 2
+    #define MODE2   0x01
+
     // LED 0
     #define LED0_ON_L   0x06
     #define LED0_ON_H   0x07
@@ -99,6 +105,15 @@ namespace LedControllerSoftwareMk5
     #define LED15_ON_H   0x43
     #define LED15_OFF_L  0x44
     #define LED15_OFF_H  0x45
+
+    // ALL LED
+    #define ALL_LED_ON_L   0xFA
+    #define ALL_LED_ON_H   0xFB
+    #define ALL_LED_OFF_L  0xFC
+    #define ALL_LED_OFF_H  0xFD
+
+    // Prescaler
+    #define PRE_SCALE   0xFE
 
 }
 

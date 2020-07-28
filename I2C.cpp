@@ -78,6 +78,14 @@ uint16_t I2C::read16(uint8_t i2cAddress, uint8_t regAddress)
  **/
 bool I2C::write8(uint8_t i2cAddres, uint8_t regAddress, uint8_t data)
 {
+    /*
+    Serial.print("I2C  : ");
+    Serial.println(i2cAddres, HEX);
+    Serial.print("REG  : ");
+    Serial.println(regAddress, HEX);
+    Serial.print("DATA : ");
+    Serial.println(data, HEX);
+    */
     bool success = false;
     Wire.beginTransmission(i2cAddres);
     Wire.write(regAddress);

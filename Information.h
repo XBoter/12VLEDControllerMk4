@@ -4,6 +4,7 @@
 
 #include <Arduino.h>
 #include "Network.h"
+#include "PirReader.h"
 
 namespace LedControllerSoftwareMk5
 {
@@ -12,8 +13,10 @@ namespace LedControllerSoftwareMk5
     {
         // ## Data ## //
     private:
-        Network *network;               // Pointer to used network instance
-        Network memNetwork = Network(); // Memory version of network instance
+        PirReader *pirReader;                           // Pointer to used pirReader instance
+        PirReader memPirReader = PirReader(0, 0, 0);    // Memory version of pirReader instance
+        Network *network;                               // Pointer to used network instance
+        Network memNetwork = Network();                 // Memory version of network instance
         bool init = false;
         const String symbol = "=";
         const uint8_t spacerLength = 40;    // x * Spaces
@@ -46,13 +49,17 @@ namespace LedControllerSoftwareMk5
                                 String green,
                                 String blue,
                                 String timeout);
+
+        void FormatPrintMotionDetected( String motionDetected,
+                                        String sensor1Triggered,
+                                        String sensor2Triggered);
         void TopSpacerPrint();
         void BottomSpacerPrint();
         void InsertPrint();
         String BoolToString(bool b);
 
     public:
-        Information(Network *network);
+        Information(Network *network, PirReader *pirReader);
         void Init();
         void Run();
     };

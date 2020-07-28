@@ -36,6 +36,7 @@ void Main::_setup()
     powerMessurement.Init();
     ledDriver.Init();
     information.Init();
+    pirReader.Init();
 };
 
 
@@ -47,5 +48,6 @@ void Main::_loop()
     powerMessurement.Run();
     ledDriver.Run();
     information.Run();
+    pirReader.Run();
 };
 
