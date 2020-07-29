@@ -5,6 +5,7 @@
 #include <Arduino.h>
 #include "Network.h"
 #include "PirReader.h"
+#include "Enums.h"
 
 namespace LedControllerSoftwareMk5
 {
@@ -57,6 +58,7 @@ namespace LedControllerSoftwareMk5
         void BottomSpacerPrint();
         void InsertPrint();
         String BoolToString(bool b);
+        String EffectToString(LEDEffect effect);
 
     public:
         Information(Network *network, PirReader *pirReader);

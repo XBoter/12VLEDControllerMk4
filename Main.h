@@ -14,8 +14,8 @@
 #define Name        "12V LED Controller Mk4"
 #define Programmer  "Nico Weidenfeller"
 #define Created     "28.06.2020"
-#define LastModifed "28.07.2020"
-#define Version     "0.7.0"
+#define LastModifed "29.07.2020"
+#define Version     "0.10.0"
 
 /*
 
@@ -39,6 +39,10 @@
                             Added basic led control functions
                      - Version 0.8.0
                             Added PirReader for motion detection
+                     - Version 0.9.0
+                            Implemented led effect order
+                     - Version 0.10.0
+                            Added mqtt motion detection state update
 */
 
 //++++ Global Defines ++++//
@@ -46,8 +50,8 @@
 #define BAUDRATE 115200
 #define PCA9685PW_I2C_ADDRESS 0x40
 #define INA219AIDR_I2C_ADDRESS 0x45 
-#define PIR_SENSOR_1_PIN D7
-#define PIR_SENSOR_2_PIN D6
+#define PIR_SENSOR_1_PIN D6
+#define PIR_SENSOR_2_PIN D7
 
 
 class Main

@@ -6,6 +6,7 @@
 #include "PirReader.h"
 #include "Network.h"
 #include "PCA9685_LED_Reg.h"
+#include "Enums.h"
 
 namespace LedControllerSoftwareMk5
 {
@@ -35,17 +36,24 @@ namespace LedControllerSoftwareMk5
                                 uint8_t red,
                                 uint8_t green,
                                 uint8_t blue,
-                                String effect);
-        void UpdateLEDChannel(uint8_t address, uint8_t value);
+                                LEDEffect effect);
+
+        void UpdateLEDChannel(  uint8_t i2cAddress, 
+                                uint8_t regAddress,
+                                uint8_t colorValue,
+                                uint8_t brightnessValue);
         void PrintAllRegister();
         void PrintByte(byte b);
 
     public:
-        LedDriver(uint8_t i2cAddress, I2C *i2c, Network *network, PirReader *pirReader);
+        LedDriver(  uint8_t i2cAddress, 
+                    I2C *i2c, 
+                    Network *network, 
+                    PirReader *pirReader);
         void Init();
         void Run();
     };
 
-} // namespace LedControllerSoftwareMk5
+};
 
 #endif

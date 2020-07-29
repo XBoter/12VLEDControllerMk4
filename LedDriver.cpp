@@ -52,7 +52,7 @@ void LedDriver::Init()
         i2c->write8(i2cAddress, ALL_LED_ON_H, 0b00000000);
         i2c->write8(i2cAddress, ALL_LED_OFF_H, 0b00010000);
 
-        PrintAllRegister();
+        //PrintAllRegister();
 
         Serial.println("LED Driver initialized");
         init = true;
@@ -155,7 +155,7 @@ void LedDriver::HandleLEDStrip( uint8_t stripID,
                                 uint8_t red,
                                 uint8_t green,
                                 uint8_t blue,
-                                String effect)
+                                LEDEffect effect)
 {
     // StripID needs to be given else return
     if(stripID != 1 && stripID != 2)
@@ -252,6 +252,79 @@ void LedDriver::HandleLEDStrip( uint8_t stripID,
     }
     // Clear all 
 
+    // Effect State
+    switch(effect)
+    {
+
+        // ---- Effect List
+        case LEDEffect::None:
+            /*
+                All LEDs off
+            */
+            break;
+
+        case LEDEffect::Alarm:
+            /*
+                Red flashing LEDs with cold white 
+            */
+            break;
+
+        case LEDEffect::Music:
+            /*
+                Music blinking to music bpm
+            */
+            break;
+
+        case LEDEffect::Sleep:
+            /*
+                Fades current color to warm orange (maybe warm white) and then fades to black
+            */
+            break;
+
+        case LEDEffect::Weekend:
+            /*
+                Fades a warm orange to bright
+            */
+            break;
+
+        case LEDEffect::RGB:
+            /*
+                Only red, green and blue LEDs
+            */
+            break;
+
+        case LEDEffect::CW:
+            /*
+                Only cold white LEDs
+            */
+            break;
+
+        case LEDEffect::WW:
+            /*
+                Only warm white LEDs
+            */
+            break;
+
+        case LEDEffect::RGBCW:
+            /*
+                Only red, green, blue and cold white LEDs
+            */
+            break;
+
+        case LEDEffect::RGBWW:
+            /*
+                Only red, green, blue and warm white LEDs
+            */
+            break;
+
+        case LEDEffect::CWWW:
+            /*
+                Only cold white and warm white LEDs
+            */
+            break;   
+
+    };
+
     // Check for Power
     if(power)
     {  
@@ -293,7 +366,15 @@ void LedDriver::HandleLEDStrip( uint8_t stripID,
 };
 
 
-void LedDriver::UpdateLEDChannel(uint8_t address, uint8_t value)
+/**
+ * Handels the control of a LED strip
+ * @parameter None
+ * @return None
+ **/
+void LedDriver::UpdateLEDChannel(   uint8_t i2cAddress,
+                                    uint8_t regAddress, 
+                                    uint8_t colorValue, 
+                                    uint8_t brightnessValue)
 {
     // LED_ON_REG 12Bit 0000h - 0FFFh == 0 - 4095
     // LED_OFF_REG 12Bit 0000h - 0FFFh == 0 - 4095

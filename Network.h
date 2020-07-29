@@ -4,23 +4,10 @@
 #include <Arduino.h>
 #include "PubSubClient.h"
 #include <ESP8266WiFi.h>
+#include "Enums.h"
 
 namespace LedControllerSoftwareMk5
 {
-
-    enum WiFiState : int
-    {
-        StartWifi = 0,
-        SuperviseWiFiConnection = 10,
-        CheckWiFiDisconnect = 20,
-    };
-
-    enum MQTTState : int
-    {
-        StartMqtt = 0,
-        SuperviseMqttConnection = 10,
-        CheckMqttDisconnect = 20,
-    };
 
     class Network
     {
@@ -72,7 +59,7 @@ namespace LedControllerSoftwareMk5
         uint8_t parameter_led_strip_1_red_value         = 0;
         uint8_t parameter_led_strip_1_green_value       = 0;
         uint8_t parameter_led_strip_1_blue_value        = 0;
-        String parameter_led_strip_1_effect             = "None";
+        LEDEffect parameter_led_strip_1_effect          = LEDEffect::None;
 
         // == LED Strip 2
         bool parameter_led_strip_2_power                = false;
@@ -82,7 +69,7 @@ namespace LedControllerSoftwareMk5
         uint8_t parameter_led_strip_2_red_value         = 0;
         uint8_t parameter_led_strip_2_green_value       = 0;
         uint8_t parameter_led_strip_2_blue_value        = 0;
-        String parameter_led_strip_2_effect             = "None";
+        LEDEffect parameter_led_strip_2_effect          = LEDEffect::None;
 
         // ## Functions ## //
     private:
@@ -97,8 +84,9 @@ namespace LedControllerSoftwareMk5
         void ElectricalMeasurementPowerUpdate(double powerValue);
         void ElectricalMeasurementVoltageUpdate(double voltageValue);
         void ElectricalMeasurementCurrentUpdate(double currentValue);
+        void MotionDetectedUpdate(bool motion);
     };
 
-} // namespace LedControllerSoftwareMk5
+};
 
 #endif

@@ -116,7 +116,7 @@ void Information::Run()
                             String(this->network->parameter_led_strip_1_red_value),
                             String(this->network->parameter_led_strip_1_green_value),
                             String(this->network->parameter_led_strip_1_blue_value),
-                            this->network->parameter_led_strip_1_effect); 
+                            EffectToString(this->network->parameter_led_strip_1_effect)); 
 
         memNetwork.parameter_led_strip_1_power              = this->network->parameter_led_strip_1_power;
         memNetwork.parameter_led_strip_1_brightness         = this->network->parameter_led_strip_1_brightness;
@@ -146,7 +146,7 @@ void Information::Run()
                             String(this->network->parameter_led_strip_2_red_value),
                             String(this->network->parameter_led_strip_2_green_value),
                             String(this->network->parameter_led_strip_2_blue_value),
-                            this->network->parameter_led_strip_2_effect); 
+                            EffectToString(this->network->parameter_led_strip_2_effect)); 
 
         memNetwork.parameter_led_strip_2_power              = this->network->parameter_led_strip_2_power;
         memNetwork.parameter_led_strip_2_brightness         = this->network->parameter_led_strip_2_brightness;
@@ -402,6 +402,60 @@ String Information::BoolToString(bool b)
         return "false";
     }
 };
+
+String Information::EffectToString(LEDEffect effect)
+{
+    switch (effect)
+    {
+        case LEDEffect::None:
+            return "None";
+            break;
+    
+        case LEDEffect::Alarm:
+            return "Alarm";
+            break;
+
+        case LEDEffect::Music:
+            return "Music";
+            break;
+
+        case LEDEffect::Sleep:
+            return "Sleep";
+            break;
+
+        case LEDEffect::Weekend:
+            return "Weekend";
+            break;
+
+        case LEDEffect::RGB:
+            return "RGB";
+            break;
+
+        case LEDEffect::CW:
+            return "CW";
+            break;
+
+        case LEDEffect::WW:
+            return "WW";
+            break;
+
+        case LEDEffect::RGBCW:
+            return "RGBCW";
+            break;
+
+        case LEDEffect::RGBWW:
+            return "RGBWW";
+            break;       
+
+        case LEDEffect::CWWW:
+            return "CWWW";
+            break;      
+
+        default:
+            return "None";
+            break;
+    }
+}
 
 
 /**

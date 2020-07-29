@@ -13,6 +13,7 @@ namespace LedControllerSoftwareMk5
     private:
         Network *network;
         bool init = false;
+        bool memMotionDetected = false;
 
     public:
         uint8_t pinPirSensor1 = 0;
@@ -20,7 +21,6 @@ namespace LedControllerSoftwareMk5
         bool motionDetected;        // Indicates if motion is detected 
         bool sensor1Triggered;      // Indicates if sensor 1 got triggered
         bool sensor2Triggered;      // Indicates if sensor 2 got triggered
-        
 
         // ## Functions ## //
     private:

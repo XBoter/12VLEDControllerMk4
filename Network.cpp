@@ -280,7 +280,7 @@ void Network::Heartbeat()
 
 /**
  * Publishes a electrical measurement power update to the defined mqtt path
- * @parameter None
+ * @parameter power value in mW
  * @return Power value
  **/
 void Network::ElectricalMeasurementPowerUpdate(double powerValue)
@@ -293,7 +293,7 @@ void Network::ElectricalMeasurementPowerUpdate(double powerValue)
 
 /**
  * Publishes a electrical measurement voltage update to the defined mqtt path
- * @parameter None
+ * @parameter bus voltage in volt
  * @return Voltage value
  **/
 void Network::ElectricalMeasurementVoltageUpdate(double voltageValue)
@@ -306,7 +306,7 @@ void Network::ElectricalMeasurementVoltageUpdate(double voltageValue)
 
 /**
  * Publishes a electrical measurement current update to the defined mqtt path
- * @parameter None
+ * @parameter current in mA
  * @return Current value
  **/
 void Network::ElectricalMeasurementCurrentUpdate(double currentValue)
@@ -314,6 +314,75 @@ void Network::ElectricalMeasurementCurrentUpdate(double currentValue)
     char message[8];
     dtostrf(currentValue, 6, 2, message);
     mqttClient.publish(mqtt_electrical_measurement_current_state, message);
+};
+
+
+/**
+ * Publishes a motion detection update to the defined mqtt path
+ * @parameter Motion detected or not
+ * @return Current value
+ **/
+void Network::MotionDetectedUpdate(bool motion)
+{
+    char message[8];
+    message[0] = motion;
+    mqttClient.publish(mqtt_motion_detected_state, message);
+};
+
+
+/**
+ * Converts a string to a LEDEffect
+ * @parameter name of effect in string
+ * @return effect in LEDEffect
+ **/
+LedControllerSoftwareMk5::LEDEffect StringToLEDEffect(String effect)
+{
+
+    if(effect == "None")
+    {
+        return LedControllerSoftwareMk5::LEDEffect::None;
+    }
+    if(effect == "Alarm")
+    {
+        return LedControllerSoftwareMk5::LEDEffect::Alarm;
+    }
+    if(effect == "Music")
+    {
+        return LedControllerSoftwareMk5::LEDEffect::Music;
+    }
+    if(effect == "Sleep")
+    {
+        return LedControllerSoftwareMk5::LEDEffect::Sleep;
+    }
+    if(effect == "Weekend")
+    {
+        return LedControllerSoftwareMk5::LEDEffect::Weekend;
+    }
+    if(effect == "RGB")
+    {
+        return LedControllerSoftwareMk5::LEDEffect::RGB;
+    }
+    if(effect == "CW")
+    {
+        return LedControllerSoftwareMk5::LEDEffect::CW;
+    }
+    if(effect == "WW")
+    {
+        return LedControllerSoftwareMk5::LEDEffect::WW;
+    }
+    if(effect == "RGBCW")
+    {
+        return LedControllerSoftwareMk5::LEDEffect::RGBCW;
+    }
+    if(effect == "RGBWW")
+    {
+        return LedControllerSoftwareMk5::LEDEffect::RGBWW;
+    }
+    if(effect == "CWWW")
+    {
+        return LedControllerSoftwareMk5::LEDEffect::CWWW;
+    }
+
 };
 
 
@@ -493,7 +562,7 @@ void mqttCallback(char *topic, byte *payload, unsigned int length)
     //######################################## mqtt_strip1_effect_command ########################################//
     if (String(mqtt_strip1_effect_command).equals(topic))
     {
-        mainController.network.parameter_led_strip_1_effect = message;
+        mainController.network.parameter_led_strip_1_effect = StringToLEDEffect(message);
         mainController.network.mqttClient.publish(mqtt_strip1_effect_state, message);
     }
 
@@ -577,7 +646,7 @@ void mqttCallback(char *topic, byte *payload, unsigned int length)
     //######################################## mqtt_strip2_effect_command ########################################//
     if (String(mqtt_strip2_effect_command).equals(topic))
     {
-        mainController.network.parameter_led_strip_2_effect = message;
+        mainController.network.parameter_led_strip_2_effect = StringToLEDEffect(message);
         mainController.network.mqttClient.publish(mqtt_strip2_effect_state, message);
     }
 
