@@ -387,6 +387,34 @@ LedControllerSoftwareMk5::LEDEffect StringToLEDEffect(String effect)
 
 
 /**
+ * Updates the mqtt rgb color state for led strip 1
+ * @parameter None
+ * @return None
+ **/
+void UpdateRGBColorStrip1()
+{
+    String str = String(mainController.network.parameter_led_strip_1_red_value) + "," + String(mainController.network.parameter_led_strip_1_green_value) + "," + String(mainController.network.parameter_led_strip_1_blue_value);
+    char _message[16];
+    strncpy(_message, str.c_str(), sizeof(_message));
+    mainController.network.mqttClient.publish(mqtt_strip1_rgb_state, _message);
+};
+
+
+/**
+ * Updates the mqtt rgb color state for led strip 2
+ * @parameter None
+ * @return None
+ **/
+void UpdateRGBColorStrip2()
+{
+    String str = String(mainController.network.parameter_led_strip_2_red_value) + "," + String(mainController.network.parameter_led_strip_2_green_value) + "," + String(mainController.network.parameter_led_strip_2_blue_value);
+    char _message[16];
+    strncpy(_message, str.c_str(), sizeof(_message));
+    mainController.network.mqttClient.publish(mqtt_strip2_rgb_state, _message);
+};
+
+
+/**
  * MQTT callback function.
  * Processes all the received commands from the subscribed topics
  * @parameter None
@@ -491,6 +519,7 @@ void mqttCallback(char *topic, byte *payload, unsigned int length)
             mainController.network.parameter_led_strip_1_power = (bool)data;
             mainController.network.mqttClient.publish(mqtt_strip1_power_state, message);
         }
+        UpdateRGBColorStrip1(); // HassIO 
     }
 
     //######################################## mqtt_strip1_brightness_command ########################################//
@@ -502,6 +531,7 @@ void mqttCallback(char *topic, byte *payload, unsigned int length)
             mainController.network.parameter_led_strip_1_brightness = data;
             mainController.network.mqttClient.publish(mqtt_strip1_brightness_state, message);
         }
+        UpdateRGBColorStrip1(); // HassIO 
     }
 
     //######################################## mqtt_strip1_cold_white_value_command ########################################//
@@ -513,6 +543,7 @@ void mqttCallback(char *topic, byte *payload, unsigned int length)
             mainController.network.parameter_led_strip_1_cold_white_value = data;
             mainController.network.mqttClient.publish(mqtt_strip1_cold_white_value_state, message);
         }
+        UpdateRGBColorStrip1(); // HassIO 
     }
 
     //######################################## mqtt_strip1_warm_white_value_command ########################################//
@@ -524,6 +555,7 @@ void mqttCallback(char *topic, byte *payload, unsigned int length)
             mainController.network.parameter_led_strip_1_warm_white_value = data;
             mainController.network.mqttClient.publish(mqtt_strip1_warm_white_value_state, message);
         }
+        UpdateRGBColorStrip1(); // HassIO 
     }
 
         //######################################## mqtt_strip1_rgb_command ########################################//
@@ -564,6 +596,7 @@ void mqttCallback(char *topic, byte *payload, unsigned int length)
     {
         mainController.network.parameter_led_strip_1_effect = StringToLEDEffect(message);
         mainController.network.mqttClient.publish(mqtt_strip1_effect_state, message);
+        UpdateRGBColorStrip1(); // HassIO 
     }
 
     //######################################## mqtt_strip2_power_command ########################################//
@@ -575,6 +608,7 @@ void mqttCallback(char *topic, byte *payload, unsigned int length)
             mainController.network.parameter_led_strip_2_power = (bool)data;
             mainController.network.mqttClient.publish(mqtt_strip2_power_state, message);
         }
+        UpdateRGBColorStrip2(); // HassIO 
     }
 
     //######################################## mqtt_strip2_brightness_command ########################################//
@@ -586,6 +620,7 @@ void mqttCallback(char *topic, byte *payload, unsigned int length)
             mainController.network.parameter_led_strip_2_brightness = data;
             mainController.network.mqttClient.publish(mqtt_strip2_brightness_state, message);
         }
+        UpdateRGBColorStrip2(); // HassIO 
     }
 
     //######################################## mqtt_strip2_cold_white_value_command ########################################//
@@ -597,6 +632,7 @@ void mqttCallback(char *topic, byte *payload, unsigned int length)
             mainController.network.parameter_led_strip_2_cold_white_value = data;
             mainController.network.mqttClient.publish(mqtt_strip2_cold_white_value_state, message);
         }
+        UpdateRGBColorStrip2(); // HassIO 
     }
 
     //######################################## mqtt_strip2_warm_white_value_command ########################################//
@@ -608,6 +644,7 @@ void mqttCallback(char *topic, byte *payload, unsigned int length)
             mainController.network.parameter_led_strip_2_warm_white_value = data;
             mainController.network.mqttClient.publish(mqtt_strip2_warm_white_value_state, message);
         }
+        UpdateRGBColorStrip2(); // HassIO 
     }
 
         //######################################## mqtt_strip2_rgb_command ########################################//
@@ -648,8 +685,8 @@ void mqttCallback(char *topic, byte *payload, unsigned int length)
     {
         mainController.network.parameter_led_strip_2_effect = StringToLEDEffect(message);
         mainController.network.mqttClient.publish(mqtt_strip2_effect_state, message);
+        UpdateRGBColorStrip2(); // HassIO 
     }
 
 }
-
 
