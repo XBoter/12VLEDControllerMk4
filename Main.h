@@ -21,8 +21,6 @@
 
    ToDo           :  - Fix bug with power measurements reading zero from reg
 
-   Bugs           :  -
-
 */
 
 //++++ Global Defines ++++//
