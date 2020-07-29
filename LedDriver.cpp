@@ -29,6 +29,11 @@ void LedDriver::Init()
         i2c->write8(i2cAddress, MODE1, 0b10000000);
         delay(200);
 
+        // Turn all LEDs of 
+        i2c->write8(i2cAddress, ALL_LED_ON_H, 0b00000000);
+        i2c->write8(i2cAddress, ALL_LED_OFF_H, 0b00000000);
+        AllBlack();
+
         // Clear Mode 1 register
         i2c->write8(i2cAddress, MODE1, 0b00000000);
 
@@ -42,17 +47,13 @@ void LedDriver::Init()
         i2c->write8(i2cAddress, MODE1, 0b00000000);
 
         // Set Mode 2 register
-        i2c->write8(i2cAddress, MODE2, 0b00000100);
+        i2c->write8(i2cAddress, MODE2, 0b00010100);
         /*
             INVRT = 1
             OUTDRV = 1
         */
 
-        // Turn all LEDs of 
-        i2c->write8(i2cAddress, ALL_LED_ON_H, 0b00000000);
-        i2c->write8(i2cAddress, ALL_LED_OFF_H, 0b00010000);
-
-        //PrintAllRegister();
+        PrintAllRegister();
 
         Serial.println("LED Driver initialized");
         init = true;
@@ -196,59 +197,59 @@ void LedDriver::HandleLEDStrip( uint8_t stripID,
     // Register for led strip 1
     if(stripID == 1)
     {
-        uint8_t CW_REG_ON_L     = LED3_ON_L;    //= LED6_ON_L;
-        uint8_t CW_REG_ON_H     = LED3_ON_H;    //= LED6_ON_H;
-        uint8_t CW_REG_OFF_L    = LED3_OFF_L;   //= LED6_OFF_L;
-        uint8_t CW_REG_OFF_H    = LED3_OFF_H;   //= LED6_OFF_H;
+        CW_REG_ON_L     = LED3_ON_L;    //= LED6_ON_L;
+        CW_REG_ON_H     = LED3_ON_H;    //= LED6_ON_H;
+        CW_REG_OFF_L    = LED3_OFF_L;   //= LED6_OFF_L;
+        CW_REG_OFF_H    = LED3_OFF_H;   //= LED6_OFF_H;
         // -- ww                
-        uint8_t WW_REG_ON_L     = LED5_ON_L;    //= LED7_ON_L;
-        uint8_t WW_REG_ON_H     = LED5_ON_H;    //= LED7_ON_H;
-        uint8_t WW_REG_OFF_L    = LED5_OFF_L;   //= LED7_OFF_L;
-        uint8_t WW_REG_OFF_H    = LED5_OFF_H;   //= LED7_OFF_H;
+        WW_REG_ON_L     = LED7_ON_L;    //= LED7_ON_L;
+        WW_REG_ON_H     = LED7_ON_H;    //= LED7_ON_H;
+        WW_REG_OFF_L    = LED7_OFF_L;   //= LED7_OFF_L;
+        WW_REG_OFF_H    = LED7_OFF_H;   //= LED7_OFF_H;
         // -- RED              
-        uint8_t RED_REG_ON_L    = LED4_ON_L;    //= LED3_ON_L;
-        uint8_t RED_REG_ON_H    = LED4_ON_H;    //= LED3_ON_H;
-        uint8_t RED_REG_OFF_L   = LED4_OFF_L;   //= LED3_OFF_L;
-        uint8_t RED_REG_OFF_H   = LED4_OFF_H;   //= LED3_OFF_H;
+        RED_REG_ON_L    = LED5_ON_L;    //= LED3_ON_L;
+        RED_REG_ON_H    = LED5_ON_H;    //= LED3_ON_H;
+        RED_REG_OFF_L   = LED5_OFF_L;   //= LED3_OFF_L;
+        RED_REG_OFF_H   = LED5_OFF_H;   //= LED3_OFF_H;
         // -- GREEN             
-        uint8_t GREEN_REG_ON_L  = LED5_ON_L;    //= LED4_ON_L;
-        uint8_t GREEN_REG_ON_H  = LED5_ON_H;    //= LED4_ON_H;
-        uint8_t GREEN_REG_OFF_L = LED5_OFF_L;   //= LED4_OFF_L;
-        uint8_t GREEN_REG_OFF_H = LED5_OFF_H;   //= LED4_OFF_H;
+        GREEN_REG_ON_L  = LED6_ON_L;    //= LED4_ON_L;
+        GREEN_REG_ON_H  = LED6_ON_H;    //= LED4_ON_H;
+        GREEN_REG_OFF_L = LED6_OFF_L;   //= LED4_OFF_L;
+        GREEN_REG_OFF_H = LED6_OFF_H;   //= LED4_OFF_H;
         // -- BLUE             
-        uint8_t BLUE_REG_ON_L   = LED6_ON_L;    //= LED5_ON_L;
-        uint8_t BLUE_REG_ON_H   = LED6_ON_H;    //= LED5_ON_H;
-        uint8_t BLUE_REG_OFF_L  = LED6_OFF_L;   //= LED5_OFF_L;
-        uint8_t BLUE_REG_OFF_H  = LED6_OFF_H;   //= LED5_OFF_H; 
+        BLUE_REG_ON_L   = LED4_ON_L;    //= LED5_ON_L;
+        BLUE_REG_ON_H   = LED4_ON_H;    //= LED5_ON_H;
+        BLUE_REG_OFF_L  = LED4_OFF_L;   //= LED5_OFF_L;
+        BLUE_REG_OFF_H  = LED4_OFF_H;   //= LED5_OFF_H; 
     }
 
     // Register for led strip 2
     if(stripID == 2)
     {
-        uint8_t CW_REG_ON_L     = LED8_ON_L;    //= LED1_ON_L;
-        uint8_t CW_REG_ON_H     = LED8_ON_H;    //= LED1_ON_H;
-        uint8_t CW_REG_OFF_L    = LED8_OFF_L;   //= LED1_OFF_L;
-        uint8_t CW_REG_OFF_H    = LED8_OFF_H;   //= LED1_OFF_H;
+        CW_REG_ON_L     = LED8_ON_L;    //= LED1_ON_L;
+        CW_REG_ON_H     = LED8_ON_H;    //= LED1_ON_H;
+        CW_REG_OFF_L    = LED8_OFF_L;   //= LED1_OFF_L;
+        CW_REG_OFF_H    = LED8_OFF_H;   //= LED1_OFF_H;
         // -- ww                
-        uint8_t WW_REG_ON_L     = 0x00; //= LED2_ON_L;
-        uint8_t WW_REG_ON_H     = 0x00; //= LED2_ON_H;
-        uint8_t WW_REG_OFF_L    = 0x00; //= LED2_OFF_L;
-        uint8_t WW_REG_OFF_H    = 0x00; //= LED2_OFF_H;
+        WW_REG_ON_L     = LED12_ON_L;   //= LED12_ON_L;
+        WW_REG_ON_H     = LED12_ON_H;   //= LED12_ON_H;
+        WW_REG_OFF_L    = LED12_OFF_L;  //= LED12_OFF_L;
+        WW_REG_OFF_H    = LED12_OFF_H;  //= LED12_OFF_H;
         // -- RED               
-        uint8_t RED_REG_ON_L    = LED9_ON_L;    //= LED8_ON_L;
-        uint8_t RED_REG_ON_H    = LED9_ON_H;    //= LED8_ON_H;
-        uint8_t RED_REG_OFF_L   = LED9_OFF_L;   //= LED8_OFF_L;
-        uint8_t RED_REG_OFF_H   = LED9_OFF_H;   //= LED8_OFF_H;
+        RED_REG_ON_L    = LED10_ON_L;    //= LED8_ON_L;
+        RED_REG_ON_H    = LED10_ON_H;    //= LED8_ON_H;
+        RED_REG_OFF_L   = LED10_OFF_L;   //= LED8_OFF_L;
+        RED_REG_OFF_H   = LED10_OFF_H;   //= LED8_OFF_H;
         // -- GREEN             
-        uint8_t GREEN_REG_ON_L  = LED10_ON_L;   //= LED9_ON_L;
-        uint8_t GREEN_REG_ON_H  = LED10_ON_H;   //= LED9_ON_H;
-        uint8_t GREEN_REG_OFF_L = LED10_OFF_L;  //= LED9_OFF_L;
-        uint8_t GREEN_REG_OFF_H = LED10_OFF_H;  //= LED9_OFF_H;
+        GREEN_REG_ON_L  = LED11_ON_L;   //= LED9_ON_L;
+        GREEN_REG_ON_H  = LED11_ON_H;   //= LED9_ON_H;
+        GREEN_REG_OFF_L = LED11_OFF_L;  //= LED9_OFF_L;
+        GREEN_REG_OFF_H = LED11_OFF_H;  //= LED9_OFF_H;
         // -- BLUE              
-        uint8_t BLUE_REG_ON_L   = LED1_ON_L;    //= LED10_ON_L;
-        uint8_t BLUE_REG_ON_H   = LED1_ON_H;    //= LED10_ON_H;
-        uint8_t BLUE_REG_OFF_L  = LED1_OFF_L;   //= LED10_OFF_L;
-        uint8_t BLUE_REG_OFF_H  = LED1_OFF_H;   //= LED10_OFF_H; 
+        BLUE_REG_ON_L   = LED9_ON_L;    //= LED10_ON_L;
+        BLUE_REG_ON_H   = LED9_ON_H;    //= LED10_ON_H;
+        BLUE_REG_OFF_L  = LED9_OFF_L;   //= LED10_OFF_L;
+        BLUE_REG_OFF_H  = LED9_OFF_H;   //= LED10_OFF_H; 
     }
     // Clear all 
 
@@ -258,9 +259,90 @@ void LedDriver::HandleLEDStrip( uint8_t stripID,
 
         // ---- Effect List
         case LEDEffect::None:
-            /*
-                All LEDs off
-            */
+            
+            if(power)
+            {
+                Serial.print("Test");
+                // Red
+                UpdateLEDChannel(   i2cAddress,
+                                    RED_REG_ON_L,
+                                    RED_REG_ON_H,
+                                    RED_REG_OFF_L,
+                                    RED_REG_OFF_H,
+                                    red,
+                                    brightness);
+                // Green
+                UpdateLEDChannel(   i2cAddress,
+                                    GREEN_REG_ON_L,
+                                    GREEN_REG_ON_H,
+                                    GREEN_REG_OFF_L,
+                                    GREEN_REG_OFF_H,
+                                    green,
+                                    brightness);
+                // Blue
+                UpdateLEDChannel(   i2cAddress,
+                                    BLUE_REG_ON_L,
+                                    BLUE_REG_ON_H,
+                                    BLUE_REG_OFF_L,
+                                    BLUE_REG_OFF_H,
+                                    blue,
+                                    brightness);
+
+                // Cold White
+                UpdateLEDChannel(   i2cAddress,
+                                    CW_REG_ON_L,
+                                    CW_REG_ON_H,
+                                    CW_REG_OFF_L,
+                                    CW_REG_OFF_H,
+                                    cw,
+                                    brightness);
+
+                // Cold White
+                UpdateLEDChannel(   i2cAddress,
+                                    CW_REG_ON_L,
+                                    CW_REG_ON_H,
+                                    CW_REG_OFF_L,
+                                    CW_REG_OFF_H,
+                                    cw,
+                                    brightness);
+            }
+            else
+            {
+                // Red
+                UpdateLEDChannel(   i2cAddress,
+                                    RED_REG_ON_L,
+                                    RED_REG_ON_H,
+                                    RED_REG_OFF_L,
+                                    RED_REG_OFF_H,
+                                    red,
+                                    0);
+                // Green
+                UpdateLEDChannel(   i2cAddress,
+                                    GREEN_REG_ON_L,
+                                    GREEN_REG_ON_H,
+                                    GREEN_REG_OFF_L,
+                                    GREEN_REG_OFF_H,
+                                    green,
+                                    0);
+                // Blue
+                UpdateLEDChannel(   i2cAddress,
+                                    BLUE_REG_ON_L,
+                                    BLUE_REG_ON_H,
+                                    BLUE_REG_OFF_L,
+                                    BLUE_REG_OFF_H,
+                                    blue,
+                                    0);
+
+                // Cold White
+                UpdateLEDChannel(   i2cAddress,
+                                    CW_REG_ON_L,
+                                    CW_REG_ON_H,
+                                    CW_REG_OFF_L,
+                                    CW_REG_OFF_H,
+                                    cw,
+                                    0);
+            }
+
             break;
 
         case LEDEffect::Alarm:
@@ -324,44 +406,6 @@ void LedDriver::HandleLEDStrip( uint8_t stripID,
             break;   
 
     };
-
-    // Check for Power
-    if(power)
-    {  
-        // WW ON
-        i2c->write8(i2cAddress, WW_REG_OFF_H, 0b00010000);
-        i2c->write8(i2cAddress, WW_REG_ON_H, 0b00000000);
-        // CW ON
-        i2c->write8(i2cAddress, CW_REG_OFF_H, 0b00010000);
-        i2c->write8(i2cAddress, CW_REG_ON_H, 0b00000000);
-        // RED ON
-        i2c->write8(i2cAddress, RED_REG_OFF_H, 0b00010000);
-        i2c->write8(i2cAddress, RED_REG_ON_H, 0b00000000);
-        // GREEN ON
-        i2c->write8(i2cAddress, GREEN_REG_OFF_H, 0b00010000);
-        i2c->write8(i2cAddress, GREEN_REG_ON_H, 0b00000000);
-        // BLUE ON
-        i2c->write8(i2cAddress, BLUE_REG_OFF_H, 0b00010000);
-        i2c->write8(i2cAddress, BLUE_REG_ON_H, 0b00000000);
-    }
-    else
-    {
-        // WW OFF
-        i2c->write8(i2cAddress, WW_REG_ON_H, 0b00010000);
-        i2c->write8(i2cAddress, WW_REG_OFF_H, 0b00000000);
-        // CW OFF
-        i2c->write8(i2cAddress, CW_REG_ON_H, 0b00010000);
-        i2c->write8(i2cAddress, CW_REG_OFF_H, 0b00000000);
-        // RED OFF
-        i2c->write8(i2cAddress, RED_REG_ON_H, 0b00010000);
-        i2c->write8(i2cAddress, RED_REG_OFF_H, 0b00000000);
-        // GREEN OFF
-        i2c->write8(i2cAddress, GREEN_REG_ON_H, 0b00010000);
-        i2c->write8(i2cAddress, GREEN_REG_OFF_H, 0b00000000);
-        // BLUE OFF
-        i2c->write8(i2cAddress, BLUE_REG_ON_H, 0b00010000);
-        i2c->write8(i2cAddress, BLUE_REG_OFF_H, 0b00000000);
-    }
     
 };
 
@@ -369,17 +413,37 @@ void LedDriver::HandleLEDStrip( uint8_t stripID,
 /**
  * Handels the control of a LED strip
  * @parameter None
- * @return None
+ * @return Nones
  **/
 void LedDriver::UpdateLEDChannel(   uint8_t i2cAddress,
-                                    uint8_t regAddress, 
+                                    uint8_t REG_ON_L,
+                                    uint8_t REG_ON_H,
+                                    uint8_t REG_OFF_L,
+                                    uint8_t REG_OFF_H,
                                     uint8_t colorValue, 
                                     uint8_t brightnessValue)
 {
-    // LED_ON_REG 12Bit 0000h - 0FFFh == 0 - 4095
-    // LED_OFF_REG 12Bit 0000h - 0FFFh == 0 - 4095
-    // With Delay get phase shift
+     /* 
+         LED_ON_REG 12Bit 0000h - 0FFFh == 0 - 4095
+         LED_OFF_REG 12Bit 0000h - 0FFFh == 0 - 4095
 
+         Phase shift only for RGB (NO CW or WW)
+     */
+    float color = colorValue;
+    float brightnessScale = (float)map(brightnessValue, 0, 255, 0, 100)/100.0;
+    uint16_t data = (uint16_t)map((color * brightnessScale), 0, 255, 0, 4095);
+    Serial.println("");
+    Serial.print("Data     : ");
+    Serial.println(data);
+    Serial.print("LowByte  : ");
+    PrintByte(lowByte(data));
+    Serial.print("HighByte : ");
+    PrintByte(highByte(data));
+
+    i2c->write8(i2cAddress, REG_ON_L, lowByte(data));
+    i2c->write8(i2cAddress, REG_ON_H, highByte(data));
+    i2c->write8(i2cAddress, REG_OFF_L, 0b11111111);
+    i2c->write8(i2cAddress, REG_OFF_H, 0b00001111);
 };
 
 
@@ -425,4 +489,19 @@ void LedDriver::PrintByte(byte b)
       Serial.print(bitRead(b, i));
     }
     Serial.println("");
+};
+
+
+/**
+ * Turns all LED Strips instant black
+ * @parameter None
+ * @return None
+ **/
+void LedDriver::AllBlack()
+{
+    // Strip 1
+    HandleLEDStrip( 1, false, 0, 0, 0, 0, 0, 0, LEDEffect::None);
+
+    // Strip 2
+    HandleLEDStrip( 2, false, 0, 0, 0, 0, 0, 0, LEDEffect::None);
 };

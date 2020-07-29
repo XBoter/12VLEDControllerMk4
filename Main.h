@@ -15,12 +15,11 @@
 #define Programmer  "Nico Weidenfeller"
 #define Created     "28.06.2020"
 #define LastModifed "29.07.2020"
-#define Version     "0.11.0"
+#define Version     "0.12.0"
 
 /*
-
-   ToDo           :  - Fix bug with power measurements reading zero from reg
-
+       ToDo   Fix bug with power measurements reading zero from reg
+       ToDo   Fix LED on when bootup
 */
 
 //++++ Global Defines ++++//

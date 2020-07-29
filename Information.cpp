@@ -344,7 +344,7 @@ void Information::FormatPrintMotionDetected(String motionDetected,
 
     // Sensor 2 Triggered
     InsertPrint();
-    Serial.println("PIR Sensor 2     : " + sensor2Triggered);
+    Serial.println("PIR Sensor 2    : " + sensor2Triggered);
 
     BottomSpacerPrint();
 };

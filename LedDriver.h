@@ -38,12 +38,16 @@ namespace LedControllerSoftwareMk5
                                 uint8_t blue,
                                 LEDEffect effect);
 
-        void UpdateLEDChannel(  uint8_t i2cAddress, 
-                                uint8_t regAddress,
-                                uint8_t colorValue,
+        void UpdateLEDChannel(  uint8_t i2cAddress,
+                                uint8_t REG_ON_L,
+                                uint8_t REG_ON_H,
+                                uint8_t REG_OFF_L,
+                                uint8_t REG_OFF_H,
+                                uint8_t colorValue, 
                                 uint8_t brightnessValue);
         void PrintAllRegister();
         void PrintByte(byte b);
+        void AllBlack();
 
     public:
         LedDriver(  uint8_t i2cAddress, 
