@@ -15,7 +15,7 @@
 #define Programmer  "Nico Weidenfeller"
 #define Created     "28.06.2020"
 #define LastModifed "29.07.2020"
-#define Version     "0.10.0"
+#define Version     "0.11.0"
 
 /*
 
@@ -23,26 +23,6 @@
 
    Bugs           :  -
 
-   Patchhistory   :  - Version 0.0.1
-                            Init Commit
-                     - Version 0.1.0
-                            Basic functions implemented
-                     - Version 0.2.0
-                            Bug fixes and added info print
-                     - Version 0.3.0
-                            Added mqtt electrical measurements publish and heartbeat mqtt publish.
-                     - Version 0.4.0
-                            Added functions comments to the i2c functions and added error info for write8 and write16
-                     - Version 0.5.0
-                            Added .gitingore and pca9685 test code
-                     - Version 0.7.0
-                            Added basic led control functions
-                     - Version 0.8.0
-                            Added PirReader for motion detection
-                     - Version 0.9.0
-                            Implemented led effect order
-                     - Version 0.10.0
-                            Added mqtt motion detection state update
 */
 
 //++++ Global Defines ++++//
