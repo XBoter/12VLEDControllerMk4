@@ -7,6 +7,7 @@
 #include "Network.h"
 #include "PCA9685_LED_Reg.h"
 #include "Enums.h"
+#include "Structs.h"
 
 namespace LedControllerSoftwareMk5
 {
@@ -19,7 +20,11 @@ namespace LedControllerSoftwareMk5
         I2C *i2c;
         PirReader *pirReader;
         Network *network;
-        Network memNetwork;
+        MotionData motionData;
+        LEDStripData curDataStrip1;
+        LEDStripData curDataStrip2;
+        LEDStripData prevDataStrip1;
+        LEDStripData prevDataStrip2;
         bool init = false;
         bool updateStrip1Reg = false;
         bool updateStrip2Reg = false;
@@ -29,14 +34,9 @@ namespace LedControllerSoftwareMk5
         // ## Functions ## //
     private:
         void HandleLEDStrip(    uint8_t stripID,
-                                bool power,
-                                uint8_t brightness,
-                                uint8_t cw,
-                                uint8_t ww,
-                                uint8_t red,
-                                uint8_t green,
-                                uint8_t blue,
-                                LEDEffect effect);
+                                MotionData motionData,
+                                LEDStripData curDataStrip,
+                                LEDStripData *prevDataStrip);
 
         void UpdateLEDChannel(  uint8_t i2cAddress,
                                 uint8_t REG_ON_L,
@@ -44,10 +44,22 @@ namespace LedControllerSoftwareMk5
                                 uint8_t REG_OFF_L,
                                 uint8_t REG_OFF_H,
                                 uint8_t colorValue, 
-                                uint8_t brightnessValue);
+                                uint16_t brightnessValue);
+
+        void FadeToColor(   uint8_t stripID,
+                            uint8_t colorFadeSpeed,
+                            uint8_t brightnessFadeSpeed,
+                            LEDStripData curDataStrip,
+                            LEDStripData *prevDataStrip);
+
+        void FadeToBlack(   uint8_t stripID,
+                            uint8_t colorFadeSpeed,
+                            uint8_t brightnessFadeSpeed,
+                            LEDStripData curDataStrip,
+                            LEDStripData *prevDataStrip);
+
         void PrintAllRegister();
         void PrintByte(byte b);
-        void AllBlack();
 
     public:
         LedDriver(  uint8_t i2cAddress, 
