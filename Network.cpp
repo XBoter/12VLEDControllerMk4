@@ -201,20 +201,10 @@ void Network::HandleMqtt()
 
             // ==== Specific ==== //
             // Strip 1
-            mqttClient.subscribe(mqtt_strip1_power_command);   
-            mqttClient.subscribe(mqtt_strip1_brightness_command); 
-            mqttClient.subscribe(mqtt_strip1_cold_white_value_command); 
-            mqttClient.subscribe(mqtt_strip1_warm_white_value_command); 
-            mqttClient.subscribe(mqtt_strip1_rgb_command); 
-            mqttClient.subscribe(mqtt_strip1_effect_command); 
+            mqttClient.subscribe(mqtt_strip1_json_command); 
 
             // Strip 2  
-            mqttClient.subscribe(mqtt_strip2_power_command);   
-            mqttClient.subscribe(mqtt_strip2_brightness_command); 
-            mqttClient.subscribe(mqtt_strip2_cold_white_value_command); 
-            mqttClient.subscribe(mqtt_strip2_warm_white_value_command); 
-            mqttClient.subscribe(mqtt_strip2_rgb_command); 
-            mqttClient.subscribe(mqtt_strip2_effect_command); 
+            mqttClient.subscribe(mqtt_strip2_json_command); 
 
             mqttState = MQTTState::SuperviseMqttConnection;
         }
@@ -387,34 +377,6 @@ LedControllerSoftwareMk5::LEDEffect StringToLEDEffect(String effect)
 
 
 /**
- * Updates the mqtt rgb color state for led strip 1
- * @parameter None
- * @return None
- **/
-void UpdateRGBColorStrip1()
-{
-    String str = String(mainController.network.parameter_led_strip_1_red_value) + "," + String(mainController.network.parameter_led_strip_1_green_value) + "," + String(mainController.network.parameter_led_strip_1_blue_value);
-    char _message[16];
-    strncpy(_message, str.c_str(), sizeof(_message));
-    mainController.network.mqttClient.publish(mqtt_strip1_rgb_state, _message);
-};
-
-
-/**
- * Updates the mqtt rgb color state for led strip 2
- * @parameter None
- * @return None
- **/
-void UpdateRGBColorStrip2()
-{
-    String str = String(mainController.network.parameter_led_strip_2_red_value) + "," + String(mainController.network.parameter_led_strip_2_green_value) + "," + String(mainController.network.parameter_led_strip_2_blue_value);
-    char _message[16];
-    strncpy(_message, str.c_str(), sizeof(_message));
-    mainController.network.mqttClient.publish(mqtt_strip2_rgb_state, _message);
-};
-
-
-/**
  * MQTT callback function.
  * Processes all the received commands from the subscribed topics
  * @parameter None
@@ -424,13 +386,17 @@ void mqttCallback(char *topic, byte *payload, unsigned int length)
 {
 
     //-- Get Message and add terminator
-    char message[length + 1];
+    char message[length + 1];       // Main data received
+    char memMessage[length + 1];    // Mem of main data because main data gets changed after json deserialize
     for (int i = 0; i < length; i++)
     {
         message[i] = (char)payload[i];
+        memMessage[i] = (char)payload[i];
     }
     message[length] = '\0';
+    memMessage[length] = '\0';
 
+    
     //######################################## mqtt_sun_command ########################################//
     if (String(mqtt_sun_command).equals(topic))
     {
@@ -446,8 +412,8 @@ void mqttCallback(char *topic, byte *payload, unsigned int length)
     {
         std::string hour_str    = strtok(message, ":");
         std::string minute_str  = strtok(NULL, "\0"); 
-        mainController.network.parameter_time_hour = atoi(hour_str.c_str());
-        mainController.network.parameter_time_minute = atoi(minute_str.c_str());
+        mainController.network.stTimeData.hour = atoi(hour_str.c_str());
+        mainController.network.stTimeData.minute = atoi(minute_str.c_str());
     }
 
     //######################################## mqtt_master_present_command ########################################//
@@ -476,7 +442,7 @@ void mqttCallback(char *topic, byte *payload, unsigned int length)
         uint8_t data = atoi(message);
         if (data >= 0 && data <= 1)
         {
-            mainController.network.paramter_motion_detection_power = (bool)data;
+            mainController.network.stMotionData.power = (bool)data;
         }
     }
     
@@ -486,17 +452,17 @@ void mqttCallback(char *topic, byte *payload, unsigned int length)
         uint8_t red = atoi(strtok(message, ",")); 
         if (red >= 0 && red <= 255)
         {
-            mainController.network.parameter_motion_red_value = red;
+            mainController.network.stMotionData.red = red;
         }
         uint8_t green = atoi(strtok(NULL, ",")); 
         if (green >= 0 && green <= 255)
         {
-            mainController.network.parameter_motion_green_value = green;
+            mainController.network.stMotionData.green = green;
         }
         uint8_t blue = atoi(strtok(NULL, ",")); 
         if (blue >= 0 && blue <= 255)
         {
-            mainController.network.parameter_motion_blue_value = blue;
+            mainController.network.stMotionData.blue = blue;
         }
     }
 
@@ -506,187 +472,161 @@ void mqttCallback(char *topic, byte *payload, unsigned int length)
         uint8_t data = atoi(message);
         if (data >= 0 && data <= 1000)
         {
-            mainController.network.parameter_motion_timeout = data;
+            mainController.network.stMotionData.timeout = data;
         }
     }
-
-    //######################################## mqtt_strip1_power_command ########################################//
-    if (String(mqtt_strip1_power_command).equals(topic))
+    
+    //######################################## mqtt_strip1_json_command ########################################//
+    if (String(mqtt_strip1_json_command).equals(topic))
     {
-        uint8_t data = atoi(message);
-        if (data >= 0 && data <= 1)
-        {
-            mainController.network.parameter_led_strip_1_power = (bool)data;
-            mainController.network.mqttClient.publish(mqtt_strip1_power_state, message);
-        }
-        UpdateRGBColorStrip1(); // HassIO 
-    }
 
-    //######################################## mqtt_strip1_brightness_command ########################################//
-    if (String(mqtt_strip1_brightness_command).equals(topic))
-    {
-        uint8_t data = atoi(message);
-        if (data >= 0 && data <= 255)
+        // Deserialize message
+        DeserializationError error = deserializeJson(mainController.network.doc, message);
+        if(error)
         {
-            mainController.network.parameter_led_strip_1_brightness = data;
-            mainController.network.mqttClient.publish(mqtt_strip1_brightness_state, message);
-        }
-        UpdateRGBColorStrip1(); // HassIO 
-    }
-
-    //######################################## mqtt_strip1_cold_white_value_command ########################################//
-    if (String(mqtt_strip1_cold_white_value_command).equals(topic))
-    {
-        uint8_t data = atoi(message);
-        if (data >= 0 && data <= 255)
-        {
-            mainController.network.parameter_led_strip_1_cold_white_value = data;
-            mainController.network.mqttClient.publish(mqtt_strip1_cold_white_value_state, message);
-        }
-        UpdateRGBColorStrip1(); // HassIO 
-    }
-
-    //######################################## mqtt_strip1_warm_white_value_command ########################################//
-    if (String(mqtt_strip1_warm_white_value_command).equals(topic))
-    {
-        uint8_t data = atoi(message);
-        if (data >= 0 && data <= 255)
-        {
-            mainController.network.parameter_led_strip_1_warm_white_value = data;
-            mainController.network.mqttClient.publish(mqtt_strip1_warm_white_value_state, message);
-        }
-        UpdateRGBColorStrip1(); // HassIO 
-    }
-
-        //######################################## mqtt_strip1_rgb_command ########################################//
-    if (String(mqtt_strip1_rgb_command).equals(topic))
-    {
-        uint8_t red = atoi(strtok(message, ",")); 
-        if (red >= 0 && red <= 255)
-        {
-            mainController.network.parameter_led_strip_1_red_value = red;
-        }
-        else
-        {
+            Serial.print("Deserialize JSON failed!");
+            Serial.println(error.c_str());
             return;
         }
-        uint8_t green = atoi(strtok(NULL, ",")); 
-        if (green >= 0 && green <= 255)
+
+        // ======== Power ======== //
+        JsonVariant state = mainController.network.doc["state"]; 
+        if(!state.isNull())
         {
-            mainController.network.parameter_led_strip_1_green_value = green;
+            if(mainController.network.doc["state"] == "ON")
+            {
+                mainController.network.stLedStrip1Data.power = true;
+            }
+            else
+            {
+                mainController.network.stLedStrip1Data.power = false;
+            }
         }
-        else
+
+        // ======== Brightness ======== //
+        JsonVariant brightness = mainController.network.doc["brightness"]; 
+        if(!brightness.isNull())
         {
+            mainController.network.stLedStrip1Data.brightness = brightness.as<uint16_t>();
+        }
+
+        // ======== White Value ======== //
+        JsonVariant white_value = mainController.network.doc["white_value"]; 
+        if(!white_value.isNull())
+        {
+            mainController.network.stLedStrip1Data.cw = white_value.as<uint8_t>();
+        }
+
+        // ======== Color ======== //
+        JsonVariant color = mainController.network.doc["color"]; 
+        if(!color.isNull())
+        {
+            // ==== Red ==== //
+            JsonVariant r = mainController.network.doc["color"]["r"]; 
+            if(!r.isNull())
+            {
+                mainController.network.stLedStrip1Data.red = r.as<uint8_t>();
+            }
+            // ==== Green ==== //
+            JsonVariant g = mainController.network.doc["color"]["g"]; 
+            if(!g.isNull())
+            {
+                mainController.network.stLedStrip1Data.green = g.as<uint8_t>();
+            }
+            // ==== Blue ==== //
+            JsonVariant b = mainController.network.doc["color"]["b"]; 
+            if(!b.isNull())
+            {
+                mainController.network.stLedStrip1Data.blue = b.as<uint8_t>();
+            }
+        }
+
+        // ======== Effect ======== //
+        JsonVariant effect = mainController.network.doc["effect"]; 
+        if(!effect.isNull())
+        {
+            mainController.network.stLedStrip1Data.effect = StringToLEDEffect(effect.as<String>());
+        }
+
+        // Send message back to mqtt state topic
+        mainController.network.mqttClient.publish(mqtt_strip1_json_state, memMessage);
+    }
+
+    //######################################## mqtt_strip1_json_command ########################################//
+    if (String(mqtt_strip2_json_command).equals(topic))
+    {
+        // Deserialize message
+        DeserializationError error = deserializeJson(mainController.network.doc, message);
+        if(error)
+        {
+            Serial.print("Deserialize JSON failed!");
+            Serial.println(error.c_str());
             return;
         }
-        uint8_t blue = atoi(strtok(NULL, ",")); 
-        if (blue >= 0 && blue <= 255)
-        {
-            mainController.network.parameter_led_strip_1_blue_value = blue;
-        }
-        else
-        {
-            return;
-        }
-        mainController.network.mqttClient.publish(mqtt_strip1_rgb_state, message);
-    }
 
-    //######################################## mqtt_strip1_effect_command ########################################//
-    if (String(mqtt_strip1_effect_command).equals(topic))
-    {
-        mainController.network.parameter_led_strip_1_effect = StringToLEDEffect(message);
-        mainController.network.mqttClient.publish(mqtt_strip1_effect_state, message);
-        UpdateRGBColorStrip1(); // HassIO 
-    }
+        // ======== Power ======== //
+        JsonVariant state = mainController.network.doc["state"]; 
+        if(!state.isNull())
+        {
+            if(mainController.network.doc["state"] == "ON")
+            {
+                mainController.network.stLedStrip2Data.power = true;
+            }
+            else
+            {
+                mainController.network.stLedStrip2Data.power = false;
+            }
+        }
 
-    //######################################## mqtt_strip2_power_command ########################################//
-    if (String(mqtt_strip2_power_command).equals(topic))
-    {
-        uint8_t data = atoi(message);
-        if (data >= 0 && data <= 1)
+        // ======== Brightness ======== //
+        JsonVariant brightness = mainController.network.doc["brightness"]; 
+        if(!brightness.isNull())
         {
-            mainController.network.parameter_led_strip_2_power = (bool)data;
-            mainController.network.mqttClient.publish(mqtt_strip2_power_state, message);
+            mainController.network.stLedStrip2Data.brightness = brightness.as<uint16_t>();
         }
-        UpdateRGBColorStrip2(); // HassIO 
-    }
 
-    //######################################## mqtt_strip2_brightness_command ########################################//
-    if (String(mqtt_strip2_brightness_command).equals(topic))
-    {
-        uint8_t data = atoi(message);
-        if (data >= 0 && data <= 255)
+        // ======== White Value ======== //
+        JsonVariant white_value = mainController.network.doc["white_value"]; 
+        if(!white_value.isNull())
         {
-            mainController.network.parameter_led_strip_2_brightness = data;
-            mainController.network.mqttClient.publish(mqtt_strip2_brightness_state, message);
+            mainController.network.stLedStrip2Data.cw = white_value.as<uint8_t>();
         }
-        UpdateRGBColorStrip2(); // HassIO 
-    }
 
-    //######################################## mqtt_strip2_cold_white_value_command ########################################//
-    if (String(mqtt_strip2_cold_white_value_command).equals(topic))
-    {
-        uint8_t data = atoi(message);
-        if (data >= 0 && data <= 255)
+        // ======== Color ======== //
+        JsonVariant color = mainController.network.doc["color"]; 
+        if(!color.isNull())
         {
-            mainController.network.parameter_led_strip_2_cold_white_value = data;
-            mainController.network.mqttClient.publish(mqtt_strip2_cold_white_value_state, message);
+            // ==== Red ==== //
+            JsonVariant r = mainController.network.doc["color"]["r"]; 
+            if(!r.isNull())
+            {
+                mainController.network.stLedStrip2Data.red = r.as<uint8_t>();
+            }
+            // ==== Green ==== //
+            JsonVariant g = mainController.network.doc["color"]["g"]; 
+            if(!g.isNull())
+            {
+                mainController.network.stLedStrip2Data.green = g.as<uint8_t>();
+            }
+            // ==== Blue ==== //
+            JsonVariant b = mainController.network.doc["color"]["b"]; 
+            if(!b.isNull())
+            {
+                mainController.network.stLedStrip2Data.blue = b.as<uint8_t>();
+            }
         }
-        UpdateRGBColorStrip2(); // HassIO 
-    }
 
-    //######################################## mqtt_strip2_warm_white_value_command ########################################//
-    if (String(mqtt_strip2_warm_white_value_command).equals(topic))
-    {
-        uint8_t data = atoi(message);
-        if (data >= 0 && data <= 255)
+        // ======== Effect ======== //
+        JsonVariant effect = mainController.network.doc["effect"]; 
+        if(!effect.isNull())
         {
-            mainController.network.parameter_led_strip_2_warm_white_value = data;
-            mainController.network.mqttClient.publish(mqtt_strip2_warm_white_value_state, message);
+            mainController.network.stLedStrip2Data.effect = StringToLEDEffect(effect.as<String>());
         }
-        UpdateRGBColorStrip2(); // HassIO 
-    }
 
-        //######################################## mqtt_strip2_rgb_command ########################################//
-    if (String(mqtt_strip2_rgb_command).equals(topic))
-    {
-        uint8_t red = atoi(strtok(message, ",")); 
-        if (red >= 0 && red <= 255)
-        {
-            mainController.network.parameter_led_strip_2_red_value = red;
-        }
-        else
-        {
-            return;
-        }
-        uint8_t green = atoi(strtok(NULL, ",")); 
-        if (green >= 0 && green <= 255)
-        {
-            mainController.network.parameter_led_strip_2_green_value = green;
-        }
-        else
-        {
-            return;
-        }
-        uint8_t blue = atoi(strtok(NULL, ",")); 
-        if (blue >= 0 && blue <= 255)
-        {
-            mainController.network.parameter_led_strip_2_blue_value = blue;
-        }
-        else
-        {
-            return;
-        }
-        mainController.network.mqttClient.publish(mqtt_strip2_rgb_state, message);
-    }
-
-    //######################################## mqtt_strip2_effect_command ########################################//
-    if (String(mqtt_strip2_effect_command).equals(topic))
-    {
-        mainController.network.parameter_led_strip_2_effect = StringToLEDEffect(message);
-        mainController.network.mqttClient.publish(mqtt_strip2_effect_state, message);
-        UpdateRGBColorStrip2(); // HassIO 
+        // Send message back to mqtt state topic
+        mainController.network.mqttClient.publish(mqtt_strip2_json_state, memMessage);
     }
 
 }
+
 

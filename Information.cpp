@@ -48,15 +48,15 @@ void Information::Run()
     }
 
     // -- Time
-    if( this->network->parameter_time_hour      != memNetwork.parameter_time_hour
-        || this->network->parameter_time_minute != memNetwork.parameter_time_minute)
+    if( this->network->stTimeData.hour      != memNetwork.stTimeData.hour
+        || this->network->stTimeData.minute != memNetwork.stTimeData.minute)
     {
         FormatPrintTime("Time", 
-                        String(this->network->parameter_time_hour), 
-                        String(this->network->parameter_time_minute));   
+                        String(this->network->stTimeData.hour), 
+                        String(this->network->stTimeData.minute));   
 
-        memNetwork.parameter_time_hour      = this->network->parameter_time_hour;
-        memNetwork.parameter_time_minute    = this->network->parameter_time_minute;
+        memNetwork.stTimeData.hour      = this->network->stTimeData.hour;
+        memNetwork.stTimeData.minute    = this->network->stTimeData.minute;
     }
 
     // -- Master
@@ -77,86 +77,89 @@ void Information::Run()
         memNetwork.parameter_pc_present = this->network->parameter_pc_present;
     }
 
+    
     // -- Motion Parameter
-    if( this->network->paramter_motion_detection_power  != memNetwork.paramter_motion_detection_power
-        || this->network->parameter_motion_red_value    != memNetwork.parameter_motion_red_value
-        || this->network->parameter_motion_green_value  != memNetwork.parameter_motion_green_value
-        || this->network->parameter_motion_blue_value   != memNetwork.parameter_motion_blue_value
-        || this->network->parameter_motion_timeout      != memNetwork.parameter_motion_timeout)
+    if( this->network->stMotionData.power       != memNetwork.stMotionData.power
+        || this->network->stMotionData.red      != memNetwork.stMotionData.red
+        || this->network->stMotionData.green    != memNetwork.stMotionData.green
+        || this->network->stMotionData.blue     != memNetwork.stMotionData.blue
+        || this->network->stMotionData.timeout  != memNetwork.stMotionData.timeout)
     {
         FormatPrintMotion(  "Motion Parameter", 
-                            BoolToString(this->network->paramter_motion_detection_power),
-                            String(this->network->parameter_motion_red_value ),
-                            String(this->network->parameter_motion_green_value),
-                            String(this->network->parameter_motion_blue_value),
-                            String(this->network->parameter_motion_timeout)); 
+                            BoolToString(this->network->stMotionData.power),
+                            String(this->network->stMotionData.red),
+                            String(this->network->stMotionData.green),
+                            String(this->network->stMotionData.blue),
+                            String(this->network->stMotionData.timeout)); 
 
-        memNetwork.paramter_motion_detection_power  = this->network->paramter_motion_detection_power;
-        memNetwork.parameter_motion_red_value       = this->network->parameter_motion_red_value;
-        memNetwork.parameter_motion_green_value     = this->network->parameter_motion_green_value;
-        memNetwork.parameter_motion_blue_value      = this->network->parameter_motion_blue_value;
-        memNetwork.parameter_motion_timeout         = this->network->parameter_motion_timeout;
+        memNetwork.stMotionData.power   = this->network->stMotionData.power;
+        memNetwork.stMotionData.red     = this->network->stMotionData.red;
+        memNetwork.stMotionData.green   = this->network->stMotionData.green;
+        memNetwork.stMotionData.blue    = this->network->stMotionData.blue;
+        memNetwork.stMotionData.timeout = this->network->stMotionData.timeout;
     }
 
+    
     // -- LED Strip 1
-    if( this->network->parameter_led_strip_1_power                  != memNetwork.parameter_led_strip_1_power
-        || this->network->parameter_led_strip_1_brightness          != memNetwork.parameter_led_strip_1_brightness
-        || this->network->parameter_led_strip_1_cold_white_value    != memNetwork.parameter_led_strip_1_cold_white_value
-        || this->network->parameter_led_strip_1_warm_white_value    != memNetwork.parameter_led_strip_1_warm_white_value
-        || this->network->parameter_led_strip_1_red_value           != memNetwork.parameter_led_strip_1_red_value
-        || this->network->parameter_led_strip_1_green_value         != memNetwork.parameter_led_strip_1_green_value
-        || this->network->parameter_led_strip_1_blue_value          != memNetwork.parameter_led_strip_1_blue_value
-        || this->network->parameter_led_strip_1_effect              != memNetwork.parameter_led_strip_1_effect)
+    if( this->network->stLedStrip1Data.power            != memNetwork.stLedStrip1Data.power
+        || this->network->stLedStrip1Data.brightness    != memNetwork.stLedStrip1Data.brightness
+        || this->network->stLedStrip1Data.cw            != memNetwork.stLedStrip1Data.cw
+        || this->network->stLedStrip1Data.ww            != memNetwork.stLedStrip1Data.ww
+        || this->network->stLedStrip1Data.red           != memNetwork.stLedStrip1Data.red
+        || this->network->stLedStrip1Data.green         != memNetwork.stLedStrip1Data.green
+        || this->network->stLedStrip1Data.blue          != memNetwork.stLedStrip1Data.blue
+        || this->network->stLedStrip1Data.effect        != memNetwork.stLedStrip1Data.effect)
     {
         FormatPrintLEDStrip("LED Strip 1", 
-                            BoolToString(this->network->parameter_led_strip_1_power),
-                            String(this->network->parameter_led_strip_1_brightness),
-                            String(this->network->parameter_led_strip_1_cold_white_value),
-                            String(this->network->parameter_led_strip_1_warm_white_value),
-                            String(this->network->parameter_led_strip_1_red_value),
-                            String(this->network->parameter_led_strip_1_green_value),
-                            String(this->network->parameter_led_strip_1_blue_value),
-                            EffectToString(this->network->parameter_led_strip_1_effect)); 
+                            BoolToString(this->network->stLedStrip1Data.power),
+                            String(this->network->stLedStrip1Data.brightness),
+                            String(this->network->stLedStrip1Data.cw),
+                            String(this->network->stLedStrip1Data.ww),
+                            String(this->network->stLedStrip1Data.red),
+                            String(this->network->stLedStrip1Data.green),
+                            String(this->network->stLedStrip1Data.blue),
+                            EffectToString(this->network->stLedStrip1Data.effect)); 
 
-        memNetwork.parameter_led_strip_1_power              = this->network->parameter_led_strip_1_power;
-        memNetwork.parameter_led_strip_1_brightness         = this->network->parameter_led_strip_1_brightness;
-        memNetwork.parameter_led_strip_1_cold_white_value   = this->network->parameter_led_strip_1_cold_white_value;
-        memNetwork.parameter_led_strip_1_warm_white_value   = this->network->parameter_led_strip_1_warm_white_value;
-        memNetwork.parameter_led_strip_1_red_value          = this->network->parameter_led_strip_1_red_value;
-        memNetwork.parameter_led_strip_1_green_value        = this->network->parameter_led_strip_1_green_value;
-        memNetwork.parameter_led_strip_1_blue_value         = this->network->parameter_led_strip_1_blue_value;
-        memNetwork.parameter_led_strip_1_effect             = this->network->parameter_led_strip_1_effect;
+        memNetwork.stLedStrip1Data.power        = this->network->stLedStrip1Data.power;
+        memNetwork.stLedStrip1Data.brightness   = this->network->stLedStrip1Data.brightness;
+        memNetwork.stLedStrip1Data.cw           = this->network->stLedStrip1Data.cw;
+        memNetwork.stLedStrip1Data.ww           = this->network->stLedStrip1Data.ww;
+        memNetwork.stLedStrip1Data.red          = this->network->stLedStrip1Data.red;
+        memNetwork.stLedStrip1Data.green        = this->network->stLedStrip1Data.green;
+        memNetwork.stLedStrip1Data.blue         = this->network->stLedStrip1Data.blue;
+        memNetwork.stLedStrip1Data.effect       = this->network->stLedStrip1Data.effect;
     }
 
     // -- LED Strip 2
-    if( this->network->parameter_led_strip_2_power                  != memNetwork.parameter_led_strip_2_power
-        || this->network->parameter_led_strip_2_brightness          != memNetwork.parameter_led_strip_2_brightness
-        || this->network->parameter_led_strip_2_cold_white_value    != memNetwork.parameter_led_strip_2_cold_white_value
-        || this->network->parameter_led_strip_2_warm_white_value    != memNetwork.parameter_led_strip_2_warm_white_value
-        || this->network->parameter_led_strip_2_red_value           != memNetwork.parameter_led_strip_2_red_value
-        || this->network->parameter_led_strip_2_green_value         != memNetwork.parameter_led_strip_2_green_value
-        || this->network->parameter_led_strip_2_blue_value          != memNetwork.parameter_led_strip_2_blue_value
-        || this->network->parameter_led_strip_2_effect              != memNetwork.parameter_led_strip_2_effect)
+    if( this->network->stLedStrip2Data.power            != memNetwork.stLedStrip2Data.power
+        || this->network->stLedStrip2Data.brightness    != memNetwork.stLedStrip2Data.brightness
+        || this->network->stLedStrip2Data.cw            != memNetwork.stLedStrip2Data.cw
+        || this->network->stLedStrip2Data.ww            != memNetwork.stLedStrip2Data.ww
+        || this->network->stLedStrip2Data.red           != memNetwork.stLedStrip2Data.red
+        || this->network->stLedStrip2Data.green         != memNetwork.stLedStrip2Data.green
+        || this->network->stLedStrip2Data.blue          != memNetwork.stLedStrip2Data.blue
+        || this->network->stLedStrip2Data.effect        != memNetwork.stLedStrip2Data.effect)
     {
         FormatPrintLEDStrip("LED Strip 2", 
-                            BoolToString(this->network->parameter_led_strip_2_power),
-                            String(this->network->parameter_led_strip_2_brightness),
-                            String(this->network->parameter_led_strip_2_cold_white_value),
-                            String(this->network->parameter_led_strip_2_warm_white_value),
-                            String(this->network->parameter_led_strip_2_red_value),
-                            String(this->network->parameter_led_strip_2_green_value),
-                            String(this->network->parameter_led_strip_2_blue_value),
-                            EffectToString(this->network->parameter_led_strip_2_effect)); 
+                            BoolToString(this->network->stLedStrip2Data.power),
+                            String(this->network->stLedStrip2Data.brightness),
+                            String(this->network->stLedStrip2Data.cw),
+                            String(this->network->stLedStrip2Data.ww),
+                            String(this->network->stLedStrip2Data.red),
+                            String(this->network->stLedStrip2Data.green),
+                            String(this->network->stLedStrip2Data.blue),
+                            EffectToString(this->network->stLedStrip2Data.effect)); 
 
-        memNetwork.parameter_led_strip_2_power              = this->network->parameter_led_strip_2_power;
-        memNetwork.parameter_led_strip_2_brightness         = this->network->parameter_led_strip_2_brightness;
-        memNetwork.parameter_led_strip_2_cold_white_value   = this->network->parameter_led_strip_2_cold_white_value;
-        memNetwork.parameter_led_strip_2_warm_white_value   = this->network->parameter_led_strip_2_warm_white_value;
-        memNetwork.parameter_led_strip_2_red_value          = this->network->parameter_led_strip_2_red_value;
-        memNetwork.parameter_led_strip_2_green_value        = this->network->parameter_led_strip_2_green_value;
-        memNetwork.parameter_led_strip_2_blue_value         = this->network->parameter_led_strip_2_blue_value;
-        memNetwork.parameter_led_strip_2_effect             = this->network->parameter_led_strip_2_effect;
+        memNetwork.stLedStrip2Data.power        = this->network->stLedStrip2Data.power;
+        memNetwork.stLedStrip2Data.brightness   = this->network->stLedStrip2Data.brightness;
+        memNetwork.stLedStrip2Data.cw           = this->network->stLedStrip2Data.cw;
+        memNetwork.stLedStrip2Data.ww           = this->network->stLedStrip2Data.ww;
+        memNetwork.stLedStrip2Data.red          = this->network->stLedStrip2Data.red;
+        memNetwork.stLedStrip2Data.green        = this->network->stLedStrip2Data.green;
+        memNetwork.stLedStrip2Data.blue         = this->network->stLedStrip2Data.blue;
+        memNetwork.stLedStrip2Data.effect       = this->network->stLedStrip2Data.effect;
     }
+    
 
     // -- Motion Detection
     if( this->pirReader->motionDetected         != memPirReader.motionDetected

@@ -2,6 +2,7 @@
 #ifndef MAIN_H_INCLUDE
 #define MAIN_H_INCLUDE
 
+
 #include "Arduino.h"
 #include "I2C.h"
 #include "PowerMeasurement.h"
@@ -14,13 +15,15 @@
 #define Name        "12V LED Controller Mk4"
 #define Programmer  "Nico Weidenfeller"
 #define Created     "28.06.2020"
-#define LastModifed "29.07.2020"
-#define Version     "0.12.1"
+#define LastModifed "30.07.2020"
+#define Version     "0.13.0"
 
 /*
-       ToDo   Fix bug with power measurements reading zero from reg
-       ToDo   Fix LED on when bootup
-       ToDo   Mqtt Reconnect Color Update etc
+      ToDo     Fix bug with power measurements reading zero from reg
+      ToDo     Fix LED on when bootup
+      ToDo     Mqtt Reconnect Color Update etc
+      ToDo     Move Mqtt Paths generation to repo
+      ToDo     Add ESP settings print on boot up
 */
 
 //++++ Global Defines ++++//
@@ -55,6 +58,5 @@ class Main
 };
 
 extern Main mainController;
-
 
 #endif

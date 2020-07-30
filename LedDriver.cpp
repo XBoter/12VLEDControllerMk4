@@ -74,6 +74,7 @@ void LedDriver::Run()
         return;
     }
 
+    /*
     // Handle led strip 1
     // Check for change in parameter
     if( network->parameter_led_strip_1_power                != memNetwork.parameter_led_strip_1_power
@@ -138,7 +139,7 @@ void LedDriver::Run()
         memNetwork.parameter_led_strip_2_blue_value         = network->parameter_led_strip_2_blue_value;
         memNetwork.parameter_led_strip_2_effect             = network->parameter_led_strip_2_effect;
     }
-
+    */
 
 };
 
