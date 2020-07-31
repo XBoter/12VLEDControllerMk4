@@ -21,7 +21,6 @@
 /*
       ToDo     Fix bug with power measurements reading zero from reg
       ToDo     Fix LED on when bootup
-      ToDo     Mqtt Reconnect Color Update etc
 */
 
 //++++ Global Defines ++++//

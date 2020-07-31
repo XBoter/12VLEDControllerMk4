@@ -100,12 +100,16 @@ void LedDriver::Run()
     // ---- Handle led strips
     // -- Strip 1
     HandleLEDStrip( 1,
+                    1,
+                    50,
                     motionData,
                     curDataStrip1,
                     &prevDataStrip1);
 
     // -- Strip 2
     HandleLEDStrip( 2,
+                    1,
+                    50,
                     motionData,
                     curDataStrip2,
                     &prevDataStrip2);
@@ -119,6 +123,8 @@ void LedDriver::Run()
  * @return None
  **/
 void LedDriver::HandleLEDStrip( uint8_t stripID,
+                                uint8_t colorFadeSpeed,
+                                uint8_t brightnessFadeSpeed,
                                 MotionData motionData,
                                 LEDStripData curDataStrip,
                                 LEDStripData *prevDataStrip)
@@ -135,20 +141,22 @@ void LedDriver::HandleLEDStrip( uint8_t stripID,
 
         // ---- Effect List
         case LEDEffect::None:
-            
+             /*
+                Normal mode with no restrictions 
+            */
             if(curDataStrip.power)
             {
                 FadeToColor(stripID,
-                            1,
-                            50,
+                            colorFadeSpeed,
+                            brightnessFadeSpeed,
                             curDataStrip,
                             prevDataStrip);
             }
             else
             {
                 FadeToBlack(stripID,
-                            1,
-                            50,
+                            colorFadeSpeed,
+                            brightnessFadeSpeed,
                             curDataStrip,
                             prevDataStrip);
             }
@@ -183,36 +191,153 @@ void LedDriver::HandleLEDStrip( uint8_t stripID,
             /*
                 Only red, green and blue LEDs
             */
+            // Disable CW and WW
+            curDataStrip.cw = 0;
+            curDataStrip.ww = 0;
+            if(curDataStrip.power)
+            {
+                FadeToColor(stripID,
+                            colorFadeSpeed,
+                            brightnessFadeSpeed,
+                            curDataStrip,
+                            prevDataStrip);
+            }
+            else
+            {
+                FadeToBlack(stripID,
+                            colorFadeSpeed,
+                            brightnessFadeSpeed,
+                            curDataStrip,
+                            prevDataStrip);
+            }
             break;
 
         case LEDEffect::CW:
             /*
                 Only cold white LEDs
             */
+            // Disable RGB and WW
+            curDataStrip.red = 0;
+            curDataStrip.green = 0;
+            curDataStrip.blue = 0;
+            curDataStrip.ww = 0;
+            if(curDataStrip.power)
+            {
+                FadeToColor(stripID,
+                            colorFadeSpeed,
+                            brightnessFadeSpeed,
+                            curDataStrip,
+                            prevDataStrip);
+            }
+            else
+            {
+                FadeToBlack(stripID,
+                            colorFadeSpeed,
+                            brightnessFadeSpeed,
+                            curDataStrip,
+                            prevDataStrip);
+            }
             break;
 
         case LEDEffect::WW:
             /*
                 Only warm white LEDs
             */
+            // Disable RGB and CW
+            curDataStrip.red = 0;
+            curDataStrip.green = 0;
+            curDataStrip.blue = 0;
+            curDataStrip.cw = 0;
+            if(curDataStrip.power)
+            {
+                FadeToColor(stripID,
+                            colorFadeSpeed,
+                            brightnessFadeSpeed,
+                            curDataStrip,
+                            prevDataStrip);
+            }
+            else
+            {
+                FadeToBlack(stripID,
+                            colorFadeSpeed,
+                            brightnessFadeSpeed,
+                            curDataStrip,
+                            prevDataStrip);
+            }
             break;
 
         case LEDEffect::RGBCW:
             /*
                 Only red, green, blue and cold white LEDs
             */
+           // Disable WW
+            curDataStrip.ww = 0;
+            if(curDataStrip.power)
+            {
+                FadeToColor(stripID,
+                            colorFadeSpeed,
+                            brightnessFadeSpeed,
+                            curDataStrip,
+                            prevDataStrip);
+            }
+            else
+            {
+                FadeToBlack(stripID,
+                            colorFadeSpeed,
+                            brightnessFadeSpeed,
+                            curDataStrip,
+                            prevDataStrip);
+            }
             break;
 
         case LEDEffect::RGBWW:
             /*
                 Only red, green, blue and warm white LEDs
             */
+            // Disable CW
+            curDataStrip.cw = 0;
+            if(curDataStrip.power)
+            {
+                FadeToColor(stripID,
+                            colorFadeSpeed,
+                            brightnessFadeSpeed,
+                            curDataStrip,
+                            prevDataStrip);
+            }
+            else
+            {
+                FadeToBlack(stripID,
+                            colorFadeSpeed,
+                            brightnessFadeSpeed,
+                            curDataStrip,
+                            prevDataStrip);
+            }
             break;
 
         case LEDEffect::CWWW:
             /*
                 Only cold white and warm white LEDs
             */
+            // Disable RGB
+            curDataStrip.red = 0;
+            curDataStrip.green = 0;
+            curDataStrip.blue = 0;
+            if(curDataStrip.power)
+            {
+                FadeToColor(stripID,
+                            colorFadeSpeed,
+                            brightnessFadeSpeed,
+                            curDataStrip,
+                            prevDataStrip);
+            }
+            else
+            {
+                FadeToBlack(stripID,
+                            colorFadeSpeed,
+                            brightnessFadeSpeed,
+                            curDataStrip,
+                            prevDataStrip);
+            }
             break;   
 
     };

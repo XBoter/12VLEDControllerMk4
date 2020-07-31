@@ -34,6 +34,8 @@ namespace LedControllerSoftwareMk5
         // ## Functions ## //
     private:
         void HandleLEDStrip(    uint8_t stripID,
+                                uint8_t colorFadeSpeed,
+                                uint8_t brightnessFadeSpeed,
                                 MotionData motionData,
                                 LEDStripData curDataStrip,
                                 LEDStripData *prevDataStrip);
