@@ -26,8 +26,6 @@ namespace LedControllerSoftwareMk5
         LEDStripData prevDataStrip1;
         LEDStripData prevDataStrip2;
         bool init = false;
-        bool updateStrip1Reg = false;
-        bool updateStrip2Reg = false;
 
     public:
 
@@ -54,6 +52,11 @@ namespace LedControllerSoftwareMk5
                             uint8_t brightnessFadeSpeed,
                             LEDStripData curDataStrip,
                             LEDStripData *prevDataStrip);
+
+        bool SetColor(  uint8_t stripID,
+                        uint8_t brightnessFadeSpeed,
+                        LEDStripData curDataStrip,
+                        LEDStripData *prevDataStrip);
 
         bool FadeToBlack(   uint8_t stripID,
                             uint8_t colorFadeSpeed,

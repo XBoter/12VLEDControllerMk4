@@ -144,15 +144,7 @@ bool LedDriver::TransitionToNewEffect(  uint8_t stripID,
                                     prevDataStrip);
     if(fadeFinished)
     {
-        // After fade finished reset all to 0
-        prevDataStrip->red          = 0;
-        prevDataStrip->green        = 0;
-        prevDataStrip->blue         = 0;
-        prevDataStrip->cw           = 0;
-        prevDataStrip->ww           = 0;
         prevDataStrip->brightness   = 0;
-
-        prevDataStrip->effect = curDataStrip.effect;
         return true;
     }
 
@@ -224,13 +216,28 @@ void LedDriver::HandleLEDStrip( uint8_t stripID,
     /*
         After effect transition is finished calls the new effect
     */
-    switch(prevDataStrip->effect)
+    switch(curDataStrip.effect)
     {
 
         case LEDEffect::NoMasterPresent:
             /*
                 Fades all color to black because master is not present
             */
+            // Check for effect change and update values
+            if(curDataStrip.effect != prevDataStrip->effect)
+            {
+                prevDataStrip->red      = 0;
+                prevDataStrip->green    = 0;
+                prevDataStrip->blue     = 0;
+                prevDataStrip->cw       = 0;
+                prevDataStrip->ww       = 0;
+                SetColor(   stripID,
+                            brightnessFadeSpeed,
+                            curDataStrip,
+                            prevDataStrip);
+                prevDataStrip->effect = curDataStrip.effect;
+            }
+
             FadeToBlack(stripID,
                         colorFadeSpeed,
                         brightnessFadeSpeed,
@@ -248,6 +255,16 @@ void LedDriver::HandleLEDStrip( uint8_t stripID,
             /*
                 Normal mode with no restrictions 
             */
+            // Check for effect change and update values
+            if(curDataStrip.effect != prevDataStrip->effect)
+            {
+                SetColor(   stripID,
+                            brightnessFadeSpeed,
+                            curDataStrip,
+                            prevDataStrip);
+                prevDataStrip->effect = curDataStrip.effect;
+            }
+
             if(curDataStrip.power)
             {
                 FadeToColor(stripID,
@@ -298,6 +315,19 @@ void LedDriver::HandleLEDStrip( uint8_t stripID,
             // Disable CW and WW
             curDataStrip.cw = 0;
             curDataStrip.ww = 0;
+            
+            // Check for effect change and update values
+            if(curDataStrip.effect != prevDataStrip->effect)
+            {
+                prevDataStrip->cw       = 0;
+                prevDataStrip->ww       = 0;
+                SetColor(   stripID,
+                            brightnessFadeSpeed,
+                            curDataStrip,
+                            prevDataStrip);
+                prevDataStrip->effect = curDataStrip.effect;
+            }
+            
             if(curDataStrip.power)
             {
                 FadeToColor(stripID,
@@ -325,6 +355,21 @@ void LedDriver::HandleLEDStrip( uint8_t stripID,
             curDataStrip.green = 0;
             curDataStrip.blue = 0;
             curDataStrip.ww = 0;
+            
+            // Check for effect change and update values
+            if(curDataStrip.effect != prevDataStrip->effect)
+            {
+                prevDataStrip->red      = 0;
+                prevDataStrip->green    = 0;
+                prevDataStrip->blue     = 0;
+                prevDataStrip->ww       = 0;
+                SetColor(   stripID,
+                            brightnessFadeSpeed,
+                            curDataStrip,
+                            prevDataStrip);
+                prevDataStrip->effect = curDataStrip.effect;
+            }
+            
             if(curDataStrip.power)
             {
                 FadeToColor(stripID,
@@ -352,6 +397,21 @@ void LedDriver::HandleLEDStrip( uint8_t stripID,
             curDataStrip.green = 0;
             curDataStrip.blue = 0;
             curDataStrip.cw = 0;
+            
+            // Check for effect change and update values
+            if(curDataStrip.effect != prevDataStrip->effect)
+            {
+                prevDataStrip->red      = 0;
+                prevDataStrip->green    = 0;
+                prevDataStrip->blue     = 0;
+                prevDataStrip->cw       = 0;
+                SetColor(   stripID,
+                            brightnessFadeSpeed,
+                            curDataStrip,
+                            prevDataStrip);
+                prevDataStrip->effect = curDataStrip.effect;
+            }
+            
             if(curDataStrip.power)
             {
                 FadeToColor(stripID,
@@ -374,8 +434,20 @@ void LedDriver::HandleLEDStrip( uint8_t stripID,
             /*
                 Only red, green, blue and cold white LEDs
             */
-           // Disable WW
+            // Disable WW
             curDataStrip.ww = 0;
+            
+            // Check for effect change and update values
+            if(curDataStrip.effect != prevDataStrip->effect)
+            {
+                prevDataStrip->ww       = 0;
+                SetColor(   stripID,
+                            brightnessFadeSpeed,
+                            curDataStrip,
+                            prevDataStrip);
+                prevDataStrip->effect = curDataStrip.effect;
+            }
+
             if(curDataStrip.power)
             {
                 FadeToColor(stripID,
@@ -400,6 +472,18 @@ void LedDriver::HandleLEDStrip( uint8_t stripID,
             */
             // Disable CW
             curDataStrip.cw = 0;
+
+            // Check for effect change and update values
+            if(curDataStrip.effect != prevDataStrip->effect)
+            {
+                prevDataStrip->cw       = 0;
+                SetColor(   stripID,
+                            brightnessFadeSpeed,
+                            curDataStrip,
+                            prevDataStrip);
+                prevDataStrip->effect = curDataStrip.effect;
+            }
+
             if(curDataStrip.power)
             {
                 FadeToColor(stripID,
@@ -426,6 +510,20 @@ void LedDriver::HandleLEDStrip( uint8_t stripID,
             curDataStrip.red = 0;
             curDataStrip.green = 0;
             curDataStrip.blue = 0;
+
+            // Check for effect change and update values
+            if(curDataStrip.effect != prevDataStrip->effect)
+            {
+                prevDataStrip->red      = 0;
+                prevDataStrip->green    = 0;
+                prevDataStrip->blue     = 0;
+                SetColor(   stripID,
+                            brightnessFadeSpeed,
+                            curDataStrip,
+                            prevDataStrip);
+                prevDataStrip->effect = curDataStrip.effect;
+            }
+
             if(curDataStrip.power)
             {
                 FadeToColor(stripID,
@@ -491,6 +589,28 @@ bool LedDriver::FadeToBlack(uint8_t stripID,
 };
 
 
+bool LedDriver::SetColor(   uint8_t stripID,
+                            uint8_t brightnessFadeSpeed,
+                            LEDStripData curDataStrip,
+                            LEDStripData *prevDataStrip)
+{
+    FadeToColor(stripID,
+                255,    // Set fade speed to max
+                brightnessFadeSpeed,
+                curDataStrip,
+                prevDataStrip);
+};
+
+
+/**
+ * Fades the colors of a led strip to a their new values
+ * @parameter stripID               Number of the led strip to fade the colors for
+ * @parameter colorFadeSpeed        The Speed with which the color gets faded to their new value
+ * @parameter brightnessFadeSpeed   The Speed with which the brightness gets faded to their new value
+ * @parameter curDataStrip          The new data for the led strip
+ * @parameter prevDataStrip         The current data of the led strip
+ * @return Fade finished or not
+ **/
 bool LedDriver::FadeToColor(uint8_t stripID,
                             uint8_t colorFadeSpeed,
                             uint8_t brightnessFadeSpeed,
@@ -889,6 +1009,7 @@ void LedDriver::UpdateLEDChannel(   uint8_t i2cAddress,
     }
     i2c->write8(i2cAddress, REG_OFF_L, lowByte(OFF_REG));
     i2c->write8(i2cAddress, REG_OFF_H, highByte(OFF_REG));
+
 };
 
 
