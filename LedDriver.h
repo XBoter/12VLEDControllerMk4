@@ -45,6 +45,7 @@ namespace LedControllerSoftwareMk5
                                 uint8_t REG_ON_H,
                                 uint8_t REG_OFF_L,
                                 uint8_t REG_OFF_H,
+                                uint16_t phaseShift,
                                 uint8_t colorValue, 
                                 uint16_t brightnessValue);
 

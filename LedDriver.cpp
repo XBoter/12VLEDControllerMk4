@@ -42,9 +42,9 @@ void LedDriver::Init()
         i2c->write8(i2cAddress, MODE1, 0b00000000);
 
         // Set Mode 2 register
-        i2c->write8(i2cAddress, MODE2, 0b00010100);
+        i2c->write8(i2cAddress, MODE2, 0b00000100);
         /*
-            INVRT = 1
+            INVRT = 0
             OUTDRV = 1
         */
 
@@ -505,36 +505,43 @@ bool LedDriver::FadeToColor(uint8_t stripID,
         return fadeFinished;
     }
 
+    // ---- Phase offset for each channel
+    uint16_t RED_PHASE_OFFSET   = 0;
+    uint16_t CW_PHASE_OFFSET    = 820;
+    uint16_t GREEN_PHASE_OFFSET = 1640;
+    uint16_t WW_PHASE_OFFSET    = 2460;
+    uint16_t BLUE_PHASE_OFFSET  = 3280;
+
     // ---- Register
     // -- CW
-    uint8_t CW_REG_ON_L = 0x00;
-    uint8_t CW_REG_ON_H = 0x00;
-    uint8_t CW_REG_OFF_L = 0x00;
-    uint8_t CW_REG_OFF_H = 0x00;
+    uint8_t CW_REG_ON_L     = 0x00;
+    uint8_t CW_REG_ON_H     = 0x00;
+    uint8_t CW_REG_OFF_L    = 0x00;
+    uint8_t CW_REG_OFF_H    = 0x00;
 
     // -- ww
-    uint8_t WW_REG_ON_L = 0x00;
-    uint8_t WW_REG_ON_H = 0x00;
-    uint8_t WW_REG_OFF_L = 0x00;
-    uint8_t WW_REG_OFF_H = 0x00;
+    uint8_t WW_REG_ON_L     = 0x00;
+    uint8_t WW_REG_ON_H     = 0x00;
+    uint8_t WW_REG_OFF_L    = 0x00;
+    uint8_t WW_REG_OFF_H    = 0x00;
 
     // -- RED
-    uint8_t RED_REG_ON_L = 0x00;
-    uint8_t RED_REG_ON_H = 0x00;
-    uint8_t RED_REG_OFF_L = 0x00;
-    uint8_t RED_REG_OFF_H = 0x00;
+    uint8_t RED_REG_ON_L    = 0x00;
+    uint8_t RED_REG_ON_H    = 0x00;
+    uint8_t RED_REG_OFF_L   = 0x00;
+    uint8_t RED_REG_OFF_H   = 0x00;
 
     // -- GREEN
-    uint8_t GREEN_REG_ON_L = 0x00;
-    uint8_t GREEN_REG_ON_H = 0x00;
+    uint8_t GREEN_REG_ON_L  = 0x00;
+    uint8_t GREEN_REG_ON_H  = 0x00;
     uint8_t GREEN_REG_OFF_L = 0x00;
     uint8_t GREEN_REG_OFF_H = 0x00;
 
     // -- BLUE
-    uint8_t BLUE_REG_ON_L = 0x00;
-    uint8_t BLUE_REG_ON_H = 0x00;
-    uint8_t BLUE_REG_OFF_L = 0x00;
-    uint8_t BLUE_REG_OFF_H = 0x00;
+    uint8_t BLUE_REG_ON_L   = 0x00;
+    uint8_t BLUE_REG_ON_H   = 0x00;
+    uint8_t BLUE_REG_OFF_L  = 0x00;
+    uint8_t BLUE_REG_OFF_H  = 0x00;
 
     // Register for led strip 1
     if(stripID == 1)
@@ -656,6 +663,7 @@ bool LedDriver::FadeToColor(uint8_t stripID,
                             RED_REG_ON_H,
                             RED_REG_OFF_L,
                             RED_REG_OFF_H,
+                            RED_PHASE_OFFSET,
                             prevDataStrip->red,
                             prevDataStrip->brightness);
     }
@@ -690,6 +698,7 @@ bool LedDriver::FadeToColor(uint8_t stripID,
                             GREEN_REG_ON_H,
                             GREEN_REG_OFF_L,
                             GREEN_REG_OFF_H,
+                            GREEN_PHASE_OFFSET,
                             prevDataStrip->green,
                             prevDataStrip->brightness);
     }
@@ -724,6 +733,7 @@ bool LedDriver::FadeToColor(uint8_t stripID,
                             BLUE_REG_ON_H,
                             BLUE_REG_OFF_L,
                             BLUE_REG_OFF_H,
+                            BLUE_PHASE_OFFSET,
                             prevDataStrip->blue,
                             prevDataStrip->brightness);
     }
@@ -759,6 +769,7 @@ bool LedDriver::FadeToColor(uint8_t stripID,
                             CW_REG_ON_H,
                             CW_REG_OFF_L,
                             CW_REG_OFF_H,
+                            CW_PHASE_OFFSET,
                             prevDataStrip->cw,
                             prevDataStrip->brightness);
     }
@@ -793,6 +804,7 @@ bool LedDriver::FadeToColor(uint8_t stripID,
                             WW_REG_ON_H,
                             WW_REG_OFF_L,
                             WW_REG_OFF_H,
+                            WW_PHASE_OFFSET,
                             prevDataStrip->ww,
                             prevDataStrip->brightness);
     }
@@ -823,29 +835,60 @@ void LedDriver::UpdateLEDChannel(   uint8_t i2cAddress,
                                     uint8_t REG_ON_H,
                                     uint8_t REG_OFF_L,
                                     uint8_t REG_OFF_H,
+                                    uint16_t phaseShift,
                                     uint8_t colorValue, 
                                     uint16_t brightnessValue)
 {
     /* 
+        LED_ON => Value at which the LED is ON
         LED_ON_REG 12Bit 0000h - 0FFFh == 0 - 4095
+            REG_ON_L 0-7Bit 00h - ffh
+            REG_ON_H 0-3Bit 00h - 0fh
+
+        LED_OFF => Value at which the LED is OFF
         LED_OFF_REG 12Bit 0000h - 0FFFh == 0 - 4095
-        Phase shift only for RGB (NO CW or WW)
+            REG_OFF_L 0-7Bit 00h - ffh
+            REG_OFF_H 0-3Bit 00h - 0fh
     */
 
-    double brightnessScale = (double)brightnessValue / 4095.0;
+    /*
+        brightnessScale => Value between 0.0 - 1.0 
+    */
+    double brightnessScale = 0.0;
+    if(brightnessValue != 0)
+    {
+        brightnessScale = (double)brightnessValue / 4095.0;
+    }
+    /*
+        data => Value between 0 - 4095 
+    */
     uint16_t data = (uint16_t)(map(((double)colorValue * brightnessScale), 0, 255, 0, 4095));
-    //Serial.println("");
-    //Serial.print("Data     : ");
-    //Serial.println(data);
-    //Serial.print("LowByte  : ");
-    //PrintByte(lowByte(data));
-    //Serial.print("HighByte : ");
-    //PrintByte(highByte(data));
+    /*
+        dataScale => Value between 0.0 - 1.0
+    */
+    double dataScale = 0.0;
+    if(data != 0)
+    {
+        dataScale = (double)data / 4095.0;
+    }
 
-    i2c->write8(i2cAddress, REG_ON_L, lowByte(data));
-    i2c->write8(i2cAddress, REG_ON_H, highByte(data));
-    i2c->write8(i2cAddress, REG_OFF_L, 0b11111111);
-    i2c->write8(i2cAddress, REG_OFF_H, 0b00001111);
+    // LED_ON_REG
+    uint16_t ON_REG = phaseShift;
+    i2c->write8(i2cAddress, REG_ON_L, lowByte(ON_REG));
+    i2c->write8(i2cAddress, REG_ON_H, highByte(ON_REG));
+
+    // LED_OFF_REG
+    uint16_t OFF_REG = 0;
+    if((uint16_t)4095.0 * dataScale + phaseShift <= 4095.0)
+    {
+        OFF_REG = (uint16_t)4095.0 * dataScale + phaseShift;
+    }
+    else
+    {
+        OFF_REG = (uint16_t)4095.0 * dataScale + phaseShift - 4096;
+    }
+    i2c->write8(i2cAddress, REG_OFF_L, lowByte(OFF_REG));
+    i2c->write8(i2cAddress, REG_OFF_H, highByte(OFF_REG));
 };
 
 
