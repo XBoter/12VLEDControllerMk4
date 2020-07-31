@@ -16,12 +16,12 @@
 #define Programmer  "Nico Weidenfeller"
 #define Created     "28.06.2020"
 #define LastModifed "31.07.2020"
-#define Version     "0.15.0"
+#define Version     "0.16.0"
 
 /*
       ToDo     Fix bug with power measurements reading zero from reg
       ToDo     Fix LED on when bootup
-      ToDo     Add time server for better accuracy
+      ToDo     Add NTP Summer/Winter time swap => For now only Winter Time 
 */
 
 //++++ Global Defines ++++//

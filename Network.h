@@ -3,7 +3,9 @@
 
 #include <Arduino.h>
 #include "PubSubClient.h"
+#include "NTPClient.h"
 #include <ESP8266WiFi.h>
+#include <WiFiUdp.h>
 #include "Enums.h"
 #include "Structs.h"
 #include "ArduinoJson-v6.15.2.h"
@@ -16,6 +18,9 @@ namespace LedControllerSoftwareMk5
         // ## Data ## //
     private:
         WiFiClient wifiMqtt;
+        WiFiUDP ntpUDP;
+        const long utcOffsetInSeconds = 3600;   // UTC +1 (Germany) => 1 * 60 * 60 => 3600
+        NTPClient timeClient = NTPClient(ntpUDP, "europe.pool.ntp.org", utcOffsetInSeconds);
 
         unsigned long PrevMillis_WiFiTimeout = 0;
         unsigned long PrevMillis_MQTTTimeout = 0;
@@ -59,6 +64,7 @@ namespace LedControllerSoftwareMk5
     private:
         void HandleWifi();
         void HandleMqtt();
+        void HandleNTP();
         void Heartbeat();
         void MqttUpdateAfterDc( LEDStripData ledStripData,
                                 const char* topic);

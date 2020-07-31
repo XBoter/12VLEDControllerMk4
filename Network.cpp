@@ -41,6 +41,8 @@ void Network::Init()
     mqttClient.setClient(wifiMqtt);
     mqttClient.setServer(MQTT_SERVER, MQTT_PORT);
     mqttClient.setCallback(mqttCallback);
+
+    timeClient.begin();
     Serial.println("Network initialized");
 };
 
@@ -107,6 +109,9 @@ void Network::Run()
         }
         mqttOneTimePrint = false;
     }
+
+    // -- NTP
+    HandleNTP();
 
     // -- Heartbeat
     Heartbeat();
@@ -187,9 +192,6 @@ void Network::HandleMqtt()
             // Sun
             mqttClient.subscribe(mqtt_sun_command);   
 
-            // Time
-            mqttClient.subscribe(mqtt_time_command);   
-
             // Master
             mqttClient.subscribe(mqtt_master_present_command);   
             
@@ -251,6 +253,30 @@ void Network::HandleMqtt()
         Serial.println("Mqtt State Error!");
         break;
     }
+};
+
+
+/**
+ * Handles the Network Time Protocol for accurate time updates
+ * @parameter None
+ * @return None
+ **/
+void Network::HandleNTP()
+{
+    // Get Time update
+    bool updateSuccessful = timeClient.update();
+
+    if(updateSuccessful)
+    {
+        stTimeData.hour = timeClient.getHours();
+        stTimeData.minute = timeClient.getMinutes();
+        stTimeData.second = timeClient.getSeconds();
+    }
+    else
+    {
+        Serial.println("NTP Time Update Failed!!!");
+    }
+    
 };
 
 
@@ -499,15 +525,6 @@ void mqttCallback(char *topic, byte *payload, unsigned int length)
         {
             mainController.network.parameter_sun = (bool)data;
         }
-    }
-
-    //######################################## mqtt_time_command ########################################//
-    if (String(mqtt_time_command).equals(topic))
-    {
-        std::string hour_str    = strtok(message, ":");
-        std::string minute_str  = strtok(NULL, "\0"); 
-        mainController.network.stTimeData.hour = atoi(hour_str.c_str());
-        mainController.network.stTimeData.minute = atoi(minute_str.c_str());
     }
 
     //######################################## mqtt_master_present_command ########################################//

@@ -32,7 +32,8 @@ namespace LedControllerSoftwareMk5
 
         void FormatPrintTime(   String name, 
                                 String hour, 
-                                String minute);
+                                String minute,
+                                String second);
 
         void FormatPrintLEDStrip(   String name, 
                                     String power, 

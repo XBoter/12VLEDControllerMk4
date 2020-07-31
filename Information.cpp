@@ -49,14 +49,17 @@ void Information::Run()
 
     // -- Time
     if( this->network->stTimeData.hour      != memNetwork.stTimeData.hour
-        || this->network->stTimeData.minute != memNetwork.stTimeData.minute)
+        || this->network->stTimeData.minute != memNetwork.stTimeData.minute
+        || this->network->stTimeData.second != memNetwork.stTimeData.second)
     {
         FormatPrintTime("Time", 
                         String(this->network->stTimeData.hour), 
-                        String(this->network->stTimeData.minute));   
+                        String(this->network->stTimeData.minute),
+                        String(this->network->stTimeData.second));   
 
         memNetwork.stTimeData.hour      = this->network->stTimeData.hour;
         memNetwork.stTimeData.minute    = this->network->stTimeData.minute;
+        memNetwork.stTimeData.second    = this->network->stTimeData.second;
     }
 
     // -- Master
@@ -207,7 +210,8 @@ void Information::FormatPrintSingle(String name,
  **/
 void Information::FormatPrintTime(  String name, 
                                     String hour, 
-                                    String minute)
+                                    String minute,
+                                    String second)
 {   
     TopSpacerPrint();
 
@@ -217,7 +221,9 @@ void Information::FormatPrintTime(  String name,
     
     // Parameter value
     InsertPrint();
-    Serial.println("Value : " + hour + ":" + minute);
+    Serial.println("Hour    : " + hour);
+    Serial.println("Minute  : " + minute);
+    Serial.println("Second  : " + second);
 
     BottomSpacerPrint();
 };

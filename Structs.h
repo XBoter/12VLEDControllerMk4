@@ -9,6 +9,7 @@ namespace LedControllerSoftwareMk5
     struct TimeData{
         uint8_t hour = 0;
         uint8_t minute = 0;
+        uint8_t second = 0;
     };
 
     struct MotionData{
