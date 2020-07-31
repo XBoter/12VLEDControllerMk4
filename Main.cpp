@@ -18,6 +18,7 @@ void Main::_setup()
     delay(100);
 
     // Info and Version print
+    Serial.println("# ======================== #");
     Serial.print("Name          : ");
     Serial.println(Name);
     Serial.print("Programmer    : ");
@@ -28,7 +29,9 @@ void Main::_setup()
     Serial.println(LastModifed);
     Serial.print("Version       : ");
     Serial.println(Version);
+    Serial.println("# ======================== #");
     Serial.println("");
+
 
     // Init
     i2c.Init();

@@ -22,8 +22,6 @@
       ToDo     Fix bug with power measurements reading zero from reg
       ToDo     Fix LED on when bootup
       ToDo     Mqtt Reconnect Color Update etc
-      ToDo     Move Mqtt Paths generation to repo
-      ToDo     Add ESP settings print on boot up
 */
 
 //++++ Global Defines ++++//

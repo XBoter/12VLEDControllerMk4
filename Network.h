@@ -60,14 +60,17 @@ namespace LedControllerSoftwareMk5
         void HandleWifi();
         void HandleMqtt();
         void Heartbeat();
+        void MqttUpdateAfterDc( LEDStripData ledStripData,
+                                const char* topic);
 
     public:
+  
         Network();
         void Init();
         void Run();
-        void ElectricalMeasurementPowerUpdate(double powerValue);
-        void ElectricalMeasurementVoltageUpdate(double voltageValue);
-        void ElectricalMeasurementCurrentUpdate(double currentValue);
+        void ElectricalMeasurementUpdate(   double currentPower,
+                                            double busVoltage,
+                                            double busCurrent);
         void MotionDetectedUpdate(bool motion);
     };
 

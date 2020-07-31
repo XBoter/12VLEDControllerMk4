@@ -93,8 +93,8 @@ void PowerMeasurement::Run()
         }
 
         // Publish update to mqtt
-        this->network->ElectricalMeasurementPowerUpdate(valuePower_mW);
-        this->network->ElectricalMeasurementVoltageUpdate(valueBus_V);
-        this->network->ElectricalMeasurementCurrentUpdate(valueCurrent_mA);
+        this->network->ElectricalMeasurementUpdate( valuePower_mW,
+                                                    valueBus_V,
+                                                    valueCurrent_mA);
     }
 }

@@ -27,6 +27,8 @@ Network::Network()
 
 // For compiler
 void mqttCallback(char *topic, byte *payload, unsigned int length);
+LedControllerSoftwareMk5::LEDEffect StringToLEDEffect(String effect);
+String LEDEffectToString(LedControllerSoftwareMk5::LEDEffect effect);
 
 
 /**
@@ -206,6 +208,10 @@ void Network::HandleMqtt()
             // Strip 2  
             mqttClient.subscribe(mqtt_strip2_json_command); 
 
+            // Publish mqtt update about current led data
+            MqttUpdateAfterDc(stLedStrip1Data, mqtt_strip1_json_state);
+            MqttUpdateAfterDc(stLedStrip2Data, mqtt_strip2_json_state);
+
             mqttState = MQTTState::SuperviseMqttConnection;
         }
         break;
@@ -269,41 +275,26 @@ void Network::Heartbeat()
 
 
 /**
- * Publishes a electrical measurement power update to the defined mqtt path
- * @parameter power value in mW
- * @return Power value
+ * Publishes a electrical measurement update in json format
+ * @parameter currentPower in mW to send
+ * @parameter busVoltage in V to send
+ * @parameter busCurrent in mA
+ * @return None
  **/
-void Network::ElectricalMeasurementPowerUpdate(double powerValue)
+void Network::ElectricalMeasurementUpdate(  double currentPower,
+                                            double busVoltage,
+                                            double busCurrent)
 {
-    char message[8];
-    dtostrf(powerValue, 6, 2, message);
-    mqttClient.publish(mqtt_electrical_measurement_power_state, message);
-};
+    // Create json message
+    StaticJsonDocument<256> doc;
+    doc["currentPower"]  = currentPower;
+    doc["busVoltage"]    = busVoltage;
+    doc["busCurrent"]    = busCurrent;
 
-
-/**
- * Publishes a electrical measurement voltage update to the defined mqtt path
- * @parameter bus voltage in volt
- * @return Voltage value
- **/
-void Network::ElectricalMeasurementVoltageUpdate(double voltageValue)
-{
-    char message[8];
-    dtostrf(voltageValue, 6, 2, message);
-    mqttClient.publish(mqtt_electrical_measurement_voltage_state, message);
-};
-
-
-/**
- * Publishes a electrical measurement current update to the defined mqtt path
- * @parameter current in mA
- * @return Current value
- **/
-void Network::ElectricalMeasurementCurrentUpdate(double currentValue)
-{
-    char message[8];
-    dtostrf(currentValue, 6, 2, message);
-    mqttClient.publish(mqtt_electrical_measurement_current_state, message);
+    // Serialize json message and send
+    char message[256];
+    serializeJson(doc, message);
+    mqttClient.publish(mqtt_electrical_measurement_json_state, message);
 };
 
 
@@ -321,6 +312,39 @@ void Network::MotionDetectedUpdate(bool motion)
 
 
 /**
+ * Updates the current ledStripData to a mqtt topic in json format
+ * @parameter ledStripData LEDStripData struct to send
+ * @parameter topic Mqtt topic to send to
+ * @return None
+ **/
+void Network::MqttUpdateAfterDc(LEDStripData ledStripData,
+                                const char* topic)
+{
+    // Create json message
+    StaticJsonDocument<256> doc;
+    if(ledStripData.power)
+    {
+        doc["state"] = "ON";
+    }
+    else
+    {
+        doc["state"] = "OFF";   
+    }
+    doc["brightness"]   = ledStripData.brightness;
+    doc["color"]["r"]   = ledStripData.red;
+    doc["color"]["g"]   = ledStripData.green;
+    doc["color"]["b"]   = ledStripData.blue;
+    doc["white_value"]  = ledStripData.cw;
+    doc["effect"]       = LEDEffectToString(ledStripData.effect);
+    
+    // Serialize json message and send
+    char message[256];
+    serializeJson(doc, message);
+    mqttClient.publish(topic, message);
+};
+
+
+/**
  * Converts a string to a LEDEffect
  * @parameter name of effect in string
  * @return effect in LEDEffect
@@ -332,45 +356,113 @@ LedControllerSoftwareMk5::LEDEffect StringToLEDEffect(String effect)
     {
         return LedControllerSoftwareMk5::LEDEffect::None;
     }
-    if(effect == "Alarm")
+    else if(effect == "Alarm")
     {
         return LedControllerSoftwareMk5::LEDEffect::Alarm;
     }
-    if(effect == "Music")
+    else if(effect == "Music")
     {
         return LedControllerSoftwareMk5::LEDEffect::Music;
     }
-    if(effect == "Sleep")
+    else if(effect == "Sleep")
     {
         return LedControllerSoftwareMk5::LEDEffect::Sleep;
     }
-    if(effect == "Weekend")
+    else if(effect == "Weekend")
     {
         return LedControllerSoftwareMk5::LEDEffect::Weekend;
     }
-    if(effect == "RGB")
+    else if(effect == "RGB")
     {
         return LedControllerSoftwareMk5::LEDEffect::RGB;
     }
-    if(effect == "CW")
+    else if(effect == "CW")
     {
         return LedControllerSoftwareMk5::LEDEffect::CW;
     }
-    if(effect == "WW")
+    else if(effect == "WW")
     {
         return LedControllerSoftwareMk5::LEDEffect::WW;
     }
-    if(effect == "RGBCW")
+    else if(effect == "RGBCW")
     {
         return LedControllerSoftwareMk5::LEDEffect::RGBCW;
     }
-    if(effect == "RGBWW")
+    else if(effect == "RGBWW")
     {
         return LedControllerSoftwareMk5::LEDEffect::RGBWW;
     }
-    if(effect == "CWWW")
+    else if(effect == "CWWW")
     {
         return LedControllerSoftwareMk5::LEDEffect::CWWW;
+    }
+    else // default
+    {
+        return LedControllerSoftwareMk5::LEDEffect::None;
+    }
+
+};
+
+
+/**
+ * Converts a LEDEffect to a string
+ * @parameter LEDEffect
+ * @return effect in string
+ **/
+String LEDEffectToString(LedControllerSoftwareMk5::LEDEffect effect)
+{
+
+    switch(effect)
+    {
+
+        case LedControllerSoftwareMk5::LEDEffect::None:
+            return "None";
+            break;
+
+        case LedControllerSoftwareMk5::LEDEffect::Alarm:
+            return "Alarm";
+            break;
+
+        case LedControllerSoftwareMk5::LEDEffect::Music:
+            return "Music";
+            break;
+
+        case LedControllerSoftwareMk5::LEDEffect::Sleep:
+            return "Sleep";
+            break;
+
+        case LedControllerSoftwareMk5::LEDEffect::Weekend:
+            return "Weekend";
+            break;
+
+        case LedControllerSoftwareMk5::LEDEffect::RGB:
+            return "RGB";
+            break;
+
+        case LedControllerSoftwareMk5::LEDEffect::CW:
+            return "CW";
+            break;
+
+        case LedControllerSoftwareMk5::LEDEffect::WW:
+            return "WW";
+            break;
+
+        case LedControllerSoftwareMk5::LEDEffect::RGBCW:
+            return "RGBCW";
+            break;
+
+        case LedControllerSoftwareMk5::LEDEffect::RGBWW:
+            return "RGBWW";
+            break;
+
+        case LedControllerSoftwareMk5::LEDEffect::CWWW:
+            return "CWWW";
+            break;
+
+        default:
+            return "None";
+            break;
+
     }
 
 };
@@ -379,7 +471,9 @@ LedControllerSoftwareMk5::LEDEffect StringToLEDEffect(String effect)
 /**
  * MQTT callback function.
  * Processes all the received commands from the subscribed topics
- * @parameter None
+ * @parameter *topic A pointer to a char array containing the mqtt topic that calles this function with new data
+ * @parameter *payload A pointer to a byte array with data send over the mqtt topic
+ * @parameter length Length of the byte data array
  * @return None
  **/
 void mqttCallback(char *topic, byte *payload, unsigned int length)
