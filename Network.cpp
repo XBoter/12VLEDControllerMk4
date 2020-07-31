@@ -272,10 +272,6 @@ void Network::HandleNTP()
         stTimeData.minute = timeClient.getMinutes();
         stTimeData.second = timeClient.getSeconds();
     }
-    else
-    {
-        Serial.println("NTP Time Update Failed!!!");
-    }
     
 };
 
