@@ -513,10 +513,14 @@ void mqttCallback(char *topic, byte *payload, unsigned int length)
     //######################################## mqtt_master_present_command ########################################//
     if (String(mqtt_master_present_command).equals(topic))
     {
-        uint8_t data = atoi(message);
-        if (data >= 0 && data <= 1)
+        String temp_message = strtok(message, "\0");
+        if(temp_message.equals("home"))
         {
-            mainController.network.parameter_master_present = (bool)data;
+            mainController.network.parameter_master_present = true;
+        }
+        else
+        {
+            mainController.network.parameter_master_present = false;
         }
     }
 

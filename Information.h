@@ -58,7 +58,7 @@ namespace LedControllerSoftwareMk5
         void BottomSpacerPrint();
         void InsertPrint();
         String BoolToString(bool b);
-        String EffectToString(LEDEffect effect);
+        String LEDEffectToString(LEDEffect effect);
 
     public:
         Information(Network *network, PirReader *pirReader);

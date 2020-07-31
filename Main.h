@@ -21,6 +21,7 @@
 /*
       ToDo     Fix bug with power measurements reading zero from reg
       ToDo     Fix LED on when bootup
+      ToDo     Add time server for better accuracy
 */
 
 //++++ Global Defines ++++//

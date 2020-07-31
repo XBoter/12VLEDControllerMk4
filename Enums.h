@@ -6,17 +6,19 @@ namespace LedControllerSoftwareMk5
 
     enum LEDEffect : int
     {
-        None    = 0,
-        Alarm   = 10,
-        Music   = 20,
-        Sleep   = 30,
-        Weekend = 40,
-        RGB     = 50,
-        CW      = 60,
-        WW      = 70,
-        RGBCW   = 80,
-        RGBWW   = 90,
-        CWWW    = 100,
+        NoMasterPresent = -999, // Cant be set via network
+        MotionDetected  = - 10, // Cant be set via network
+        None            = 0,
+        Alarm           = 10,
+        Music           = 20,
+        Sleep           = 30,
+        Weekend         = 40,
+        RGB             = 50,
+        CW              = 60,
+        WW              = 70,
+        RGBCW           = 80,
+        RGBWW           = 90,
+        CWWW            = 100,
     };
 
     enum WiFiState : int

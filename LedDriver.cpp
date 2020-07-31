@@ -100,7 +100,7 @@ void LedDriver::Run()
     // ---- Handle led strips
     // -- Strip 1
     HandleLEDStrip( 1,
-                    1,
+                    2,
                     50,
                     motionData,
                     curDataStrip1,
@@ -108,12 +108,55 @@ void LedDriver::Run()
 
     // -- Strip 2
     HandleLEDStrip( 2,
-                    1,
+                    2,
                     50,
                     motionData,
                     curDataStrip2,
                     &prevDataStrip2);
 
+};
+
+
+/**
+ * Checks for a effect change and transitions to the new effect with a black fade
+ * @parameter curEffect The new effect to transition to
+ * @parameter prevEffect The current effect
+ * @return True if transition is finished or both effects are the same
+ **/
+bool LedDriver::TransitionToNewEffect(  uint8_t stripID,
+                                        uint8_t colorFadeSpeed,
+                                        uint8_t brightnessFadeSpeed,
+                                        LEDStripData curDataStrip,
+                                        LEDStripData *prevDataStrip)
+{
+
+    // Check for effect changes
+    if(curDataStrip.effect == prevDataStrip->effect)
+    {
+        return true;
+    }
+
+    // Fade to black
+    bool fadeFinished = FadeToBlack(stripID,
+                                    colorFadeSpeed,
+                                    brightnessFadeSpeed,
+                                    curDataStrip,
+                                    prevDataStrip);
+    if(fadeFinished)
+    {
+        // After fade finished reset all to 0
+        prevDataStrip->red          = 0;
+        prevDataStrip->green        = 0;
+        prevDataStrip->blue         = 0;
+        prevDataStrip->cw           = 0;
+        prevDataStrip->ww           = 0;
+        prevDataStrip->brightness   = 0;
+
+        prevDataStrip->effect = curDataStrip.effect;
+        return true;
+    }
+
+    return false;
 };
 
 
@@ -135,13 +178,74 @@ void LedDriver::HandleLEDStrip( uint8_t stripID,
         return;
     }
 
-    // Effect State
-    switch(curDataStrip.effect)
+    // ---- Control section
+    /*
+        Controls how the LED Strip behaves
+    */
+
+    // -- Check for master present
+    if(!network->parameter_master_present)
+    {
+        // If master is not present disable all
+        curDataStrip.effect = LEDEffect::NoMasterPresent;
+        curDataStrip.power = false;
+    }
+    else
+    {
+        // Check for motion
+        if(!curDataStrip.power)
+        {
+            if(network->parameter_sun && pirReader->motionDetected)
+            {
+                ;
+            }
+        }
+        
+    }
+    
+    // ---- Effect change section
+    /*
+        Checks if the effect state changed and performs a transition
+    */
+   bool effectTransitionFinished = TransitionToNewEffect(   stripID,
+                                                            colorFadeSpeed,
+                                                            brightnessFadeSpeed,
+                                                            curDataStrip,
+                                                            prevDataStrip);
+   // Return if the transition is not finished
+   if(!effectTransitionFinished)
+   {
+       return;
+   }
+
+    //Serial.println(prevDataStrip->effect);
+
+    // ---- Effect call section
+    /*
+        After effect transition is finished calls the new effect
+    */
+    switch(prevDataStrip->effect)
     {
 
-        // ---- Effect List
+        case LEDEffect::NoMasterPresent:
+            /*
+                Fades all color to black because master is not present
+            */
+            FadeToBlack(stripID,
+                        colorFadeSpeed,
+                        brightnessFadeSpeed,
+                        curDataStrip,
+                        prevDataStrip);
+            break;
+
+        case LEDEffect::MotionDetected:
+            /*
+                Motion Detected which fades in a warm color 
+            */
+            break;
+
         case LEDEffect::None:
-             /*
+            /*
                 Normal mode with no restrictions 
             */
             if(curDataStrip.power)
@@ -345,40 +449,60 @@ void LedDriver::HandleLEDStrip( uint8_t stripID,
 };
 
 
-void LedDriver::FadeToBlack(uint8_t stripID,
+bool LedDriver::FadeToBlack(uint8_t stripID,
                             uint8_t colorFadeSpeed,
                             uint8_t brightnessFadeSpeed,
                             LEDStripData curDataStrip,
                             LEDStripData *prevDataStrip)
 {
+    bool fadeFinished = false;
+    
     // StripID needs to be given else return
     if(stripID != 1 && stripID != 2)
     {
-        return;
+        return fadeFinished;
     }
 
-    // Set brightness to zero
+    // Fade to black gets double the current fade speed for color
+    if(colorFadeSpeed * 2 >= 255)
+    {
+        colorFadeSpeed = 255;
+    }
+    else
+    {
+        colorFadeSpeed = colorFadeSpeed * 2;
+    }
+
+    // Overwrite data to zero
+    curDataStrip.red        = 0;
+    curDataStrip.green      = 0;
+    curDataStrip.blue       = 0;
+    curDataStrip.cw         = 0;
+    curDataStrip.ww         = 0;
     curDataStrip.brightness = 0;
 
-    FadeToColor(stripID,
-                colorFadeSpeed,
-                brightnessFadeSpeed,
-                curDataStrip,
-                prevDataStrip);
+    fadeFinished = FadeToColor( stripID,
+                                colorFadeSpeed,
+                                brightnessFadeSpeed,
+                                curDataStrip,
+                                prevDataStrip);
 
+    return fadeFinished;
 };
 
 
-void LedDriver::FadeToColor(uint8_t stripID,
+bool LedDriver::FadeToColor(uint8_t stripID,
                             uint8_t colorFadeSpeed,
                             uint8_t brightnessFadeSpeed,
                             LEDStripData curDataStrip,
                             LEDStripData *prevDataStrip)
 {
+    bool fadeFinished = false;
+
     // StripID needs to be given else return
     if(stripID != 1 && stripID != 2)
     {
-        return;
+        return fadeFinished;
     }
 
     // ---- Register
@@ -673,6 +797,18 @@ void LedDriver::FadeToColor(uint8_t stripID,
                             prevDataStrip->brightness);
     }
 
+    // Check for fade fadeFinished
+    if( prevDataStrip->brightness   == curDataStrip.brightness
+        && prevDataStrip->red       == curDataStrip.red
+        && prevDataStrip->green     == curDataStrip.green
+        && prevDataStrip->blue      == curDataStrip.blue
+        && prevDataStrip->cw        == curDataStrip.cw
+        && prevDataStrip->ww        == curDataStrip.ww) 
+    {
+        fadeFinished = true;
+    }
+
+    return fadeFinished;
 };
 
 

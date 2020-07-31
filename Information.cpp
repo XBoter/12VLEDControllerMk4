@@ -118,7 +118,7 @@ void Information::Run()
                             String(this->network->stLedStrip1Data.red),
                             String(this->network->stLedStrip1Data.green),
                             String(this->network->stLedStrip1Data.blue),
-                            EffectToString(this->network->stLedStrip1Data.effect)); 
+                            LEDEffectToString(this->network->stLedStrip1Data.effect)); 
 
         memNetwork.stLedStrip1Data.power        = this->network->stLedStrip1Data.power;
         memNetwork.stLedStrip1Data.brightness   = this->network->stLedStrip1Data.brightness;
@@ -148,7 +148,7 @@ void Information::Run()
                             String(this->network->stLedStrip2Data.red),
                             String(this->network->stLedStrip2Data.green),
                             String(this->network->stLedStrip2Data.blue),
-                            EffectToString(this->network->stLedStrip2Data.effect)); 
+                            LEDEffectToString(this->network->stLedStrip2Data.effect)); 
 
         memNetwork.stLedStrip2Data.power        = this->network->stLedStrip2Data.power;
         memNetwork.stLedStrip2Data.brightness   = this->network->stLedStrip2Data.brightness;
@@ -406,10 +406,24 @@ String Information::BoolToString(bool b)
     }
 };
 
-String Information::EffectToString(LEDEffect effect)
+
+/**
+ * Converts a LEDEffect to a string
+ * @parameter LEDEffect
+ * @return effect in string
+ **/
+String Information::LEDEffectToString(LEDEffect effect)
 {
     switch (effect)
     {
+        case LEDEffect::NoMasterPresent:
+            return "NoMasterPresent";
+            break;
+
+        case LEDEffect::MotionDetected:
+            return "MotionDetected";
+            break;
+
         case LEDEffect::None:
             return "None";
             break;

@@ -48,17 +48,23 @@ namespace LedControllerSoftwareMk5
                                 uint8_t colorValue, 
                                 uint16_t brightnessValue);
 
-        void FadeToColor(   uint8_t stripID,
+        bool FadeToColor(   uint8_t stripID,
                             uint8_t colorFadeSpeed,
                             uint8_t brightnessFadeSpeed,
                             LEDStripData curDataStrip,
                             LEDStripData *prevDataStrip);
 
-        void FadeToBlack(   uint8_t stripID,
+        bool FadeToBlack(   uint8_t stripID,
                             uint8_t colorFadeSpeed,
                             uint8_t brightnessFadeSpeed,
                             LEDStripData curDataStrip,
                             LEDStripData *prevDataStrip);
+
+        bool TransitionToNewEffect( uint8_t stripID,
+                                    uint8_t colorFadeSpeed,
+                                    uint8_t brightnessFadeSpeed,
+                                    LEDStripData curDataStrip,
+                                    LEDStripData *prevDataStrip);
 
         void PrintAllRegister();
         void PrintByte(byte b);
