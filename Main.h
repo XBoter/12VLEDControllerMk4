@@ -15,8 +15,8 @@
 #define Name        "12V LED Controller Mk4"
 #define Programmer  "Nico Weidenfeller"
 #define Created     "28.06.2020"
-#define LastModifed "30.07.2020"
-#define Version     "0.14.0"
+#define LastModifed "31.07.2020"
+#define Version     "0.15.0"
 
 /*
       ToDo     Fix bug with power measurements reading zero from reg

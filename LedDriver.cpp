@@ -53,6 +53,22 @@ void LedDriver::Init()
 
         PrintAllRegister();
 
+        // ---- Init LEDStripData (Needed so after bootup the values change with the one received from mqtt and get updated)
+        // -- Strip 1
+        prevDataStrip1.brightness   = 100;
+        prevDataStrip1.red          = 10;
+        prevDataStrip1.green        = 10;
+        prevDataStrip1.blue         = 10;
+        prevDataStrip1.cw           = 10;
+        prevDataStrip1.ww           = 10;
+        // -- Strip 2
+        prevDataStrip2.brightness   = 100;
+        prevDataStrip2.red          = 10;
+        prevDataStrip2.green        = 10;
+        prevDataStrip2.blue         = 10;
+        prevDataStrip2.cw           = 10;
+        prevDataStrip2.ww           = 10;
+
         Serial.println("LED Driver initialized");
         init = true;
     }
@@ -123,7 +139,7 @@ void LedDriver::HandleLEDStrip( uint8_t stripID,
             if(curDataStrip.power)
             {
                 FadeToColor(stripID,
-                            5,
+                            1,
                             50,
                             curDataStrip,
                             prevDataStrip);
@@ -131,7 +147,7 @@ void LedDriver::HandleLEDStrip( uint8_t stripID,
             else
             {
                 FadeToBlack(stripID,
-                            5,
+                            1,
                             50,
                             curDataStrip,
                             prevDataStrip);
@@ -333,13 +349,14 @@ void LedDriver::FadeToColor(uint8_t stripID,
     /*
         Only call register functions if new values need to be written
     */
+    
     int _colorFadeSpeed = colorFadeSpeed;
     int _brightnessFadeSpeed = brightnessFadeSpeed;
-    bool brightnessChanged = false;
 
     // -- Brightness
     int _curBrightness = curDataStrip.brightness;
     int _prevBrightness = prevDataStrip->brightness;
+    bool brightnessChanged = false;
 
     if((_prevBrightness + _brightnessFadeSpeed) < _curBrightness)
     {
@@ -351,92 +368,185 @@ void LedDriver::FadeToColor(uint8_t stripID,
         prevDataStrip->brightness -= _brightnessFadeSpeed;
         brightnessChanged = true;
     }
-    if(((_prevBrightness + _brightnessFadeSpeed) > _curBrightness) 
-        && ((_prevBrightness - _brightnessFadeSpeed) < _curBrightness)
+    if(((_prevBrightness + _brightnessFadeSpeed) >= _curBrightness) 
+        && ((_prevBrightness - _brightnessFadeSpeed) <= _curBrightness)
+        && !brightnessChanged
         && prevDataStrip->brightness != curDataStrip.brightness)
     {
         prevDataStrip->brightness = curDataStrip.brightness;
         brightnessChanged = true;
     }
 
-    if(brightnessChanged)
+    // -- Red
+    int _curRed = curDataStrip.red;
+    int _prevRed = prevDataStrip->red;
+    bool redChanged = false;
+
+    if((_prevRed + _colorFadeSpeed) < _curRed)
+    {
+        prevDataStrip->red += _colorFadeSpeed;
+        redChanged = true;
+    }
+    if((_prevRed - _colorFadeSpeed) > _curRed)
+    {
+        prevDataStrip->red -= _colorFadeSpeed;
+        redChanged = true;
+    }
+    if(((_prevRed + _colorFadeSpeed) >= _curRed) 
+        && ((_prevRed - _colorFadeSpeed) <= _curRed)
+        && !redChanged
+        && prevDataStrip->red != curDataStrip.red)
+    {
+        prevDataStrip->red = curDataStrip.red;
+        redChanged = true;
+    }
+    if(redChanged || brightnessChanged)
     {
         UpdateLEDChannel(   i2cAddress,
                             RED_REG_ON_L,
                             RED_REG_ON_H,
                             RED_REG_OFF_L,
                             RED_REG_OFF_H,
-                            curDataStrip.red,
+                            prevDataStrip->red,
                             prevDataStrip->brightness);
+    }
+
+    // -- Green
+    int _curGreen = curDataStrip.green;
+    int _prevGreen = prevDataStrip->green;
+    bool greenChanged = false;
+
+    if((_prevGreen + _colorFadeSpeed) < _curGreen)
+    {
+        prevDataStrip->green += _colorFadeSpeed;
+        greenChanged = true;
+    }
+    if((_prevGreen - _colorFadeSpeed) > _curGreen)
+    {
+        prevDataStrip->green -= _colorFadeSpeed;
+        greenChanged = true;
+    }
+    if(((_prevGreen + _colorFadeSpeed) >= _curGreen) 
+        && ((_prevGreen - _colorFadeSpeed) <= _curGreen)
+        && !greenChanged
+        && prevDataStrip->green != curDataStrip.green)
+    {
+        prevDataStrip->green = curDataStrip.green;
+        greenChanged = true;
+    }
+    if(greenChanged || brightnessChanged)
+    {
         UpdateLEDChannel(   i2cAddress,
                             GREEN_REG_ON_L,
                             GREEN_REG_ON_H,
                             GREEN_REG_OFF_L,
                             GREEN_REG_OFF_H,
-                            curDataStrip.green,
+                            prevDataStrip->green,
                             prevDataStrip->brightness);
+    }
+
+    // -- Blue
+    int _curBlue = curDataStrip.blue;
+    int _prevBlue = prevDataStrip->blue;
+    bool blueChanged = false;
+
+    if((_prevBlue + _colorFadeSpeed) < _curBlue)
+    {
+        prevDataStrip->blue += _colorFadeSpeed;
+        blueChanged = true;
+    }
+    if((_prevBlue - _colorFadeSpeed) > _curBlue)
+    {
+        prevDataStrip->blue -= _colorFadeSpeed;
+        blueChanged = true;
+    }
+    if(((_prevBlue + _colorFadeSpeed) >= _curBlue) 
+        && ((_prevBlue - _colorFadeSpeed) <= _curBlue)
+        && !blueChanged
+        && prevDataStrip->blue != curDataStrip.blue)
+    {
+        prevDataStrip->blue = curDataStrip.blue;
+        blueChanged = true;
+    }
+    if(blueChanged || brightnessChanged)
+    {
         UpdateLEDChannel(   i2cAddress,
                             BLUE_REG_ON_L,
                             BLUE_REG_ON_H,
                             BLUE_REG_OFF_L,
                             BLUE_REG_OFF_H,
-                            curDataStrip.blue,
+                            prevDataStrip->blue,
                             prevDataStrip->brightness);
+    }
+
+
+    // -- Cold White
+    int _curCW = curDataStrip.cw;
+    int _prevCW = prevDataStrip->cw;
+    bool cwChanged = false;
+
+    if((_prevCW + _colorFadeSpeed) < _curCW)
+    {
+        prevDataStrip->cw += _colorFadeSpeed;
+        cwChanged = true;
+    }
+    if((_prevCW - _colorFadeSpeed) > _curCW)
+    {
+        prevDataStrip->cw -= _colorFadeSpeed;
+        cwChanged = true;
+    }
+    if(((_prevCW + _colorFadeSpeed) >= _curCW) 
+        && ((_prevCW - _colorFadeSpeed) <= _curCW)
+        && !cwChanged
+        && prevDataStrip->cw != curDataStrip.cw)
+    {
+        prevDataStrip->cw = curDataStrip.cw;
+        cwChanged = true;
+    }
+    if(cwChanged || brightnessChanged)
+    {
         UpdateLEDChannel(   i2cAddress,
                             CW_REG_ON_L,
                             CW_REG_ON_H,
                             CW_REG_OFF_L,
                             CW_REG_OFF_H,
-                            curDataStrip.cw,
+                            prevDataStrip->cw,
                             prevDataStrip->brightness);
     }
-
-
-    // -- Red
-    /*
-    int _curRed = curDataStrip->red;
-    int _prevRed = prevDataStrip->red
-    if((_curRed + _colorFadeSpeed) < _prevRed)
-    {
-        prevDataStrip.red += colorFadeSpeed; 
-        UpdateLEDChannel(   i2cAddress,
-                            RED_REG_ON_L,
-                            RED_REG_ON_H,
-                            RED_REG_OFF_L,
-                            RED_REG_OFF_H,
-                            prevDataStrip->red
-                            prevDataStrip->brightness);
-    }
-    if((_curRed - _colorFadeSpeed) > _prevRed)
-    {
-        prevDataStrip.red -= colorFadeSpeed; 
-        UpdateLEDChannel(   i2cAddress,
-                            RED_REG_ON_L,
-                            RED_REG_ON_H,
-                            RED_REG_OFF_L,
-                            RED_REG_OFF_H,
-                            prevDataStrip->red
-                            prevDataStrip->brightness); 
-    }
-    if(true)
-    {
-        UpdateLEDChannel(   i2cAddress,
-                            RED_REG_ON_L,
-                            RED_REG_ON_H,
-                            RED_REG_OFF_L,
-                            RED_REG_OFF_H,
-                            prevDataStrip->red
-                            prevDataStrip->brightness);  
-    }
-    */
-
-    // -- Green
-
-    // -- Blue
-
-    // -- Cold White
 
     // -- Warm White
+    int _curWW = curDataStrip.ww;
+    int _prevWW = prevDataStrip->ww;
+    bool wwChanged = false;
+
+    if((_prevWW + _colorFadeSpeed) < _curWW)
+    {
+        prevDataStrip->ww += _colorFadeSpeed;
+        wwChanged = true;
+    }
+    if((_prevWW - _colorFadeSpeed) > _curWW)
+    {
+        prevDataStrip->ww -= _colorFadeSpeed;
+        wwChanged = true;
+    }
+    if(((_prevWW + _colorFadeSpeed) >= _curWW) 
+        && ((_prevWW - _colorFadeSpeed) <= _curWW)
+        && !wwChanged
+        && prevDataStrip->ww != curDataStrip.ww)
+    {
+        prevDataStrip->ww = curDataStrip.ww;
+        wwChanged = true;
+    }
+    if(wwChanged || brightnessChanged)
+    {
+        UpdateLEDChannel(   i2cAddress,
+                            WW_REG_ON_L,
+                            WW_REG_ON_H,
+                            WW_REG_OFF_L,
+                            WW_REG_OFF_H,
+                            prevDataStrip->ww,
+                            prevDataStrip->brightness);
+    }
 
 };
 
