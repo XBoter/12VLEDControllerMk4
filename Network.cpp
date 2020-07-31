@@ -264,6 +264,9 @@ void Network::HandleMqtt()
 void Network::HandleNTP()
 {
     // Get Time update
+    unsigned long CurMillis_NTPTimeout = millis();
+    if (CurMillis_NTPTimeout - PrevMillis_NTPTimeout >= TimeOut_NTPTimeout) {
+    PrevMillis_NTPTimeout = CurMillis_NTPTimeout;
     bool updateSuccessful = timeClient.update();
 
     if(updateSuccessful)
@@ -272,6 +275,8 @@ void Network::HandleNTP()
         stTimeData.minute = timeClient.getMinutes();
         stTimeData.second = timeClient.getSeconds();
     }
+
+  }
     
 };
 

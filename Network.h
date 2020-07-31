@@ -24,9 +24,11 @@ namespace LedControllerSoftwareMk5
 
         unsigned long PrevMillis_WiFiTimeout = 0;
         unsigned long PrevMillis_MQTTTimeout = 0;
+        unsigned long PrevMillis_NTPTimeout  = 0;
         unsigned long PrevMillis_HeartbeatTimeout = 0;
         const unsigned long TimeOut_WiFiTimeout = 5000; // 5 sec
         const unsigned long TimeOut_MQTTTimeout = 5000; // 5 sec
+        const unsigned long TimeOut_NTPTimeout  = 400;  // 0. sec
         const unsigned long TimeOut_HeartbeatTimeout = 5000; // 5 sec
         bool wifiOneTimePrint = true;
         bool mqttOneTimePrint = true;

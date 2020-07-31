@@ -45,6 +45,12 @@ void Main::_setup()
 
 void Main::_loop()
 {
+    // Messure Loop time
+    // unsigned long CurMillis_Loop = micros();
+    // Serial.print("Loop took : ");
+    // Serial.println(CurMillis_Loop-PrevMillis_Loop);
+    // PrevMillis_Loop = CurMillis_Loop;
+
     // Run 
     i2c.Run();
     network.Run();

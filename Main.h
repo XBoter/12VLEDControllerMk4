@@ -37,6 +37,7 @@ class Main
 {
     // ## Data ## //
     private:
+      unsigned long PrevMillis_Loop = 0;
 
     public:
        LedControllerSoftwareMk5::I2C i2c = LedControllerSoftwareMk5::I2C();
