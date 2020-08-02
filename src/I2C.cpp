@@ -1,6 +1,5 @@
-#include "I2C.h"
+#include "../include/I2C.h"
 
-using namespace LedControllerSoftwareMk5;
 
 I2C::I2C()
 {
@@ -13,7 +12,7 @@ I2C::I2C()
  * @parameter None
  * @return None
  **/
-void I2C::Init()
+bool I2C::Init()
 {
     if (!init)
     {
@@ -21,6 +20,8 @@ void I2C::Init()
         Serial.println("I2C initialized");
         init = true;
     }
+    
+    return init;
 };
 
 

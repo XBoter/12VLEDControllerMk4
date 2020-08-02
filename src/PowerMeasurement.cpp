@@ -1,6 +1,5 @@
-#include "PowerMeasurement.h"
+#include "../include/PowerMeasurement.h"
 
-using namespace LedControllerSoftwareMk5;
 
 PowerMeasurement::PowerMeasurement(uint8_t i2cAddress, I2C *i2c, Network *network)
 {
@@ -15,7 +14,7 @@ PowerMeasurement::PowerMeasurement(uint8_t i2cAddress, I2C *i2c, Network *networ
  * @parameter None
  * @return None
  **/
-void PowerMeasurement::Init()
+bool PowerMeasurement::Init()
 {
     if (!init)
     {
@@ -30,12 +29,14 @@ void PowerMeasurement::Init()
         // Bit 3-6 Shunt ADC
         // Bit 2-0 Mode
         uint16_t config = 0b0001100110011111;
-        i2c->write16(i2cAddress, regConfig, config);
+        i2c->write16(i2cAddress, CONFIG, config);
 
         Serial.println("Power Measurement Unit initialized");
         init = true;
     }
-}
+
+    return init;
+};
 
 
 /**
@@ -61,11 +62,11 @@ void PowerMeasurement::Run()
         {
 
             // Get shunt voltage
-            uint16_t shuntVoltageRaw = i2c->read16(i2cAddress, regShuntVolt);
+            uint16_t shuntVoltageRaw = i2c->read16(i2cAddress, SHUNT_VOLTAGE);
             valueShunt_mV = shuntVoltageRaw * 0.01; // mV
 
             // Get bus voltage
-            uint16_t _busVoltageRaw = i2c->read16(i2cAddress, regBusVolt);
+            uint16_t _busVoltageRaw = i2c->read16(i2cAddress, BUS_VOLTAGE);
             int16_t busVoltageRaw = (int16_t)((_busVoltageRaw >> 3) * 4);
             valueBus_V = busVoltageRaw * 0.001; // V
 

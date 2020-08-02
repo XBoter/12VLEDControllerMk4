@@ -3,8 +3,6 @@
 // Global instace of the mainController
 Main mainController;
 
-using namespace LedControllerSoftwareMk5;
-
 Main::Main()
 {
 
@@ -45,13 +43,7 @@ void Main::_setup()
 
 void Main::_loop()
 {
-    // Messure Loop time
-    // unsigned long CurMillis_Loop = micros();
-    // Serial.print("Loop took : ");
-    // Serial.println(CurMillis_Loop-PrevMillis_Loop);
-    // PrevMillis_Loop = CurMillis_Loop;
-
-    // Run 
+    // Run
     i2c.Run();
     network.Run();
     powerMessurement.Run();
@@ -59,4 +51,3 @@ void Main::_loop()
     information.Run();
     pirReader.Run();
 };
-

@@ -1,6 +1,5 @@
-#include "LedDriver.h"
+#include "../include/LedDriver.h"
 
-using namespace LedControllerSoftwareMk5;
 
 LedDriver::LedDriver(uint8_t i2cAddress, I2C *i2c, Network *network, PirReader *pirReader)
 {
@@ -16,7 +15,7 @@ LedDriver::LedDriver(uint8_t i2cAddress, I2C *i2c, Network *network, PirReader *
  * @parameter None
  * @return None
  **/
-void LedDriver::Init()
+bool LedDriver::Init()
 {
     if (!init)
     {
@@ -72,7 +71,9 @@ void LedDriver::Init()
         Serial.println("LED Driver initialized");
         init = true;
     }
-}
+
+        return init;
+};
 
 
 /**

@@ -1,7 +1,6 @@
-#include "PirReader.h"
-#include "Main.h"
+#include "../include/PirReader.h"
+#include "../Main.h"
 
-using namespace LedControllerSoftwareMk5;
 
 PirReader::PirReader(uint8_t pinPirSensor1, uint8_t pinPirSensor2, Network *network)
 {
@@ -16,7 +15,7 @@ PirReader::PirReader(uint8_t pinPirSensor1, uint8_t pinPirSensor2, Network *netw
  * @parameter None
  * @return None
  **/
-void PirReader::Init()
+bool PirReader::Init()
 {
     if(!init)
     {
@@ -29,6 +28,8 @@ void PirReader::Init()
         Serial.println("PIR Reader initialized");
         init = true;
     }
+
+    return init;
 };
 
 

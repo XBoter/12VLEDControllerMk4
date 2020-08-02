@@ -1,5 +1,6 @@
-#include "Network.h"
-#include "Main.h"
+#include "../include/Network.h"
+#include "../Main.h"
+
 
 //++++ Defines for WiFi Secrets +++//
 #define WZ_WIFI_SETTINGS
@@ -16,19 +17,17 @@
 #define DEV_LED_CONTROLLER_MK4
 #include <secrets_mqtt_paths_mk2.h>
 
-using namespace LedControllerSoftwareMk5;
-
 
 Network::Network()
 {
-
+    
 };
 
 
 // For compiler
 void mqttCallback(char *topic, byte *payload, unsigned int length);
-LedControllerSoftwareMk5::LEDEffect StringToLEDEffect(String effect);
-String LEDEffectToString(LedControllerSoftwareMk5::LEDEffect effect);
+LEDEffect StringToLEDEffect(String effect);
+String LEDEffectToString(LEDEffect effect);
 
 
 /**
@@ -36,14 +35,20 @@ String LEDEffectToString(LedControllerSoftwareMk5::LEDEffect effect);
  * @parameter None
  * @return None
  **/
-void Network::Init()
+bool Network::Init()
 {
-    mqttClient.setClient(wifiMqtt);
-    mqttClient.setServer(MQTT_SERVER, MQTT_PORT);
-    mqttClient.setCallback(mqttCallback);
+    if(!init)
+    {
+        mqttClient.setClient(wifiMqtt);
+        mqttClient.setServer(MQTT_SERVER, MQTT_PORT);
+        mqttClient.setCallback(mqttCallback);
 
-    timeClient.begin();
-    Serial.println("Network initialized");
+        timeClient.begin();
+        Serial.println("Network initialized");
+        init = true;
+    }
+
+    return init;
 };
 
 
@@ -128,17 +133,17 @@ void Network::HandleWifi()
 {
     switch (wifiState)
     {
-    case WiFiState::StartWifi:
+    case NetworkWiFiState::StartWifi:
         WiFi.mode(WIFI_STA);
         WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
         delay(1); // Call delay(1) for the WiFi stack
-        wifiState = WiFiState::SuperviseWiFiConnection;
+        wifiState = NetworkWiFiState::SuperviseWiFiConnection;
         break;
 
-    case WiFiState::SuperviseWiFiConnection:
+    case NetworkWiFiState::SuperviseWiFiConnection:
         if (WiFi.status() != WL_CONNECTED)
         {
-            wifiState = WiFiState::CheckWiFiDisconnect; // Check if dc occurred
+            wifiState = NetworkWiFiState::CheckWiFiDisconnect; // Check if dc occurred
             PrevMillis_WiFiTimeout = millis();          // Set time for WiFi timeout check
         }
         else
@@ -147,7 +152,7 @@ void Network::HandleWifi()
         }
         break;
 
-    case WiFiState::CheckWiFiDisconnect:
+    case NetworkWiFiState::CheckWiFiDisconnect:
         if (WiFi.status() != WL_CONNECTED)
         {
             // Wait for timeout. After timeout restart WiFi
@@ -157,12 +162,12 @@ void Network::HandleWifi()
                 wifiConnected = false;
                 PrevMillis_WiFiTimeout = CurMillis_WiFiTimeout;
                 WiFi.disconnect(); // Disconnect WiFi and start new connection
-                wifiState = WiFiState::StartWifi;
+                wifiState = NetworkWiFiState::StartWifi;
             }
         }
         else
         {
-            wifiState = WiFiState::SuperviseWiFiConnection; // WiFi reconnected
+            wifiState = NetworkWiFiState::SuperviseWiFiConnection; // WiFi reconnected
         }
         break;
 
@@ -185,7 +190,7 @@ void Network::HandleMqtt()
  
     switch (mqttState)
     {
-    case MQTTState::StartMqtt:
+    case NetworkMQTTState::StartMqtt:
         if (mqttClient.connect(MQTT_CLIENT_NAME, MQTT_USERNAME, MQTT_PASSWORD))
         {
             // ==== Global ==== //
@@ -214,14 +219,14 @@ void Network::HandleMqtt()
             MqttUpdateAfterDc(stLedStrip1Data, mqtt_strip1_json_state);
             MqttUpdateAfterDc(stLedStrip2Data, mqtt_strip2_json_state);
 
-            mqttState = MQTTState::SuperviseMqttConnection;
+            mqttState = NetworkMQTTState::SuperviseMqttConnection;
         }
         break;
 
-    case MQTTState::SuperviseMqttConnection:
+    case NetworkMQTTState::SuperviseMqttConnection:
         if (!mqttClient.connected())
         {
-            mqttState = MQTTState::CheckMqttDisconnect; // Check if dc occurred
+            mqttState = NetworkMQTTState::CheckMqttDisconnect; // Check if dc occurred
             PrevMillis_MQTTTimeout = millis();          // Set time for WiFi timeout check
         }
         else
@@ -230,7 +235,7 @@ void Network::HandleMqtt()
         }
         break;
 
-    case MQTTState::CheckMqttDisconnect:
+    case NetworkMQTTState::CheckMqttDisconnect:
         if (!mqttClient.connected())
         {
             // Wait for timeout. After timeout restart WiFi
@@ -240,12 +245,12 @@ void Network::HandleMqtt()
                 mqttConnected = false;
                 PrevMillis_MQTTTimeout = CurMillis_MQTTTimeout;
                 mqttClient.disconnect(); // Disconnect MQTT and start new connection
-                mqttState = MQTTState::StartMqtt;
+                mqttState = NetworkMQTTState::StartMqtt;
             }
         }
         else
         {
-            mqttState = MQTTState::SuperviseMqttConnection; // WiFi reconnected
+            mqttState = NetworkMQTTState::SuperviseMqttConnection; // WiFi reconnected
         }
         break;
 
@@ -266,17 +271,17 @@ void Network::HandleNTP()
     // Get Time update
     unsigned long CurMillis_NTPTimeout = millis();
     if (CurMillis_NTPTimeout - PrevMillis_NTPTimeout >= TimeOut_NTPTimeout) {
-    PrevMillis_NTPTimeout = CurMillis_NTPTimeout;
-    bool updateSuccessful = timeClient.update();
+        PrevMillis_NTPTimeout = CurMillis_NTPTimeout;
+        bool updateSuccessful = timeClient.update();
 
-    if(updateSuccessful)
-    {
-        stTimeData.hour = timeClient.getHours();
-        stTimeData.minute = timeClient.getMinutes();
-        stTimeData.second = timeClient.getSeconds();
+        if(updateSuccessful)
+        {
+            stTimeData.hour = timeClient.getHours();
+            stTimeData.minute = timeClient.getMinutes();
+            stTimeData.second = timeClient.getSeconds();
+        }
+
     }
-
-  }
     
 };
 
@@ -376,56 +381,56 @@ void Network::MqttUpdateAfterDc(LEDStripData ledStripData,
  * @parameter name of effect in string
  * @return effect in LEDEffect
  **/
-LedControllerSoftwareMk5::LEDEffect StringToLEDEffect(String effect)
+LEDEffect StringToLEDEffect(String effect)
 {
 
     if(effect == "None")
     {
-        return LedControllerSoftwareMk5::LEDEffect::None;
+        return LEDEffect::None;
     }
     else if(effect == "Alarm")
     {
-        return LedControllerSoftwareMk5::LEDEffect::Alarm;
+        return LEDEffect::Alarm;
     }
     else if(effect == "Music")
     {
-        return LedControllerSoftwareMk5::LEDEffect::Music;
+        return LEDEffect::Music;
     }
     else if(effect == "Sleep")
     {
-        return LedControllerSoftwareMk5::LEDEffect::Sleep;
+        return LEDEffect::Sleep;
     }
     else if(effect == "Weekend")
     {
-        return LedControllerSoftwareMk5::LEDEffect::Weekend;
+        return LEDEffect::Weekend;
     }
     else if(effect == "RGB")
     {
-        return LedControllerSoftwareMk5::LEDEffect::RGB;
+        return LEDEffect::RGB;
     }
     else if(effect == "CW")
     {
-        return LedControllerSoftwareMk5::LEDEffect::CW;
+        return LEDEffect::CW;
     }
     else if(effect == "WW")
     {
-        return LedControllerSoftwareMk5::LEDEffect::WW;
+        return LEDEffect::WW;
     }
     else if(effect == "RGBCW")
     {
-        return LedControllerSoftwareMk5::LEDEffect::RGBCW;
+        return LEDEffect::RGBCW;
     }
     else if(effect == "RGBWW")
     {
-        return LedControllerSoftwareMk5::LEDEffect::RGBWW;
+        return LEDEffect::RGBWW;
     }
     else if(effect == "CWWW")
     {
-        return LedControllerSoftwareMk5::LEDEffect::CWWW;
+        return LEDEffect::CWWW;
     }
     else // default
     {
-        return LedControllerSoftwareMk5::LEDEffect::None;
+        return LEDEffect::None;
     }
 
 };
@@ -436,53 +441,53 @@ LedControllerSoftwareMk5::LEDEffect StringToLEDEffect(String effect)
  * @parameter LEDEffect
  * @return effect in string
  **/
-String LEDEffectToString(LedControllerSoftwareMk5::LEDEffect effect)
+String LEDEffectToString(LEDEffect effect)
 {
 
     switch(effect)
     {
 
-        case LedControllerSoftwareMk5::LEDEffect::None:
+        case LEDEffect::None:
             return "None";
             break;
 
-        case LedControllerSoftwareMk5::LEDEffect::Alarm:
+        case LEDEffect::Alarm:
             return "Alarm";
             break;
 
-        case LedControllerSoftwareMk5::LEDEffect::Music:
+        case LEDEffect::Music:
             return "Music";
             break;
 
-        case LedControllerSoftwareMk5::LEDEffect::Sleep:
+        case LEDEffect::Sleep:
             return "Sleep";
             break;
 
-        case LedControllerSoftwareMk5::LEDEffect::Weekend:
+        case LEDEffect::Weekend:
             return "Weekend";
             break;
 
-        case LedControllerSoftwareMk5::LEDEffect::RGB:
+        case LEDEffect::RGB:
             return "RGB";
             break;
 
-        case LedControllerSoftwareMk5::LEDEffect::CW:
+        case LEDEffect::CW:
             return "CW";
             break;
 
-        case LedControllerSoftwareMk5::LEDEffect::WW:
+        case LEDEffect::WW:
             return "WW";
             break;
 
-        case LedControllerSoftwareMk5::LEDEffect::RGBCW:
+        case LEDEffect::RGBCW:
             return "RGBCW";
             break;
 
-        case LedControllerSoftwareMk5::LEDEffect::RGBWW:
+        case LEDEffect::RGBWW:
             return "RGBWW";
             break;
 
-        case LedControllerSoftwareMk5::LEDEffect::CWWW:
+        case LEDEffect::CWWW:
             return "CWWW";
             break;
 

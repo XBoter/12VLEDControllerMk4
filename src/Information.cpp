@@ -1,6 +1,4 @@
-#include "Information.h"
-
-using namespace LedControllerSoftwareMk5;
+#include "../include/Information.h"
 
 Information::Information(Network *network, PirReader *pirReader)
 {
@@ -14,13 +12,15 @@ Information::Information(Network *network, PirReader *pirReader)
  * @parameter None
  * @return None
  **/
-void Information::Init()
+bool Information::Init()
 {
     if (!init)
     {
         Serial.println("Information initialized");
         init = true;
     }
+
+    return init;
 };
 
 

@@ -1,22 +1,20 @@
-// Include guard
-#ifndef MAIN_H_INCLUDE
-#define MAIN_H_INCLUDE
+#pragma once
 
-
-#include "Arduino.h"
-#include "I2C.h"
-#include "PowerMeasurement.h"
-#include "LedDriver.h"
-#include "Network.h"
-#include "Information.h"
-#include "PirReader.h"
+// Includes
+#include <Arduino.h>
+#include "include/I2C.h"
+#include "include/PowerMeasurement.h"
+#include "include/LedDriver.h"
+#include "include/Network.h"
+#include "include/Information.h"
+#include "include/PirReader.h"
 
 //-------------------- Basic Information --------------------//
-#define Name        "12V LED Controller Mk4"
-#define Programmer  "Nico Weidenfeller"
-#define Created     "28.06.2020"
-#define LastModifed "31.07.2020"
-#define Version     "0.16.0"
+#define Name         "12V LED Controller Mk4"
+#define Programmer   "Nico Weidenfeller"
+#define Created      "28.06.2020"
+#define LastModifed  "31.07.2020"
+#define Version      "0.16.0"
 
 /*
       ToDo     Fix bug with power measurements reading zero from reg
@@ -25,37 +23,38 @@
 */
 
 //++++ Global Defines ++++//
-
 #define BAUDRATE 115200
 #define PCA9685PW_I2C_ADDRESS 0x40
-#define INA219AIDR_I2C_ADDRESS 0x45 
+#define INA219AIDR_I2C_ADDRESS 0x45
 #define PIR_SENSOR_1_PIN D6
 #define PIR_SENSOR_2_PIN D7
 
-
+// Classes
 class Main
 {
-    // ## Data ## //
-    private:
+   // ## Constructor ## //
+   public:
+      Main();
+
+   // ## Data ## //
+   private:
       unsigned long PrevMillis_Loop = 0;
 
-    public:
-       LedControllerSoftwareMk5::I2C i2c = LedControllerSoftwareMk5::I2C();
-       LedControllerSoftwareMk5::Network network = LedControllerSoftwareMk5::Network();
-       LedControllerSoftwareMk5::PowerMeasurement powerMessurement = LedControllerSoftwareMk5::PowerMeasurement(INA219AIDR_I2C_ADDRESS, &i2c, &network);
-       LedControllerSoftwareMk5::PirReader pirReader = LedControllerSoftwareMk5::PirReader(PIR_SENSOR_1_PIN, PIR_SENSOR_2_PIN, &network);
-       LedControllerSoftwareMk5::LedDriver ledDriver = LedControllerSoftwareMk5::LedDriver(PCA9685PW_I2C_ADDRESS, &i2c, &network, &pirReader);
-       LedControllerSoftwareMk5::Information information = LedControllerSoftwareMk5::Information(&network, &pirReader);
+   public:
+      I2C i2c = I2C();
+      Network network = Network();
+      PowerMeasurement powerMessurement = PowerMeasurement(INA219AIDR_I2C_ADDRESS, &i2c, &network);
+      PirReader pirReader = PirReader(PIR_SENSOR_1_PIN, PIR_SENSOR_2_PIN, &network);
+      LedDriver ledDriver = LedDriver(PCA9685PW_I2C_ADDRESS, &i2c, &network, &pirReader);
+      Information information = Information(&network, &pirReader);
 
-    // ## Functions ## //
-    private:
+   // ## Functions ## //
+   private:
+   public:
+      void _loop();
+      void _setup();
 
-    public:
-       Main();
-       void _loop();
-       void _setup();
 };
 
+// Tell compiler to create only one instance of Main
 extern Main mainController;
-
-#endif
