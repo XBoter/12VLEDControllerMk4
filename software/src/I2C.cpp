@@ -1,17 +1,19 @@
 #include "../include/I2C.h"
 
 
+/**
+ *  Empty constructor
+ */
 I2C::I2C()
 {
 
-};
+}
 
 
 /**
- * Initializes the i2c instance
- * @parameter None
- * @return None
- **/
+ * Does init stuff for the I2C component
+ * @return True if successfull, false if not 
+ */
 bool I2C::Init()
 {
     if (!init)
@@ -26,9 +28,7 @@ bool I2C::Init()
 
 
 /**
- * Needs to get called every cycle.
- * @parameter None
- * @return None
+ * Runs the I2C component. !! Not used for now !!
  **/
 void I2C::Run()
 {
@@ -38,17 +38,38 @@ void I2C::Run()
 
 /**
  * Reads 8 bit data from a i2c device 8 bit reg
- * @parameter I2C-Address of the device, Register Address to read from
- * @return 1 byte data from the reg
+ * @parameter i2cAddres The 8 Bit address of the I2C device
+ * @parameter regAddress The 8 Bit address of the register to read from
+ * @return 8 Bit data from the register if successfull, or 0 if not successfull
  **/
 uint8_t I2C::read8(uint8_t i2cAddress, uint8_t regAddress)
 {
+    // Send register data request to i2c device
     Wire.beginTransmission(i2cAddress);
     Wire.write(regAddress);
-    Wire.endTransmission();
+    uint8_t result = Wire.endTransmission();
+    bool transmissionGood = checkTransmissionError(result);
 
-    Wire.requestFrom((uint8_t)i2cAddress, (uint8_t)1);
-    return Wire.read();
+    // Check if transmission was good
+    if(transmissionGood)
+    {
+        // Request data from i2c device
+        uint8_t result = Wire.requestFrom((uint8_t)i2cAddress, (uint8_t)1);
+        int data = Wire.read();
+        if(data == -1)
+        {
+            return 0;
+        }
+        else
+        {
+            return (uint8_t)data;
+        }
+    }
+    else
+    {
+        return 0;
+    }
+
 };
 
 
@@ -79,42 +100,11 @@ uint16_t I2C::read16(uint8_t i2cAddress, uint8_t regAddress)
  **/
 bool I2C::write8(uint8_t i2cAddres, uint8_t regAddress, uint8_t data)
 {
-    /*
-    Serial.print("I2C  : ");
-    Serial.println(i2cAddres, HEX);
-    Serial.print("REG  : ");
-    Serial.println(regAddress, HEX);
-    Serial.print("DATA : ");
-    Serial.println(data, HEX);
-    */
-    bool success = false;
     Wire.beginTransmission(i2cAddres);
     Wire.write(regAddress);
     Wire.write(data);
     uint8_t result = Wire.endTransmission();
-    switch (result)
-    {
-        case 0:
-            success = true;
-            break;
-        case 1:
-            Serial.println("I2C Write ERROR! => data too long to fit in transmit buffer");
-            success = false;
-            break;
-        case 2:
-            Serial.println("I2C Write ERROR! => received NACK on transmit of address");
-            success = false;
-            break;
-        case 3:
-            Serial.println("I2C Write ERROR! => received NACK on transmit of data");
-            success = false;
-            break;
-        case 4:
-            Serial.println("I2C Write ERROR! => other error");
-            success = false;
-            break;
-    }
-    return success;
+    return checkTransmissionError(result);
 };
 
 
@@ -125,12 +115,24 @@ bool I2C::write8(uint8_t i2cAddres, uint8_t regAddress, uint8_t data)
  **/
 bool I2C::write16(uint8_t i2cAddres, uint8_t regAddress, uint16_t data)
 {
-    bool success = false;
     Wire.beginTransmission(i2cAddres);
     Wire.write(regAddress);
     Wire.write(highByte(data));
     Wire.write(lowByte(data));
     uint8_t result = Wire.endTransmission();
+    return checkTransmissionError(result);
+};
+
+
+
+/**
+ * Checks for errors in the result of a Wire.endTransmission()
+ * @parameter result The result of the Wire.endTransmission()
+ * @return True if successfull, or false if not
+ */ 
+bool I2C::checkTransmissionError(uint8_t result)
+{
+    bool success = false;
     switch (result)
     {
         case 0:

@@ -26,6 +26,7 @@ class I2C : public IBaseClass
 
     // ## Functions ## //
     private:
+        bool checkTransmissionError(uint8_t result);
     public:
         // I2C read functions
         uint8_t read8(uint8_t i2cAddress, uint8_t regAddress);

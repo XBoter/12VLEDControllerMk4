@@ -3,12 +3,19 @@
 // Global instace of the mainController
 Main mainController;
 
+
+/**
+ *  Empty constructor
+ */
 Main::Main()
 {
 
-};
+}
 
 
+/**
+ * Setup function for Arduino file to call in setup
+ */
 void Main::_setup()
 {
     // Setup Serial
@@ -30,8 +37,7 @@ void Main::_setup()
     Serial.println("# ======================== #");
     Serial.println("");
 
-
-    // Init
+    // Init all components
     i2c.Init();
     network.Init();
     powerMessurement.Init();
@@ -41,9 +47,12 @@ void Main::_setup()
 };
 
 
+/**
+ * Loop function for Arduino file to call in loop
+ */
 void Main::_loop()
 {
-    // Run
+    // Run all components
     i2c.Run();
     network.Run();
     powerMessurement.Run();
