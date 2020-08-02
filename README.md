@@ -19,6 +19,9 @@
 - 10x N-Channel Mosfets for driving the 2 LED strips
 
 ## Schematic / PCB
+<img src="electronics/12VLEDControllerMk4Schematic.svg" width=600>
+
+<img src="electronics/12VLEDControllerMk4PCB.svg" width=600>
 
 ## Used Libraries
 [NTPClient](https://github.com/arduino-libraries/NTPClient)
