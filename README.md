@@ -20,7 +20,7 @@
 
 ## Schematic / PCB
 
-## Used Librarys
+## Used Libraries
 [NTPClient](https://github.com/arduino-libraries/NTPClient)
 
 [PubSubClient](https://github.com/knolleary/pubsubclient)
