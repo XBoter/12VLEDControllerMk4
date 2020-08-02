@@ -18,7 +18,7 @@
 - 1x PCA9685PW phase shifted PWM signal generation for the Mosfet
 - 10x N-Channel Mosfets for driving the 2 LED strips
 
-### Schematic
+## Schematic / PCB
 
 ## Used Librarys
 [NTPClient](https://github.com/arduino-libraries/NTPClient)
