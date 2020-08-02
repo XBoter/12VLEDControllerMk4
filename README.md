@@ -22,5 +22,7 @@ Code Upload to ESP8266 via the Arduino Extension for VS Code
 
 ## Used Librarys
 [NTPClient](https://github.com/arduino-libraries/NTPClient)
+
 [PubSubClient](https://github.com/knolleary/pubsubclient)
+
 [ArduinoJSON](https://github.com/bblanchon/ArduinoJson)
