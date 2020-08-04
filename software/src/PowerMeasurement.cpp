@@ -1,6 +1,13 @@
 #include "../include/PowerMeasurement.h"
 
 
+/**
+ * Constructor for the PowerMeasurement class
+ * 
+ * @parameter i2cAddress    The i2c address of the power messurement ic
+ * @parameter *i2c          Pointer to the used instance of the I2C class
+ * @parameter *network      Pointer to the used instace of the Network class
+ */
 PowerMeasurement::PowerMeasurement(uint8_t i2cAddress, I2C *i2c, Network *network)
 {
     this->i2cAddress = i2cAddress;
@@ -10,10 +17,10 @@ PowerMeasurement::PowerMeasurement(uint8_t i2cAddress, I2C *i2c, Network *networ
 
 
 /**
- * Initializes the PowerMeasurement instance
- * @parameter None
- * @return None
- **/
+ * Does init stuff for the PowerMeasurement component
+ * 
+ * @return True if successfull, false if not 
+ */
 bool PowerMeasurement::Init()
 {
     if (!init)
@@ -40,11 +47,8 @@ bool PowerMeasurement::Init()
 
 
 /**
- * Needs to get called every cycle. 
- * Handels the electrical measurements from the INA219AIDR
- * @parameter None
- * @return None
- **/
+ * Runs the PowerMeasurement component. 
+ */
 void PowerMeasurement::Run()
 {
     if(!init)

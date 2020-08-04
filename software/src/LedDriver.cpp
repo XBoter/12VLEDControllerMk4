@@ -1,7 +1,18 @@
 #include "../include/LedDriver.h"
 
 
-LedDriver::LedDriver(uint8_t i2cAddress, I2C *i2c, Network *network, PirReader *pirReader)
+/**
+ * Constructor for the LedDriver class
+ * 
+ * @parameter i2cAddress    The i2c address of the pwm ic
+ * @parameter *i2c          Pointer to the used instance of the I2C class
+ * @parameter *network      Pointer to the used instace of the Network class
+ * @parameter *pitReader    Pointer to the used instace of the PirReader class
+ */
+LedDriver::LedDriver(uint8_t i2cAddress, 
+                     I2C *i2c, 
+                     Network *network, 
+                     PirReader *pirReader)
 {
     this->i2cAddress = i2cAddress;
     this->i2c = i2c;
@@ -11,10 +22,10 @@ LedDriver::LedDriver(uint8_t i2cAddress, I2C *i2c, Network *network, PirReader *
 
 
 /**
- * Initializes the LedDriver instance
- * @parameter None
- * @return None
- **/
+ * Does init stuff for the LedDriver component
+ * 
+ * @return True if successfull, false if not 
+ */
 bool LedDriver::Init()
 {
     if (!init)
@@ -77,11 +88,8 @@ bool LedDriver::Init()
 
 
 /**
- * Needs to get called every cycle. 
- * Handels the control of the led strips from the PCA9685PW
- * @parameter None
- * @return None
- **/
+ * Runs the LedDriver component. 
+ */
 void LedDriver::Run()
 {
     if(!init)
@@ -120,9 +128,14 @@ void LedDriver::Run()
 
 /**
  * Checks for a effect change and transitions to the new effect with a black fade
- * @parameter curEffect The new effect to transition to
- * @parameter prevEffect The current effect
- * @return True if transition is finished or both effects are the same
+ * 
+ * @parameter stripID               The strip id of the LED Strip which the transition gets applied to
+ * @parameter colorFadeSpeed        The speed with which a color gets faded to a new value
+ * @parameter brightnessFadeSpeed   The speed with which a brightnessValue gets faded to a new value
+ * @parameter curDataStrip          The new LEDStripData for the given LED Strip
+ * @parameter *prevDataStrip        A pointer to the current LEDStripData for the given LED Strip
+ * 
+ * @return True if transition is finished or both effects are the same, else false
  **/
 bool LedDriver::TransitionToNewEffect(  uint8_t stripID,
                                         uint8_t colorFadeSpeed,
@@ -154,9 +167,14 @@ bool LedDriver::TransitionToNewEffect(  uint8_t stripID,
 
 
 /**
- * Handels the control of a LED strip
- * @parameter None
- * @return None
+ * Handels the display of a LED Strip (Colorfade, Effect, Transition,...)
+ *
+ * @parameter stripID               The strip id of the LED Strip which the transition gets applied to
+ * @parameter colorFadeSpeed        The speed with which a color gets faded to a new value
+ * @parameter brightnessFadeSpeed   The speed with which a brightnessValue gets faded to a new value
+ * @parameter MotionData            The currently used MotionData for the given LED Strip
+ * @parameter curDataStrip          The new LEDStripData for the given LED Strip
+ * @parameter *prevDataStrip        A pointer to the current LEDStripData for the given LED Strip
  **/
 void LedDriver::HandleLEDStrip( uint8_t stripID,
                                 uint8_t colorFadeSpeed,
@@ -548,6 +566,17 @@ void LedDriver::HandleLEDStrip( uint8_t stripID,
 };
 
 
+/**
+ * Fades the given LED strip to black by overwriting the given curDataStrip 
+ * 
+ * @parameter stripID               The strip id of the LED Strip which the transition gets applied to
+ * @parameter colorFadeSpeed        The speed with which a color gets faded to a new value
+ * @parameter brightnessFadeSpeed   The speed with which a brightnessValue gets faded to a new value
+ * @parameter curDataStrip          The new LEDStripData for the given LED Strip
+ * @parameter *prevDataStrip        A pointer to the current LEDStripData for the given LED Strip
+ * 
+ * @return True if finished fading to black, false if not
+ **/
 bool LedDriver::FadeToBlack(uint8_t stripID,
                             uint8_t colorFadeSpeed,
                             uint8_t brightnessFadeSpeed,
@@ -590,27 +619,43 @@ bool LedDriver::FadeToBlack(uint8_t stripID,
 };
 
 
+/**
+ * Sets the color instand of fading to it
+ * 
+ * @parameter stripID               The strip id of the LED Strip which the transition gets applied to
+ * @parameter brightnessFadeSpeed   The speed with which a brightnessValue gets faded to a new value
+ * @parameter curDataStrip          The new LEDStripData for the given LED Strip
+ * @parameter *prevDataStrip        A pointer to the current LEDStripData for the given LED Strip
+ * 
+ * @return True if finished setting color, false if not
+ **/
 bool LedDriver::SetColor(   uint8_t stripID,
                             uint8_t brightnessFadeSpeed,
                             LEDStripData curDataStrip,
                             LEDStripData *prevDataStrip)
 {
-    FadeToColor(stripID,
-                255,    // Set fade speed to max
-                brightnessFadeSpeed,
-                curDataStrip,
-                prevDataStrip);
+     bool fadeFinished = false;
+
+    fadeFinished = FadeToColor(stripID,
+                               255,    // Set fade speed to max
+                               brightnessFadeSpeed,
+                               curDataStrip,
+                               prevDataStrip);
+
+    return fadeFinished;
 };
 
 
 /**
  * Fades the colors of a led strip to a their new values
+ * 
  * @parameter stripID               Number of the led strip to fade the colors for
  * @parameter colorFadeSpeed        The Speed with which the color gets faded to their new value
  * @parameter brightnessFadeSpeed   The Speed with which the brightness gets faded to their new value
  * @parameter curDataStrip          The new data for the led strip
  * @parameter prevDataStrip         The current data of the led strip
- * @return Fade finished or not
+ * 
+ * @return True if faded to new color, false if not
  **/
 bool LedDriver::FadeToColor(uint8_t stripID,
                             uint8_t colorFadeSpeed,
@@ -947,9 +992,16 @@ bool LedDriver::FadeToColor(uint8_t stripID,
 
 
 /**
- * Writes a color value to the specified register
- * @parameter i2cAddress: i2c address of the pca9685
- * @return Nones
+ * Writes a color value to the specified register with phase shift
+ * 
+ * @parameter i2cAddress        The i2c address of the pca9685 (pwm ic)
+ * @parameter REG_ON_L          The on register for the low byte
+ * @parameter REG_ON_H          The on register fot the high byte
+ * @parameter REG_OFF_L         The off register for the low byte
+ * @parameter REG_OFF_H         The off register for the high byte
+ * @parameter phaseShift        The phase shift value to apply to the given LED channel
+ * @parameter colorValue        The color value of the given LED channel
+ * @parameter brightnessValue   The brightness of the given LED channel
  **/
 void LedDriver::UpdateLEDChannel(   uint8_t i2cAddress,
                                     uint8_t REG_ON_L,
@@ -1016,9 +1068,7 @@ void LedDriver::UpdateLEDChannel(   uint8_t i2cAddress,
 
 
 /**
- * Prints all register values from the PCA9685PW
- * @parameter None
- * @return None
+ * Prints all used register values from the PCA9685PW
  **/
 void LedDriver::PrintAllRegister()
 {
@@ -1047,14 +1097,14 @@ void LedDriver::PrintAllRegister()
 
 /**
  * Prints a byte with leading zeros 
- * @parameter Byte to print
- * @return None
+ * 
+ * @parameter byte  The byte to print in binary
  **/
 void LedDriver::PrintByte(byte b)
 {
     for (int i = 7; i >= 0; i--)
     {
-      Serial.print(bitRead(b, i));
+      Serial.print(bitRead(byte, i));
     }
     Serial.println("");
 };

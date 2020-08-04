@@ -2,7 +2,7 @@
 
 
 /**
- *  Empty constructor
+ * Empty constructor
  */
 I2C::I2C()
 {
@@ -12,6 +12,7 @@ I2C::I2C()
 
 /**
  * Does init stuff for the I2C component
+ * 
  * @return True if successfull, false if not 
  */
 bool I2C::Init()
@@ -29,7 +30,7 @@ bool I2C::Init()
 
 /**
  * Runs the I2C component. !! Not used for now !!
- **/
+ */
 void I2C::Run()
 {
 
@@ -38,8 +39,10 @@ void I2C::Run()
 
 /**
  * Reads 8 bit data from a i2c device 8 bit reg
- * @parameter i2cAddres The 8 Bit address of the I2C device
- * @parameter regAddress The 8 Bit address of the register to read from
+ * 
+ * @parameter i2cAddres     The 8 Bit address of the I2C device
+ * @parameter regAddress    The 8 Bit address of the register to read from
+ * 
  * @return 8 Bit data from the register if successfull, or 0 if not successfull
  **/
 uint8_t I2C::read8(uint8_t i2cAddress, uint8_t regAddress)
@@ -75,7 +78,9 @@ uint8_t I2C::read8(uint8_t i2cAddress, uint8_t regAddress)
 
 /**
  * Reads 16 bit data from a i2c device 16 bit reg
- * @parameter I2C-Address of the device, Register Address to read from
+ * 
+ * @parameter i2cAddress    I2C-Address of the device, Register Address to read from
+ * 
  * @return 2 byte data from the reg
  **/
 uint16_t I2C::read16(uint8_t i2cAddress, uint8_t regAddress)
@@ -95,7 +100,9 @@ uint16_t I2C::read16(uint8_t i2cAddress, uint8_t regAddress)
 
 /**
  * Writes 8 bit of data to a i2c device 8 bit register
- * @parameter I2C-Address of the device, Register Address to be written to, 1 byte of data
+ * 
+ * @parameter i2cAddres     The I2C-Address of the device, Register Address to be written to, 1 byte of data
+ * 
  * @return Successfull write or not
  **/
 bool I2C::write8(uint8_t i2cAddres, uint8_t regAddress, uint8_t data)

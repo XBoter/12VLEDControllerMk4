@@ -2,6 +2,13 @@
 #include "../Main.h"
 
 
+/**
+ * Constructor for the PirReader class
+ * 
+ * @parameter pinPirSensor1     The digital pin of the 1 PIR sensor
+ * @parameter pinPirSensor2     The digital pin of the 2 PIR sensor
+ * @parameter *network          Pointer to the used instace of the Network class
+ */
 PirReader::PirReader(uint8_t pinPirSensor1, uint8_t pinPirSensor2, Network *network)
 {
     this->pinPirSensor1 = pinPirSensor1;
@@ -11,10 +18,10 @@ PirReader::PirReader(uint8_t pinPirSensor1, uint8_t pinPirSensor2, Network *netw
 
 
 /**
- * Initializes the PirReader instance
- * @parameter None
- * @return None
- **/
+ * Does init stuff for the PirReader component
+ * 
+ * @return True if successfull, false if not 
+ */
 bool PirReader::Init()
 {
     if(!init)
@@ -34,11 +41,8 @@ bool PirReader::Init()
 
 
 /**
- * Needs to get called every cycle. 
- * Handels the read of the pir sensor and motion detection
- * @parameter None
- * @return None
- **/
+ * Runs the PirReader component. 
+ */
 void PirReader::Run()
 {
     if(!init)

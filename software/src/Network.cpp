@@ -17,7 +17,9 @@
 #define DEV_LED_CONTROLLER_MK4
 #include <secrets_mqtt_paths_mk2.h>
 
-
+/**
+ * Empty constructor
+ */ 
 Network::Network()
 {
     
@@ -31,10 +33,10 @@ String LEDEffectToString(LEDEffect effect);
 
 
 /**
- * Initializes the network instance
- * @parameter None
- * @return None
- **/
+ * Does init stuff for the Network component
+ * 
+ * @return True if successfull, false if not 
+ */
 bool Network::Init()
 {
     if(!init)
@@ -53,11 +55,8 @@ bool Network::Init()
 
 
 /**
- * Needs to get called every cycle. 
- * Handels all the network stuff (WiFi, MQTT and Heartbeat)
- * @parameter None
- * @return None
- **/
+ * Runs the Network component. 
+ */
 void Network::Run()
 {
     if(!init)
@@ -124,11 +123,9 @@ void Network::Run()
 
 
 /**
- * Needs to get called every cycle. 
- * Handels the WiFi connection
- * @parameter None
- * @return None
- **/
+ * Handels the WiFi connection.
+ * Auto reconnects on dc
+ */
 void Network::HandleWifi()
 {
     switch (wifiState)
@@ -179,12 +176,10 @@ void Network::HandleWifi()
 
 
 /**
- * Needs to get called every cycle. 
  * Handels the MQTT connection after the wifi is connected
  * Subscribes to a list pre defined topics
- * @parameter None
- * @return None
- **/
+ * Auto reconnects after dc and resubscribes to the defined topics
+ */
 void Network::HandleMqtt()
 {
  
@@ -263,9 +258,7 @@ void Network::HandleMqtt()
 
 /**
  * Handles the Network Time Protocol for accurate time updates
- * @parameter None
- * @return None
- **/
+ */
 void Network::HandleNTP()
 {
     // Get Time update
@@ -287,11 +280,8 @@ void Network::HandleNTP()
 
 
 /**
- * Publishes a heartbeat update to the defined mqtt path,
- * if mqtt is available
- * @parameter None
- * @return Power value
- **/
+ * Publishes a heartbeat update to the defined mqtt path every few milliseconds if mqtt is available
+ */
 void Network::Heartbeat()
 {
     if(mqttConnected)
@@ -308,10 +298,10 @@ void Network::Heartbeat()
 
 /**
  * Publishes a electrical measurement update in json format
- * @parameter currentPower in mW to send
- * @parameter busVoltage in V to send
- * @parameter busCurrent in mA
- * @return None
+ * 
+ * @parameter currentPower  The value of the power in mW to send
+ * @parameter busVoltage    The value of the bus voltage in V to send
+ * @parameter busCurrent    The value of the bus current in mA
  **/
 void Network::ElectricalMeasurementUpdate(  double currentPower,
                                             double busVoltage,
@@ -332,8 +322,8 @@ void Network::ElectricalMeasurementUpdate(  double currentPower,
 
 /**
  * Publishes a motion detection update to the defined mqtt path
- * @parameter Motion detected or not
- * @return Current value
+ * 
+ * @parameter motion    The value of the current detected motion
  **/
 void Network::MotionDetectedUpdate(bool motion)
 {
@@ -345,9 +335,9 @@ void Network::MotionDetectedUpdate(bool motion)
 
 /**
  * Updates the current ledStripData to a mqtt topic in json format
- * @parameter ledStripData LEDStripData struct to send
- * @parameter topic Mqtt topic to send to
- * @return None
+ * 
+ * @parameter ledStripData  LEDStripData struct to send
+ * @parameter topic         Mqtt topic to send the data to
  **/
 void Network::MqttUpdateAfterDc(LEDStripData ledStripData,
                                 const char* topic)
@@ -378,12 +368,13 @@ void Network::MqttUpdateAfterDc(LEDStripData ledStripData,
 
 /**
  * Converts a string to a LEDEffect
- * @parameter name of effect in string
- * @return effect in LEDEffect
+ * 
+ * @parameter effect    The name of effect as string
+ * 
+ * @return effect The corresponding LEDEffect to the given string effect
  **/
 LEDEffect StringToLEDEffect(String effect)
 {
-
     if(effect == "None")
     {
         return LEDEffect::None;
@@ -432,18 +423,18 @@ LEDEffect StringToLEDEffect(String effect)
     {
         return LEDEffect::None;
     }
-
 };
 
 
 /**
- * Converts a LEDEffect to a string
- * @parameter LEDEffect
- * @return effect in string
+ * Converts a LEDEffect to a String
+ * 
+ * @parameter effect    The LEDEffect to convert to string
+ * 
+ * @return effect The corresponding string effect to the given LEDEffect
  **/
 String LEDEffectToString(LEDEffect effect)
 {
-
     switch(effect)
     {
 
@@ -496,17 +487,16 @@ String LEDEffectToString(LEDEffect effect)
             break;
 
     }
-
 };
 
 
 /**
  * MQTT callback function.
- * Processes all the received commands from the subscribed topics
- * @parameter *topic A pointer to a char array containing the mqtt topic that calles this function with new data
- * @parameter *payload A pointer to a byte array with data send over the mqtt topic
- * @parameter length Length of the byte data array
- * @return None
+ * Processes all the receives commands from the subscribed topics
+ * 
+ * @parameter *topic    A pointer to a char array containing the mqtt topic that calles this function with new data
+ * @parameter *payload  A pointer to a byte array with data send over the mqtt topic
+ * @parameter length    The length of the byte data array
  **/
 void mqttCallback(char *topic, byte *payload, unsigned int length)
 {

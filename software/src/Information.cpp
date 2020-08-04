@@ -8,10 +8,10 @@ Information::Information(Network *network, PirReader *pirReader)
 
 
 /**
- * Initializes the information instance
- * @parameter None
- * @return None
- **/
+ * Does init stuff for the Information component
+ * 
+ * @return True if successfull, false if not 
+ */
 bool Information::Init()
 {
     if (!init)
@@ -25,11 +25,8 @@ bool Information::Init()
 
 
 /**
- * Needs to get called every cycle. 
- * Prints changes of the defined paramters in the network class 
- * @parameter None
- * @return None
- **/
+ * Runs the Information component. 
+ */
 void Information::Run()
 {
     if(!init)
@@ -182,9 +179,10 @@ void Information::Run()
 
 
 /**
- * Prints a single formatted paramter to serial
- * @parameter The name of the parameter and the corresponding value of that parameter
- * @return None
+ * Prints a single parameter/component formatted message to serial
+ * 
+ * @parameter name      The name of the parameter or component
+ * @parameter value     The value of the given parameter or component
  **/
 void Information::FormatPrintSingle(String name, 
                                     String value)
@@ -204,9 +202,12 @@ void Information::FormatPrintSingle(String name,
 
 
 /**
- * Prints a time formatted paramter to serial
- * @parameter The name of the parameter and the corresponding value of that parameter
- * @return None
+ * Prints a time formatted message to serial
+ * 
+ * @parameter name      The name of the parameter or component
+ * @parameter hour      The value of the current hour
+ * @parameter minute    The value of the current minute
+ * @parameter second    The value of the current second
  **/
 void Information::FormatPrintTime(  String name, 
                                     String hour, 
@@ -230,9 +231,17 @@ void Information::FormatPrintTime(  String name,
 
 
 /**
- * Prints a led strip formatted paramter to serial
- * @parameter The name of the parameter and the corresponding value of that parameter
- * @return None
+ * Prints a led strip formatted message to serial
+ * 
+ * @parameter name          The name of the parameter or component
+ * @parameter power         The current power value of the LED strip
+ * @parameter brightness    The current brightness value of the LED strip
+ * @parameter cw            The current cold white value of the LED strip
+ * @parameter ww            The current warm white value of the LED strip
+ * @parameter red           The current red value of the LED strip
+ * @parameter green         The current green value of the LED strip
+ * @parameter blue          The current blue value of the LED strip
+ * @parameter effect        The current effect value of the LED strip
  **/
 void Information::FormatPrintLEDStrip(  String name, 
                                         String power, 
@@ -287,9 +296,14 @@ void Information::FormatPrintLEDStrip(  String name,
 
 
 /**
- * Prints a motion formatted paramter to serial
- * @parameter The name of the parameter and the corresponding value of that parameter
- * @return None
+ * Prints a motion formatted message to serial
+ * 
+ * @parameter name          The name of the parameter or component
+ * @parameter motionPower   The current motion power value
+ * @parameter red           The current motion color red value
+ * @parameter green         The current motion color green value
+ * @parameter blue          The current motion color blue value
+ * @parameter timeout       The current motion timeout
  **/
 void Information::FormatPrintMotion(    String name, 
                                         String motionPower, 
@@ -329,9 +343,11 @@ void Information::FormatPrintMotion(    String name,
 
 
 /**
- * Prints a motion detected formatted paramter to serial
- * @parameter motionDetected and sensor values
- * @return None
+ * Prints a motion Detected formatted message to serial
+ * 
+ * @parameter motionDetected    The current value of the motion
+ * @parameter sensor1Triggered  The current value of the 1 pir motion sensor
+ * @parameter sensor2Triggered  The current value of the 2 pir motion sensor
  **/
 void Information::FormatPrintMotionDetected(String motionDetected,
                                             String sensor1Triggered,
@@ -360,9 +376,7 @@ void Information::FormatPrintMotionDetected(String motionDetected,
 
 
 /**
- * Prints a formatted top spacer to serial
- * @parameter None
- * @return None
+ * Prints a formatted top spacer message to serial
  **/
 void Information::TopSpacerPrint()
 {
@@ -378,9 +392,7 @@ void Information::TopSpacerPrint()
 
 
 /**
- * Prints a formatted bottom spacer to serial
- * @parameter None
- * @return None
+ * Prints a formatted bottom spacer message to serial
  **/
 void Information::BottomSpacerPrint()
 {
@@ -396,9 +408,11 @@ void Information::BottomSpacerPrint()
 
 
 /**
- * Returns a string representing the state of the given bool
- * @parameter Bool value
- * @return String name of bool value state
+ * Converts a given bool value to the corresponding string message
+ * 
+ * @parameter b     The bool value to convert
+ * 
+ * @return The value of the bool as string
  **/
 String Information::BoolToString(bool b)
 {
@@ -414,9 +428,11 @@ String Information::BoolToString(bool b)
 
 
 /**
- * Converts a LEDEffect to a string
- * @parameter LEDEffect
- * @return effect in string
+ * Converts a LEDEffect to a String
+ * 
+ * @parameter effect    The LEDEffect to convert to string
+ * 
+ * @return effect The corresponding string effect to the given LEDEffect
  **/
 String Information::LEDEffectToString(LEDEffect effect)
 {
@@ -482,9 +498,7 @@ String Information::LEDEffectToString(LEDEffect effect)
 
 
 /**
- * Prints a string with length of insertLength * spaces
- * @parameter None
- * @return None
+ * Prints a string message with length of insertLength * spaces to serial
  **/
 void Information::InsertPrint()
 {
