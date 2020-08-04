@@ -1104,7 +1104,7 @@ void LedDriver::PrintByte(byte b)
 {
     for (int i = 7; i >= 0; i--)
     {
-      Serial.print(bitRead(byte, i));
+      Serial.print(bitRead(b, i));
     }
     Serial.println("");
 };
