@@ -35,7 +35,8 @@ class LedDriver : public IBaseClass
         PirReader *pirReader;
         Network *network;
         MotionData motionData;
-        LEDStripData curDataStrip1;
+        // Data for LED Strip
+        LEDStripData curDataStrip1; 
         LEDStripData curDataStrip2;
         LEDStripData prevDataStrip1;
         LEDStripData prevDataStrip2;
@@ -83,7 +84,9 @@ class LedDriver : public IBaseClass
                                    LEDStripData *prevDataStrip);
 
         void PrintAllRegister();
+
         void PrintByte(byte b);
+
     public:
 
 };

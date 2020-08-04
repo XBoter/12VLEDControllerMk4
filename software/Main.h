@@ -18,7 +18,6 @@
 
 /*
       ToDo     Fix bug with power measurements reading zero from reg
-      ToDo     Fix LED on when bootup
       ToDo     Add NTP Summer/Winter time swap => For now only Winter Time 
       ToDo     Rework doc string. Information about how to use stuff in header, and how it works in source 
 */

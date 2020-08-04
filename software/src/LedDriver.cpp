@@ -32,16 +32,6 @@ bool LedDriver::Init()
     {
         i2c->Init();
 
-        // Reset ic
-        i2c->write8(i2cAddress, MODE1, 0b10000000);
-        i2c->write8(i2cAddress, MODE1, 0b10001000);
-        delay(1000); // min 500 qs delay
-        i2c->write8(i2cAddress, MODE1, 0b10000000);
-        delay(200);
-
-        // Clear Mode 1 register
-        i2c->write8(i2cAddress, MODE1, 0b00000000);
-
         // Set sleep bit to set prescaler
         i2c->write8(i2cAddress, MODE1, 0b00010000);
 
@@ -54,30 +44,26 @@ bool LedDriver::Init()
         // Set Mode 2 register
         i2c->write8(i2cAddress, MODE2, 0b00000100);
         /*
-            INVRT = 0
             OUTDRV = 1
         */
 
-        // Turn all LEDs of 
-        // TODO turn all leds of after init
-
-        PrintAllRegister();
-
         // ---- Init LEDStripData (Needed so after bootup the values change with the one received from mqtt and get updated)
         // -- Strip 1
-        prevDataStrip1.brightness   = 100;
-        prevDataStrip1.red          = 10;
-        prevDataStrip1.green        = 10;
-        prevDataStrip1.blue         = 10;
-        prevDataStrip1.cw           = 10;
-        prevDataStrip1.ww           = 10;
+        prevDataStrip1.brightness   = 0;
+        prevDataStrip1.red          = 0;
+        prevDataStrip1.green        = 0;
+        prevDataStrip1.blue         = 0;
+        prevDataStrip1.cw           = 0;
+        prevDataStrip1.ww           = 0;
+        prevDataStrip1.effect       = LEDEffect::None;
         // -- Strip 2
-        prevDataStrip2.brightness   = 100;
-        prevDataStrip2.red          = 10;
-        prevDataStrip2.green        = 10;
-        prevDataStrip2.blue         = 10;
-        prevDataStrip2.cw           = 10;
-        prevDataStrip2.ww           = 10;
+        prevDataStrip2.brightness   = 0;
+        prevDataStrip2.red          = 0;
+        prevDataStrip2.green        = 0;
+        prevDataStrip2.blue         = 0;
+        prevDataStrip2.cw           = 0;
+        prevDataStrip2.ww           = 0;
+        prevDataStrip2.effect       = LEDEffect::None;
 
         Serial.println("LED Driver initialized");
         init = true;
@@ -1108,3 +1094,4 @@ void LedDriver::PrintByte(byte b)
     }
     Serial.println("");
 };
+                            
