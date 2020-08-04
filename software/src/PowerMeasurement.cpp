@@ -35,6 +35,13 @@ bool PowerMeasurement::Init()
         // Bit 7-10 Bus ADC
         // Bit 3-6 Shunt ADC
         // Bit 2-0 Mode
+
+        // -- Settings
+        // Bit 11-12 Programmable Gain Amplifier => 11 => +-320mV
+        // Bit 7-10 Bus ADC => 0011 => 12 Bit Resolution => Conversion Time 532 μs
+        // Bit 3-6 Shunt ADC => 0011 => 12 Bit Resolution => Conversion Time 532 μs
+        // Bit 2-0 Mode => 111 => Shunt and Bus continuous
+
         uint16_t config = 0b0001100110011111;
         i2c->write16(i2cAddress, CONFIG, config);
 
@@ -60,6 +67,8 @@ void PowerMeasurement::Run()
     if (CurMillis_PowerMessurmentUpdateRate - PrevMillis_PowerMessurmentUpdateRate >= TimeOut_PowerMessurmentUpdateRate)
     {
         PrevMillis_PowerMessurmentUpdateRate = CurMillis_PowerMessurmentUpdateRate;
+
+        PrintAllRegister();
 
         // Check if WiFi or Mqtt is connected
         if (network->wifiConnected || network->mqttConnected)
@@ -103,3 +112,46 @@ void PowerMeasurement::Run()
                                                     valueCurrent_mA);
     }
 }
+
+
+/**
+ * Prints all used register values from the INA219
+ **/
+void PowerMeasurement::PrintAllRegister()
+{
+    Serial.println("# ==== INA219 REGISTERS ==== #");
+    for (uint i = 0; i < 6; i++)
+    {
+        if (i < 16)
+        {
+          Serial.print("0");
+        }
+        uint16_t reg_data = i2c->read16(i2cAddress, i);
+        Serial.print(i, HEX);
+        Serial.print(" ");
+        Print2ByteValue(reg_data);
+    }
+    Serial.println("# ========================== #");
+    Serial.println("");
+};
+
+
+/**
+ * Prints a 2 byte value with leading zeros 
+ * 
+ * @parameter byte  The 2 byte value to print in binary
+ **/
+void PowerMeasurement::Print2ByteValue(uint16_t data)
+{
+    // Print high byte
+    for (int i = 7; i >= 0; i--)
+    {
+      Serial.print(bitRead(highByte(data), i));
+    }
+    // Print low byte
+    for (int i = 7; i >= 0; i--)
+    {
+      Serial.print(bitRead(lowByte(data), i));
+    }
+    Serial.println("");
+};

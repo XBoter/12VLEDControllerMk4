@@ -1058,10 +1058,10 @@ void LedDriver::UpdateLEDChannel(   uint8_t i2cAddress,
  **/
 void LedDriver::PrintAllRegister()
 {
-    Serial.println("# ==== REGISTERS ==== #");
+    Serial.println("# ==== PCA9685PW REGISTERS ==== #");
     for (int i = 0; i < 70; i++)
     {
-      uint8_t reg_data = i2c->read8(0x40, i);    
+      uint8_t reg_data = i2c->read8(i2cAddress, i);    
       if (i < 16)
       {
         Serial.print("0");
@@ -1072,12 +1072,13 @@ void LedDriver::PrintAllRegister()
     }
     for (int i = 250; i < 256; i++)
     {
-      uint8_t reg_data = i2c->read8(0x40, i);
+      uint8_t reg_data = i2c->read8(i2cAddress, i);
       Serial.print(i, HEX);
       Serial.print(" ");
       PrintByte(reg_data);
     }
-    Serial.println("# =================== #");
+    Serial.println("# ============================= #");
+    Serial.println("");
 };
 
 

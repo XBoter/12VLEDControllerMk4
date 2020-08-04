@@ -42,6 +42,8 @@ class PowerMeasurement : public IBaseClass
 
     // ## Functions ## //
     private:
+        void PrintAllRegister();
+        void Print2ByteValue(uint16_t data);
     public:
 
 };

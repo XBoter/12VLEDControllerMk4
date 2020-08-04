@@ -84,9 +84,7 @@ class LedDriver : public IBaseClass
                                    LEDStripData *prevDataStrip);
 
         void PrintAllRegister();
-
         void PrintByte(byte b);
-
     public:
 
 };
