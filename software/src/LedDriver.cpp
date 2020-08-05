@@ -212,10 +212,16 @@ void LedDriver::HandleLEDStrip( uint8_t stripID,
    // Return if the transition is not finished
    if(!effectTransitionFinished)
    {
+       // ---- Reset Effect data
+       // -- Alarm
+       effectAlarmState = 0;
+       PrevMillis_AlarmEffectPauseTime = millis();
+
        return;
    }
 
-    //Serial.println(prevDataStrip->effect);
+    // Get current millis for effects
+    unsigned long currentMillis = millis();
 
     // ---- Effect call section
     /*
@@ -291,8 +297,108 @@ void LedDriver::HandleLEDStrip( uint8_t stripID,
 
         case LEDEffect::Alarm:
             /*
-                Red flashing LEDs with cold white 
+                Red puls light 
             */
+         
+            // Check for effect change and update values
+            if(curDataStrip.effect != prevDataStrip->effect)
+            {
+                prevDataStrip->cw       = 0;
+                prevDataStrip->ww       = 0;
+                prevDataStrip->red      = 255;
+                prevDataStrip->green    = 0;
+                prevDataStrip->blue     = 0;
+                SetColor(   stripID,
+                            brightnessFadeSpeed,
+                            curDataStrip,
+                            prevDataStrip);
+                prevDataStrip->effect = curDataStrip.effect;
+            }
+
+            switch(effectAlarmState)
+            {
+
+                // Init Effect
+                case 0:
+                    // Set effect data 
+                    alarmEffectData.power = true;
+                    alarmEffectData.red = 255;
+                    alarmEffectData.blue = 0;
+                    alarmEffectData.green = 0;
+                    alarmEffectData.cw = 0;
+                    alarmEffectData.ww = 0;
+                    alarmEffectData.brightness = 4095;
+                    alarmColorSpeed = 4;
+                    alarmBrightnessSpeed = 64;
+
+                    // Fade to color
+                    alarmFadeFinished = FadeToColor(stripID,
+                                                    alarmColorSpeed,
+                                                    alarmBrightnessSpeed,
+                                                    alarmEffectData,
+                                                    prevDataStrip);
+                    if(alarmFadeFinished)
+                    {
+                        alarmFadeFinished = false;
+                        effectAlarmState = 5;
+                    }
+                    break;
+
+
+                // Fade to 100% red and 100% brightness
+                case 5:
+                    // Set effect data 
+                    alarmEffectData.brightness = 4095;
+                    alarmBrightnessSpeed = 64;
+
+                    // Fade to color
+                    alarmFadeFinished = FadeToColor(stripID,
+                                                    alarmColorSpeed,
+                                                    alarmBrightnessSpeed,
+                                                    alarmEffectData,
+                                                    prevDataStrip);
+                    if(alarmFadeFinished)
+                    {
+                        alarmFadeFinished = false;
+                        PrevMillis_AlarmEffectPauseTime = currentMillis;
+                        effectAlarmState = 10;
+                    }
+                    break;
+
+                // Wait pause time
+                case 10:
+                    if (currentMillis - PrevMillis_AlarmEffectPauseTime >= 200) {
+                        effectAlarmState = 20;
+                    }
+                    break;
+
+                // Fade to 100% red and 25% brightness
+                case 20:
+                    // Set effect data 
+                    alarmEffectData.brightness = 1024;
+                    alarmBrightnessSpeed = 32;
+                    // Fade to color
+                    alarmFadeFinished = FadeToColor(stripID,
+                                                    alarmColorSpeed,
+                                                    alarmBrightnessSpeed,
+                                                    alarmEffectData,
+                                                    prevDataStrip);
+                    if(alarmFadeFinished)
+                    {
+                        alarmFadeFinished = false;
+                        PrevMillis_AlarmEffectPauseTime = currentMillis;
+                        effectAlarmState = 30;
+                    }
+                    break;
+
+                // Wait pause time
+                case 30:
+                    if (currentMillis - PrevMillis_AlarmEffectPauseTime >= 500) {
+                        effectAlarmState = 5;
+                    }
+                    break;
+            }
+
             break;
 
         case LEDEffect::Music:
@@ -975,19 +1081,33 @@ bool LedDriver::FadeToColor(uint8_t stripID,
     // DEBUG
     if(stripID == 1)
     {
-        // Serial.println("");
-        // Serial.println("# ============ #");
-        // Serial.print("red   : ");
-        // Serial.println(prevDataStrip->red);
-        // Serial.print("green : ");
-        // Serial.println(prevDataStrip->green);
-        // Serial.print("blue  : ");
-        // Serial.println(prevDataStrip->blue);
-        // Serial.print("cw    : ");
-        // Serial.println(prevDataStrip->cw);
-        // Serial.print("ww    : ");
-        // Serial.println(prevDataStrip->ww);
-        // Serial.println("# ============ #");
+        //Serial.println("");
+        //Serial.println("# ============ #");
+        //Serial.print("bright: ");
+        //Serial.print(prevDataStrip->brightness);
+        //Serial.print(" | ");
+        //Serial.println(curDataStrip.brightness);
+        //Serial.print("red   : ");
+        //Serial.print(prevDataStrip->red);
+        //Serial.print(" | ");
+        //Serial.println(curDataStrip.red);
+        //Serial.print("green : ");
+        //Serial.print(prevDataStrip->green);
+        //Serial.print(" | ");
+        //Serial.println(curDataStrip.green);
+        //Serial.print("blue  : ");
+        //Serial.print(prevDataStrip->blue);
+        //Serial.print(" | ");
+        //Serial.println(curDataStrip.blue);
+        //Serial.print("cw    : ");
+        //Serial.print(prevDataStrip->cw);
+        //Serial.print(" | ");
+        //Serial.println(curDataStrip.cw);
+        //Serial.print("ww    : ");
+        //Serial.print(prevDataStrip->ww);
+        //Serial.print(" | ");
+        //Serial.println(curDataStrip.ww);
+        //Serial.println("# ============ #");
     }
 
     return fadeFinished;

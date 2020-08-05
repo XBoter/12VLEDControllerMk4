@@ -35,11 +35,20 @@ class LedDriver : public IBaseClass
         PirReader *pirReader;
         Network *network;
         MotionData motionData;
+        
         // Data for LED Strip
         LEDStripData curDataStrip1; 
         LEDStripData curDataStrip2;
         LEDStripData prevDataStrip1;
         LEDStripData prevDataStrip2;
+        
+        // Effect Alarm
+        uint8_t effectAlarmState = 0;
+        unsigned long PrevMillis_AlarmEffectPauseTime = 0;
+        LEDStripData alarmEffectData;
+        uint8_t alarmColorSpeed = 0;
+        uint8_t alarmBrightnessSpeed = 0;
+        bool alarmFadeFinished = false;
     public:
 
     // ## Functions ## //

@@ -49,10 +49,10 @@ void Information::Run()
         || this->network->stTimeData.minute != memNetwork.stTimeData.minute
         || this->network->stTimeData.second != memNetwork.stTimeData.second)
     {
-        FormatPrintTime("Time", 
-                        String(this->network->stTimeData.hour), 
-                        String(this->network->stTimeData.minute),
-                        String(this->network->stTimeData.second));   
+        //FormatPrintTime("Time", 
+        //                String(this->network->stTimeData.hour), 
+        //                String(this->network->stTimeData.minute),
+        //                String(this->network->stTimeData.second));   
 
         memNetwork.stTimeData.hour      = this->network->stTimeData.hour;
         memNetwork.stTimeData.minute    = this->network->stTimeData.minute;
