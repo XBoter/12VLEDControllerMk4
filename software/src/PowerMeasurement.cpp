@@ -8,11 +8,15 @@
  * @parameter *i2c          Pointer to the used instance of the I2C class
  * @parameter *network      Pointer to the used instace of the Network class
  */
-PowerMeasurement::PowerMeasurement(uint8_t i2cAddress, I2C *i2c, Network *network)
+PowerMeasurement::PowerMeasurement(uint8_t i2cAddress, 
+                                   I2C *i2c, 
+                                   Network *network,
+                                   double shuntResistorOhm)
 {
     this->i2cAddress = i2cAddress;
     this->i2c = i2c;
     this->network = network;
+    this->shuntResistorOhm = shuntResistorOhm;
 }
 
 
@@ -41,9 +45,45 @@ bool PowerMeasurement::Init()
         // Bit 7-10 Bus ADC => 0011 => 12 Bit Resolution => Conversion Time 532 μs
         // Bit 3-6 Shunt ADC => 0011 => 12 Bit Resolution => Conversion Time 532 μs
         // Bit 2-0 Mode => 111 => Shunt and Bus continuous
-
+        
+        Serial.println("Setting config register");
         uint16_t config = 0b0001100110011111;
         i2c->write16(i2cAddress, CONFIG, config);
+        Serial.print("Register Value    : ");
+        Print2ByteValue(i2c->read16(i2cAddress, CONFIG));
+
+        Serial.println("Calculating calibration register value");
+
+        // Calc current LSB
+        currentLSB = maxExpectedCurrentA / 32768.0;
+        Serial.print("Current LSB       : ");
+        Serial.println(currentLSB);
+
+        // Calc power LSB
+        powerLSB = 20 * currentLSB;
+        Serial.print("Power LSB         : ");
+        Serial.println(powerLSB);
+
+        // Calc calibration value
+        calibrationValue = (int)(0.04096 / (currentLSB * shuntResistorOhm));
+        Serial.print("Calibration Value : ");
+        Serial.println(calibrationValue);
+
+        // Bound check calibration value
+        if(calibrationValue > 65,536)
+        {
+            calibrationValue = 0;
+            Serial.println("");
+            Serial.println("Calibration Value out of range of 16 Bit register");
+            Serial.println("Resetting calibration value to 0");
+        }
+
+        // Setting calibration value
+        Serial.println("Setting calibration register");
+        uint16_t calibration = (uint16_t)calibrationValue;
+        i2c->write16(i2cAddress, CALIBRATION, calibration);
+        Serial.print("Register Value    : ");
+        Print2ByteValue(i2c->read16(i2cAddress, CALIBRATION));
 
         Serial.println("Power Measurement Unit initialized");
         init = true;
@@ -68,19 +108,17 @@ void PowerMeasurement::Run()
     {
         PrevMillis_PowerMessurmentUpdateRate = CurMillis_PowerMessurmentUpdateRate;
 
-        PrintAllRegister();
-
         // Check if WiFi or Mqtt is connected
         if (network->wifiConnected || network->mqttConnected)
         {
 
-            // Get shunt voltage
-            uint16_t shuntVoltageRaw = i2c->read16(i2cAddress, SHUNT_VOLTAGE);
-            valueShunt_mV = shuntVoltageRaw * 0.01; // mV
+            // Get/Calc Shunt Voltage
+            uint16_t shuntVoltRegister = i2c->read16(i2cAddress, SHUNT_VOLTAGE);
+            valueShunt_mV = shuntVoltRegister * 0.01; // mV
 
-            // Get bus voltage
-            uint16_t _busVoltageRaw = i2c->read16(i2cAddress, BUS_VOLTAGE);
-            int16_t busVoltageRaw = (int16_t)((_busVoltageRaw >> 3) * 4);
+            // Get/Calc BusVoltage
+            uint16_t busVoltRegister = i2c->read16(i2cAddress, BUS_VOLTAGE);
+            uint16_t busVoltageRaw = (busVoltRegister >> 3) * 4;
             valueBus_V = busVoltageRaw * 0.001; // V
 
             /* 
@@ -91,12 +129,21 @@ void PowerMeasurement::Run()
             double mW_Multiplyer = 4.0;  // 4mW/Bit
 
             // Calc current
-            double current = (((double)shuntVoltageRaw * (double)cal_Value) / 4096.0);
+            double current = (((double)shuntVoltRegister * (double)cal_Value) / 4096.0);
             valueCurrent_mA = current * mA_Multiplyer;
 
             // Calc power
             double power = (((double)current * (double)busVoltageRaw) / 5000.0);
             valuePower_mW = power * mW_Multiplyer;
+
+            //PrintAllRegister();
+
+            //Serial.print("Bus Current : ");
+            //Serial.println(valueCurrent_mA);
+            //Serial.print("Bus Voltage : ");
+            //Serial.println(valueBus_V);
+            //Serial.print("Power : ");
+            //Serial.println(valuePower_mW);
         }
         else
         {

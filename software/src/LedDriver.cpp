@@ -972,6 +972,24 @@ bool LedDriver::FadeToColor(uint8_t stripID,
         fadeFinished = true;
     }
 
+    // DEBUG
+    if(stripID == 1)
+    {
+        // Serial.println("");
+        // Serial.println("# ============ #");
+        // Serial.print("red   : ");
+        // Serial.println(prevDataStrip->red);
+        // Serial.print("green : ");
+        // Serial.println(prevDataStrip->green);
+        // Serial.print("blue  : ");
+        // Serial.println(prevDataStrip->blue);
+        // Serial.print("cw    : ");
+        // Serial.println(prevDataStrip->cw);
+        // Serial.print("ww    : ");
+        // Serial.println(prevDataStrip->ww);
+        // Serial.println("# ============ #");
+    }
+
     return fadeFinished;
 };
 
@@ -1009,26 +1027,23 @@ void LedDriver::UpdateLEDChannel(   uint8_t i2cAddress,
             REG_OFF_L 0-7Bit 00h - ffh
             REG_OFF_H 0-3Bit 00h - 0fh
     */
+    
+    uint16_t data = 0;
 
-    /*
-        brightnessScale => Value between 0.0 - 1.0 
-    */
-    double brightnessScale = 0.0;
-    if(brightnessValue != 0)
+    // Zero Devision check
+    if(brightnessValue == 0 || colorValue == 0)
     {
-        brightnessScale = (double)brightnessValue / 4095.0;
+        data = 0;
     }
-    /*
-        data => Value between 0 - 4095 
-    */
-    uint16_t data = (uint16_t)(map(((double)colorValue * brightnessScale), 0, 255, 0, 4095));
-    /*
-        dataScale => Value between 0.0 - 1.0
-    */
-    double dataScale = 0.0;
-    if(data != 0)
+    else
     {
-        dataScale = (double)data / 4095.0;
+        data = (uint16_t)(((double)(colorValue + 1) * 16.0)* ((double)brightnessValue / 4095.0));
+    }
+
+    // Bound Check
+    if(data >= 4096)
+    {
+        data = 4095;
     }
 
     // LED_ON_REG
@@ -1038,13 +1053,13 @@ void LedDriver::UpdateLEDChannel(   uint8_t i2cAddress,
 
     // LED_OFF_REG
     uint16_t OFF_REG = 0;
-    if((uint16_t)4095.0 * dataScale + phaseShift <= 4095.0)
+    if(data + phaseShift <= 4095.0)
     {
-        OFF_REG = (uint16_t)4095.0 * dataScale + phaseShift;
+        OFF_REG = data + phaseShift;
     }
     else
     {
-        OFF_REG = (uint16_t)4095.0 * dataScale + phaseShift - 4096;
+        OFF_REG = data + phaseShift - 4096;
     }
     i2c->write8(i2cAddress, REG_OFF_L, lowByte(OFF_REG));
     i2c->write8(i2cAddress, REG_OFF_H, highByte(OFF_REG));

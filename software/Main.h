@@ -17,11 +17,11 @@
 #define Version      "0.17.0"
 
 /*
-      ToDo     Fix bug with power measurements reading zero from reg
+      ToDo     Change Shut Resistor to 0.02 Ohm for better reading 
       ToDo     Investigate spontaneous performance problems
-      ToDo     Investigate fade flicker 
       ToDo     Add NTP Summer/Winter time swap => For now only Winter Time 
       ToDo     Rework doc string. Information about how to use stuff in header, and how it works in source 
+      ToDo     Maybe add print function class 
 */
 
 //++++ Global Defines ++++//
@@ -45,10 +45,23 @@ class Main
    public:
       I2C i2c = I2C();
       Network network = Network();
-      PowerMeasurement powerMessurement = PowerMeasurement(INA219AIDR_I2C_ADDRESS, &i2c, &network);
-      PirReader pirReader = PirReader(PIR_SENSOR_1_PIN, PIR_SENSOR_2_PIN, &network);
-      LedDriver ledDriver = LedDriver(PCA9685PW_I2C_ADDRESS, &i2c, &network, &pirReader);
-      Information information = Information(&network, &pirReader);
+      PowerMeasurement powerMessurement = PowerMeasurement(INA219AIDR_I2C_ADDRESS, 
+                                                           &i2c, 
+                                                           &network,
+                                                           0.002); // 2 mOhm
+
+      PirReader pirReader = PirReader(PIR_SENSOR_1_PIN, 
+                                      PIR_SENSOR_2_PIN, 
+                                      &network);
+
+
+      LedDriver ledDriver = LedDriver(PCA9685PW_I2C_ADDRESS, 
+                                      &i2c, 
+                                      &network, 
+                                      &pirReader);
+
+      Information information = Information(&network, 
+                                            &pirReader);
 
    // ## Functions ## //
    private:

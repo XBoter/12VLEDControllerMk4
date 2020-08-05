@@ -16,7 +16,8 @@ class PowerMeasurement : public IBaseClass
     public:
          PowerMeasurement(uint8_t i2cAddress, 
                           I2C *i2c, 
-                          Network *network);
+                          Network *network,
+                          double shuntResistorOhm);
 
     // ## Interface ## //
     private:
@@ -29,6 +30,13 @@ class PowerMeasurement : public IBaseClass
         uint8_t i2cAddress;
         I2C *i2c;
         Network *network;
+
+        double shuntResistorOhm = 0.0;  // Ohm
+        int calibrationValue = 0;
+        double maxExpectedCurrentA = 10;   // Ampere 
+        double currentLSB = 0;
+        double powerLSB = 0;
+        
         // Timer
         unsigned long PrevMillis_PowerMessurmentUpdateRate = 0;
         const unsigned long TimeOut_PowerMessurmentUpdateRate = 1000; // 1 sec

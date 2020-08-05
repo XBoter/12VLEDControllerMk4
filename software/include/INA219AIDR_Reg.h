@@ -8,7 +8,7 @@
 
 #define SHUNT_VOLTAGE 0x01
 
-#define BUS_VOLTAGE 0x01
+#define BUS_VOLTAGE 0x02
 
 #define POWER 0x03
 

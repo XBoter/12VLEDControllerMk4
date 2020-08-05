@@ -57,6 +57,6 @@ void Main::_loop()
     network.Run();
     powerMessurement.Run();
     ledDriver.Run();
-    //information.Run();
+    information.Run();
     pirReader.Run();
 };
