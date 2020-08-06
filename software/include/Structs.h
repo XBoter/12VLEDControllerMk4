@@ -3,32 +3,147 @@
 #include "Enums.h"
 
 // Struct for time data
-struct TimeData
+struct NetworkTimeData
 {
-    uint8_t hour = 0;
-    uint8_t minute = 0;
-    uint8_t second = 0;
+    uint8_t hour    = 0;
+    uint8_t minute  = 0;
+    uint8_t second  = 0;
 };
 
 // Struct for motion data
-struct MotionData
+struct NetworkMotionData
 {
-    bool power = false;
-    uint8_t red = 0;
-    uint8_t green = 0;
-    uint8_t blue = 0;
-    uint16_t timeout = 0;
+    bool power              = false;
+    uint8_t redColorValue   = 0;
+    uint8_t greenColorValue = 0;
+    uint8_t blueColorValue  = 0;
+    uint16_t timeout        = 0;
 };
 
-// Struct for led strip data
-struct LEDStripData
+
+/**
+ * Holds all register for one LED Color
+ */
+struct LEDColorReg
+{
+    uint8_t ON_L    = 0x00;
+    uint8_t ON_H    = 0x00;
+    uint8_t OFF_L    = 0x00;
+    uint8_t OFF_H   = 0x00;
+};
+
+
+/**
+ * Holds all register for one LED strip
+ */
+struct LEDStripColorReg
+{
+    LEDColorReg RED_REG;
+    LEDColorReg GREEN_REG;
+    LEDColorReg BLUE_REG;
+    LEDColorReg CW_REG;
+    LEDColorReg WW_REG;
+};
+
+
+/**
+ * A high level struct for the color channels with simple settings
+ * For all channel ther is:
+ *   - Color Fade Time          => The time it takes in millis to fade to the new value
+ *   - Color Fade Curve         => The curve with which the color gets faded to the new value
+ *   - Brightness Value         => One brightness value for all color channels
+ *   - Brightness Fade Time     => The time it takes in millis to fade to new value
+ *   - Brightness Fade Curve    => The curve with which the brightness gets faded to the new value
+ */
+struct HighLevelLEDStripData
+{
+    // ---- COLOR
+    uint8_t redColorValue           = 0;
+    uint8_t greenColorValue         = 0;
+    uint8_t blueColorValue          = 0;
+    uint8_t cwColorValue            = 0;
+    uint8_t wwColorValue            = 0;
+    uint16_t colorFadeTime          = 0;
+    FadeCurve colorFadeCurve        = FadeCurve::None;
+
+    // ---- BRIGHTNESS
+    uint16_t brightnessValue        = 0;
+    uint16_t brightnessFadeTime     = 0;
+    FadeCurve brightnessFadeCurve   = FadeCurve::None;
+};
+
+
+/**
+ * The LED strip data received via mqtt
+ */
+struct NetworkLEDStripData
 {
     bool power = false;
-    uint16_t brightness = 0;
-    uint8_t red = 0;
-    uint8_t green = 0;
-    uint8_t blue = 0;
-    uint8_t cw = 0;
-    uint8_t ww = 0;
+    HighLevelLEDStripData ledStripData;
     LEDEffect effect = LEDEffect::None;
 };
+
+/**
+ * Holds data about the individual color channels of a RGB/CW/WW LED strip
+ * For each channel there is:
+ *   - Color Value              => The value of the color channel
+ *   - Color Fade Time          => The time it takes in millis to fade to the new value
+ *   - Color Fade Curve         => The curve with which the color gets faded to the new value
+ *   - Brightness Value         => The correspoding brightness of that color channel
+ *   - Brightness Fade Time     => The time it takes in millis to fade to the new value
+ *   - Brightness Fade Curve    => The curve with which the brightness gets faded to the new value
+ */
+struct LowLevelLEDStripData
+{
+    // ---- RED
+    // -- Color
+    uint8_t redColorValue               = 0;
+    uint16_t redColorFadeTime           = 0;
+    FadeCurve redColorFadeCurve         = FadeCurve::None;
+    // -- Brightness
+    uint16_t redBrightnessValue         = 0;
+    uint16_t redBrightnessFadeTime      = 0;
+    FadeCurve redBrightnessFadeCurve    = FadeCurve::None;
+
+    // ---- GREEN
+    // -- Color
+    uint8_t greenColorValue             = 0;
+    uint16_t greenColorFadeTime         = 0;
+    FadeCurve greenColorFadeCurve       = FadeCurve::None;
+    // -- Brightness
+    uint16_t greenBrightnessValue       = 0;
+    uint16_t greenBrightnessFadeTime    = 0;
+    FadeCurve greenBrightnessFadeCurve  = FadeCurve::None;
+
+    // ---- BLUE
+    // -- Color
+    uint8_t blueColorValue              = 0;
+    uint16_t blueColorFadeTime          = 0;
+    FadeCurve blueColorFadeCurve        = FadeCurve::None;
+    // -- Brightness
+    uint16_t blueBrightnessValue        = 0;
+    uint16_t blueBrightnessFadeTime     = 0;
+    FadeCurve blueBrightnessFadeCurve   = FadeCurve::None;
+
+    // ---- CW
+    // -- Color
+    uint8_t cwColorValue                = 0;
+    uint16_t cwColorFadeTime            = 0;
+    FadeCurve cwColorFadeCurve          = FadeCurve::None;
+    // -- Brightness
+    uint16_t cwBrightnessValue          = 0;
+    uint16_t cwBrightnessFadeTime       = 0;
+    FadeCurve cwBrightnessFadeCurve     = FadeCurve::None;
+
+    // ---- WW
+    // -- Color
+    uint8_t wwColorValue                = 0;
+    uint16_t wwColorFadeTime            = 0;
+    FadeCurve wwColorFadeCurve          = FadeCurve::None;
+    // -- Brightness
+    uint16_t wwBrightnessValue          = 0;
+    uint16_t wwBrightnessFadeTime       = 0;
+    FadeCurve wwBrightnessFadeCurve     = FadeCurve::None;
+
+};
+

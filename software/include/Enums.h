@@ -1,36 +1,58 @@
 #pragma once
 
-// Enum with all the different LED Effects possible
-enum LEDEffect : int
+// Diffrent modes of the controller
+enum class ControllerMode
 {
-    NoMasterPresent = -999, 
-    MotionDetected  = - 10, 
-    None            = 0,
-    Alarm           = 10,
-    Music           = 20,
-    Sleep           = 30,
-    Weekend         = 40,
-    RGB             = 50,
-    CW              = 60,
-    WW              = 70,
-    RGBCW           = 80,
-    RGBWW           = 90,
-    CWWW            = 100,
+    NoMasterPresent, 
+    Idle,
+    Power,
+    MotionDetected,
 };
+
+
+// Diffrent LED Effects
+enum class LEDEffect 
+{
+    None,
+    Alarm,
+    Music,
+    Sleep,
+    Weekend,
+    RGB,
+    CW,
+    WW,
+    RGBCW,
+    RGBWW,
+    CWWW, 
+};
+
+
+// Diffrent curves for fading a value
+enum class FadeCurve 
+{
+    None,    // Instant => No fading at all
+    Linear,
+    EaseIn,
+    EaseOut,
+    EaseInOut,
+    EaseOutIn, 
+};
+
 
 // Enum for the wifi state
-enum NetworkWiFiState : int
+enum class NetworkWiFiState
 {
-    StartWifi               = 0,
-    SuperviseWiFiConnection = 10,
-    CheckWiFiDisconnect     = 20,
+    StartWifi,
+    SuperviseWiFiConnection,
+    CheckWiFiDisconnect,
 };
 
+
 // Enum for the mqtt state
-enum NetworkMQTTState : int
+enum class NetworkMQTTState
 {
-    StartMqtt               = 0,
-    SuperviseMqttConnection = 10,
-    CheckMqttDisconnect     = 20,
+    StartMqtt,
+    SuperviseMqttConnection,
+    CheckMqttDisconnect,
 };
 

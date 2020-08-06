@@ -64,17 +64,17 @@ class Network : public IBaseClass
         // Sun
         bool parameter_sun = false;
         // Time
-        TimeData stTimeData;
+        NetworkTimeData stNetworkTimeData;
         // Master
         bool parameter_master_present = false;
         // PC
         bool parameter_pc_present = false;
         // Motion
-        MotionData stMotionData;
+        NetworkMotionData stNetworkMotionData;
         // LED Strip 1
-        LEDStripData stLedStrip1Data;
+        NetworkLEDStripData stNetworkLedStrip1Data;
         // LED Strip 2
-        LEDStripData stLedStrip2Data;
+        NetworkLEDStripData stNetworkLedStrip2Data;
 
     // ## Functions ## //
     private:
@@ -84,7 +84,7 @@ class Network : public IBaseClass
         void HandleNTP();
 
         void Heartbeat();
-        void MqttUpdateAfterDc(LEDStripData ledStripData,
+        void MqttUpdateAfterDc(NetworkLEDStripData networkLedStripData,
                                const char *topic);
 
     public:

@@ -14,7 +14,7 @@
 #define Programmer   "Nico Weidenfeller"
 #define Created      "28.06.2020"
 #define LastModifed  "04.08.2020"
-#define Version      "0.17.0"
+#define Version      "0.18.0"
 
 /*
       ToDo     Change Shut Resistor to 0.02 Ohm for better reading 

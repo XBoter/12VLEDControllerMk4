@@ -47,29 +47,11 @@ bool LedDriver::Init()
             OUTDRV = 1
         */
 
-        // ---- Init LEDStripData (Needed so after bootup the values change with the one received from mqtt and get updated)
-        // -- Strip 1
-        prevDataStrip1.brightness   = 0;
-        prevDataStrip1.red          = 0;
-        prevDataStrip1.green        = 0;
-        prevDataStrip1.blue         = 0;
-        prevDataStrip1.cw           = 0;
-        prevDataStrip1.ww           = 0;
-        prevDataStrip1.effect       = LEDEffect::None;
-        // -- Strip 2
-        prevDataStrip2.brightness   = 0;
-        prevDataStrip2.red          = 0;
-        prevDataStrip2.green        = 0;
-        prevDataStrip2.blue         = 0;
-        prevDataStrip2.cw           = 0;
-        prevDataStrip2.ww           = 0;
-        prevDataStrip2.effect       = LEDEffect::None;
-
         Serial.println("LED Driver initialized");
         init = true;
     }
 
-        return init;
+    return init;
 };
 
 
@@ -83,91 +65,34 @@ void LedDriver::Run()
         return;
     }
 
-    // ---- Get data from network instance
-    // -- Motion
-    motionData = network->stMotionData;
-    // -- Strip 1
-    curDataStrip1 = network->stLedStrip1Data;
-    // -- Strip 2
-    curDataStrip2 = network->stLedStrip2Data;
+    // -- Copy data from network 
+    networkMotionData           = network->stNetworkMotionData;
+    commandNetworkLEDStrip1Data = network->stNetworkLedStrip1Data;
+    commandNetworkLEDStrip2Data = network->stNetworkLedStrip2Data;
 
    
     // ---- Handle led strips
     // -- Strip 1
     HandleLEDStrip( 1,
-                    2,
-                    50,
-                    motionData,
-                    curDataStrip1,
-                    &prevDataStrip1);
+                    commandNetworkLEDStrip1Data);
 
     // -- Strip 2
     HandleLEDStrip( 2,
-                    2,
-                    50,
-                    motionData,
-                    curDataStrip2,
-                    &prevDataStrip2);
+                    commandNetworkLEDStrip2Data);
 
 };
 
 
 /**
- * Checks for a effect change and transitions to the new effect with a black fade
- * 
- * @parameter stripID               The strip id of the LED Strip which the transition gets applied to
- * @parameter colorFadeSpeed        The speed with which a color gets faded to a new value
- * @parameter brightnessFadeSpeed   The speed with which a brightnessValue gets faded to a new value
- * @parameter curDataStrip          The new LEDStripData for the given LED Strip
- * @parameter *prevDataStrip        A pointer to the current LEDStripData for the given LED Strip
- * 
- * @return True if transition is finished or both effects are the same, else false
- **/
-bool LedDriver::TransitionToNewEffect(  uint8_t stripID,
-                                        uint8_t colorFadeSpeed,
-                                        uint8_t brightnessFadeSpeed,
-                                        LEDStripData curDataStrip,
-                                        LEDStripData *prevDataStrip)
-{
-
-    // Check for effect changes
-    if(curDataStrip.effect == prevDataStrip->effect)
-    {
-        return true;
-    }
-
-    // Fade to black
-    bool fadeFinished = FadeToBlack(stripID,
-                                    colorFadeSpeed,
-                                    brightnessFadeSpeed,
-                                    curDataStrip,
-                                    prevDataStrip);
-    if(fadeFinished)
-    {
-        prevDataStrip->brightness   = 0;
-        return true;
-    }
-
-    return false;
-};
-
-
-/**
- * Handels the display of a LED Strip (Colorfade, Effect, Transition,...)
+ * Handels the LED Strip
  *
- * @parameter stripID               The strip id of the LED Strip which the transition gets applied to
- * @parameter colorFadeSpeed        The speed with which a color gets faded to a new value
- * @parameter brightnessFadeSpeed   The speed with which a brightnessValue gets faded to a new value
- * @parameter MotionData            The currently used MotionData for the given LED Strip
- * @parameter curDataStrip          The new LEDStripData for the given LED Strip
- * @parameter *prevDataStrip        A pointer to the current LEDStripData for the given LED Strip
+ * @parameter stripID                       The strip id of the LED Strip which the transition gets applied to
+ * @parameter motionData                    The motion data for the led strip
+ * @parameter commandNetworkLEDStripData    The speed with which a brightnessValue gets faded to a new value
  **/
-void LedDriver::HandleLEDStrip( uint8_t stripID,
-                                uint8_t colorFadeSpeed,
-                                uint8_t brightnessFadeSpeed,
-                                MotionData motionData,
-                                LEDStripData curDataStrip,
-                                LEDStripData *prevDataStrip)
+
+void LedDriver::HandleLEDStrip(uint8_t stripID,
+                               NetworkLEDStripData commandNetworkLEDStripData)
 {
     // StripID needs to be given else return
     if(stripID != 1 && stripID != 2)
@@ -180,226 +105,45 @@ void LedDriver::HandleLEDStrip( uint8_t stripID,
         Controls how the LED Strip behaves
     */
 
-    // -- Check for master present
-    if(!network->parameter_master_present)
-    {
-        // If master is not present disable all
-        curDataStrip.effect = LEDEffect::NoMasterPresent;
-        curDataStrip.power = false;
-    }
-    else
-    {
-        // Check for motion
-        if(!curDataStrip.power)
-        {
-            if(network->parameter_sun && pirReader->motionDetected)
-            {
-                ;
-            }
-        }
-        
-    }
     
     // ---- Effect change section
     /*
         Checks if the effect state changed and performs a transition
     */
-   bool effectTransitionFinished = TransitionToNewEffect(   stripID,
-                                                            colorFadeSpeed,
-                                                            brightnessFadeSpeed,
-                                                            curDataStrip,
-                                                            prevDataStrip);
-   // Return if the transition is not finished
-   if(!effectTransitionFinished)
-   {
-       // ---- Reset Effect data
-       // -- Alarm
-       effectAlarmState = 0;
-       PrevMillis_AlarmEffectPauseTime = millis();
 
-       return;
-   }
-
-    // Get current millis for effects
-    unsigned long currentMillis = millis();
 
     // ---- Effect call section
     /*
         After effect transition is finished calls the new effect
     */
-    switch(curDataStrip.effect)
+    switch(commandNetworkLEDStripData.effect)
     {
-
-        case LEDEffect::NoMasterPresent:
-            /*
-                Fades all color to black because master is not present
-            */
-            // Check for effect change and update values
-            if(curDataStrip.effect != prevDataStrip->effect)
-            {
-                prevDataStrip->red      = 0;
-                prevDataStrip->green    = 0;
-                prevDataStrip->blue     = 0;
-                prevDataStrip->cw       = 0;
-                prevDataStrip->ww       = 0;
-                SetColor(   stripID,
-                            brightnessFadeSpeed,
-                            curDataStrip,
-                            prevDataStrip);
-                prevDataStrip->effect = curDataStrip.effect;
-            }
-
-            FadeToBlack(stripID,
-                        colorFadeSpeed,
-                        brightnessFadeSpeed,
-                        curDataStrip,
-                        prevDataStrip);
-            break;
-
-        case LEDEffect::MotionDetected:
-            /*
-                Motion Detected which fades in a warm color 
-            */
-            break;
 
         case LEDEffect::None:
             /*
                 Normal mode with no restrictions 
             */
-            // Check for effect change and update values
-            if(curDataStrip.effect != prevDataStrip->effect)
-            {
-                SetColor(   stripID,
-                            brightnessFadeSpeed,
-                            curDataStrip,
-                            prevDataStrip);
-                prevDataStrip->effect = curDataStrip.effect;
-            }
-
-            if(curDataStrip.power)
+           
+            if(commandNetworkLEDStripData.power)
             {
                 FadeToColor(stripID,
-                            colorFadeSpeed,
-                            brightnessFadeSpeed,
-                            curDataStrip,
-                            prevDataStrip);
+                            commandNetworkLEDStripData);
             }
             else
             {
-                FadeToBlack(stripID,
-                            colorFadeSpeed,
-                            brightnessFadeSpeed,
-                            curDataStrip,
-                            prevDataStrip);
+                FadeToBlack(stripID);
             }
 
             break;
+
 
         case LEDEffect::Alarm:
             /*
                 Red puls light 
             */
-         
-            // Check for effect change and update values
-            if(curDataStrip.effect != prevDataStrip->effect)
-            {
-                prevDataStrip->cw       = 0;
-                prevDataStrip->ww       = 0;
-                prevDataStrip->red      = 255;
-                prevDataStrip->green    = 0;
-                prevDataStrip->blue     = 0;
-                SetColor(   stripID,
-                            brightnessFadeSpeed,
-                            curDataStrip,
-                            prevDataStrip);
-                prevDataStrip->effect = curDataStrip.effect;
-            }
-
-            switch(effectAlarmState)
-            {
-
-                // Init Effect
-                case 0:
-                    // Set effect data 
-                    alarmEffectData.power = true;
-                    alarmEffectData.red = 255;
-                    alarmEffectData.blue = 0;
-                    alarmEffectData.green = 0;
-                    alarmEffectData.cw = 0;
-                    alarmEffectData.ww = 0;
-                    alarmEffectData.brightness = 4095;
-                    alarmColorSpeed = 4;
-                    alarmBrightnessSpeed = 64;
-
-                    // Fade to color
-                    alarmFadeFinished = FadeToColor(stripID,
-                                                    alarmColorSpeed,
-                                                    alarmBrightnessSpeed,
-                                                    alarmEffectData,
-                                                    prevDataStrip);
-                    if(alarmFadeFinished)
-                    {
-                        alarmFadeFinished = false;
-                        effectAlarmState = 5;
-                    }
-                    break;
-
-
-                // Fade to 100% red and 100% brightness
-                case 5:
-                    // Set effect data 
-                    alarmEffectData.brightness = 4095;
-                    alarmBrightnessSpeed = 64;
-
-                    // Fade to color
-                    alarmFadeFinished = FadeToColor(stripID,
-                                                    alarmColorSpeed,
-                                                    alarmBrightnessSpeed,
-                                                    alarmEffectData,
-                                                    prevDataStrip);
-                    if(alarmFadeFinished)
-                    {
-                        alarmFadeFinished = false;
-                        PrevMillis_AlarmEffectPauseTime = currentMillis;
-                        effectAlarmState = 10;
-                    }
-                    break;
-
-                // Wait pause time
-                case 10:
-                    if (currentMillis - PrevMillis_AlarmEffectPauseTime >= 200) {
-                        effectAlarmState = 20;
-                    }
-                    break;
-
-                // Fade to 100% red and 25% brightness
-                case 20:
-                    // Set effect data 
-                    alarmEffectData.brightness = 1024;
-                    alarmBrightnessSpeed = 32;
-                    // Fade to color
-                    alarmFadeFinished = FadeToColor(stripID,
-                                                    alarmColorSpeed,
-                                                    alarmBrightnessSpeed,
-                                                    alarmEffectData,
-                                                    prevDataStrip);
-                    if(alarmFadeFinished)
-                    {
-                        alarmFadeFinished = false;
-                        PrevMillis_AlarmEffectPauseTime = currentMillis;
-                        effectAlarmState = 30;
-                    }
-                    break;
-
-                // Wait pause time
-                case 30:
-                    if (currentMillis - PrevMillis_AlarmEffectPauseTime >= 500) {
-                        effectAlarmState = 5;
-                    }
-                    break;
-            }
-
+    
             break;
+
 
         case LEDEffect::Music:
             /*
@@ -407,11 +151,13 @@ void LedDriver::HandleLEDStrip( uint8_t stripID,
             */
             break;
 
+
         case LEDEffect::Sleep:
             /*
                 Fades current color to warm orange (maybe warm white) and then fades to black
             */
             break;
+
 
         case LEDEffect::Weekend:
             /*
@@ -419,238 +165,58 @@ void LedDriver::HandleLEDStrip( uint8_t stripID,
             */
             break;
 
+
         case LEDEffect::RGB:
             /*
                 Only red, green and blue LEDs
             */
             // Disable CW and WW
-            curDataStrip.cw = 0;
-            curDataStrip.ww = 0;
-            
-            // Check for effect change and update values
-            if(curDataStrip.effect != prevDataStrip->effect)
-            {
-                prevDataStrip->cw       = 0;
-                prevDataStrip->ww       = 0;
-                SetColor(   stripID,
-                            brightnessFadeSpeed,
-                            curDataStrip,
-                            prevDataStrip);
-                prevDataStrip->effect = curDataStrip.effect;
-            }
-            
-            if(curDataStrip.power)
-            {
-                FadeToColor(stripID,
-                            colorFadeSpeed,
-                            brightnessFadeSpeed,
-                            curDataStrip,
-                            prevDataStrip);
-            }
-            else
-            {
-                FadeToBlack(stripID,
-                            colorFadeSpeed,
-                            brightnessFadeSpeed,
-                            curDataStrip,
-                            prevDataStrip);
-            }
+
             break;
+
 
         case LEDEffect::CW:
             /*
                 Only cold white LEDs
             */
             // Disable RGB and WW
-            curDataStrip.red = 0;
-            curDataStrip.green = 0;
-            curDataStrip.blue = 0;
-            curDataStrip.ww = 0;
-            
-            // Check for effect change and update values
-            if(curDataStrip.effect != prevDataStrip->effect)
-            {
-                prevDataStrip->red      = 0;
-                prevDataStrip->green    = 0;
-                prevDataStrip->blue     = 0;
-                prevDataStrip->ww       = 0;
-                SetColor(   stripID,
-                            brightnessFadeSpeed,
-                            curDataStrip,
-                            prevDataStrip);
-                prevDataStrip->effect = curDataStrip.effect;
-            }
-            
-            if(curDataStrip.power)
-            {
-                FadeToColor(stripID,
-                            colorFadeSpeed,
-                            brightnessFadeSpeed,
-                            curDataStrip,
-                            prevDataStrip);
-            }
-            else
-            {
-                FadeToBlack(stripID,
-                            colorFadeSpeed,
-                            brightnessFadeSpeed,
-                            curDataStrip,
-                            prevDataStrip);
-            }
+
             break;
+
 
         case LEDEffect::WW:
             /*
                 Only warm white LEDs
             */
             // Disable RGB and CW
-            curDataStrip.red = 0;
-            curDataStrip.green = 0;
-            curDataStrip.blue = 0;
-            curDataStrip.cw = 0;
-            
-            // Check for effect change and update values
-            if(curDataStrip.effect != prevDataStrip->effect)
-            {
-                prevDataStrip->red      = 0;
-                prevDataStrip->green    = 0;
-                prevDataStrip->blue     = 0;
-                prevDataStrip->cw       = 0;
-                SetColor(   stripID,
-                            brightnessFadeSpeed,
-                            curDataStrip,
-                            prevDataStrip);
-                prevDataStrip->effect = curDataStrip.effect;
-            }
-            
-            if(curDataStrip.power)
-            {
-                FadeToColor(stripID,
-                            colorFadeSpeed,
-                            brightnessFadeSpeed,
-                            curDataStrip,
-                            prevDataStrip);
-            }
-            else
-            {
-                FadeToBlack(stripID,
-                            colorFadeSpeed,
-                            brightnessFadeSpeed,
-                            curDataStrip,
-                            prevDataStrip);
-            }
+
             break;
+
 
         case LEDEffect::RGBCW:
             /*
                 Only red, green, blue and cold white LEDs
             */
             // Disable WW
-            curDataStrip.ww = 0;
-            
-            // Check for effect change and update values
-            if(curDataStrip.effect != prevDataStrip->effect)
-            {
-                prevDataStrip->ww       = 0;
-                SetColor(   stripID,
-                            brightnessFadeSpeed,
-                            curDataStrip,
-                            prevDataStrip);
-                prevDataStrip->effect = curDataStrip.effect;
-            }
 
-            if(curDataStrip.power)
-            {
-                FadeToColor(stripID,
-                            colorFadeSpeed,
-                            brightnessFadeSpeed,
-                            curDataStrip,
-                            prevDataStrip);
-            }
-            else
-            {
-                FadeToBlack(stripID,
-                            colorFadeSpeed,
-                            brightnessFadeSpeed,
-                            curDataStrip,
-                            prevDataStrip);
-            }
             break;
+
 
         case LEDEffect::RGBWW:
             /*
                 Only red, green, blue and warm white LEDs
             */
             // Disable CW
-            curDataStrip.cw = 0;
 
-            // Check for effect change and update values
-            if(curDataStrip.effect != prevDataStrip->effect)
-            {
-                prevDataStrip->cw       = 0;
-                SetColor(   stripID,
-                            brightnessFadeSpeed,
-                            curDataStrip,
-                            prevDataStrip);
-                prevDataStrip->effect = curDataStrip.effect;
-            }
-
-            if(curDataStrip.power)
-            {
-                FadeToColor(stripID,
-                            colorFadeSpeed,
-                            brightnessFadeSpeed,
-                            curDataStrip,
-                            prevDataStrip);
-            }
-            else
-            {
-                FadeToBlack(stripID,
-                            colorFadeSpeed,
-                            brightnessFadeSpeed,
-                            curDataStrip,
-                            prevDataStrip);
-            }
             break;
+
 
         case LEDEffect::CWWW:
             /*
                 Only cold white and warm white LEDs
             */
             // Disable RGB
-            curDataStrip.red = 0;
-            curDataStrip.green = 0;
-            curDataStrip.blue = 0;
 
-            // Check for effect change and update values
-            if(curDataStrip.effect != prevDataStrip->effect)
-            {
-                prevDataStrip->red      = 0;
-                prevDataStrip->green    = 0;
-                prevDataStrip->blue     = 0;
-                SetColor(   stripID,
-                            brightnessFadeSpeed,
-                            curDataStrip,
-                            prevDataStrip);
-                prevDataStrip->effect = curDataStrip.effect;
-            }
-
-            if(curDataStrip.power)
-            {
-                FadeToColor(stripID,
-                            colorFadeSpeed,
-                            brightnessFadeSpeed,
-                            curDataStrip,
-                            prevDataStrip);
-            }
-            else
-            {
-                FadeToBlack(stripID,
-                            colorFadeSpeed,
-                            brightnessFadeSpeed,
-                            curDataStrip,
-                            prevDataStrip);
-            }
             break;   
 
     };
@@ -658,483 +224,49 @@ void LedDriver::HandleLEDStrip( uint8_t stripID,
 };
 
 
-/**
- * Fades the given LED strip to black by overwriting the given curDataStrip 
- * 
- * @parameter stripID               The strip id of the LED Strip which the transition gets applied to
- * @parameter colorFadeSpeed        The speed with which a color gets faded to a new value
- * @parameter brightnessFadeSpeed   The speed with which a brightnessValue gets faded to a new value
- * @parameter curDataStrip          The new LEDStripData for the given LED Strip
- * @parameter *prevDataStrip        A pointer to the current LEDStripData for the given LED Strip
- * 
- * @return True if finished fading to black, false if not
- **/
-bool LedDriver::FadeToBlack(uint8_t stripID,
-                            uint8_t colorFadeSpeed,
-                            uint8_t brightnessFadeSpeed,
-                            LEDStripData curDataStrip,
-                            LEDStripData *prevDataStrip)
-{
-    bool fadeFinished = false;
-    
-    // StripID needs to be given else return
-    if(stripID != 1 && stripID != 2)
-    {
-        return fadeFinished;
-    }
-
-    // Fade to black gets double the current fade speed for color
-    if(colorFadeSpeed * 2 >= 255)
-    {
-        colorFadeSpeed = 255;
-    }
-    else
-    {
-        colorFadeSpeed = colorFadeSpeed * 2;
-    }
-
-    // Overwrite data to zero
-    curDataStrip.red        = 0;
-    curDataStrip.green      = 0;
-    curDataStrip.blue       = 0;
-    curDataStrip.cw         = 0;
-    curDataStrip.ww         = 0;
-    curDataStrip.brightness = 0;
-
-    fadeFinished = FadeToColor( stripID,
-                                colorFadeSpeed,
-                                brightnessFadeSpeed,
-                                curDataStrip,
-                                prevDataStrip);
-
-    return fadeFinished;
-};
-
-
-/**
- * Sets the color instand of fading to it
- * 
- * @parameter stripID               The strip id of the LED Strip which the transition gets applied to
- * @parameter brightnessFadeSpeed   The speed with which a brightnessValue gets faded to a new value
- * @parameter curDataStrip          The new LEDStripData for the given LED Strip
- * @parameter *prevDataStrip        A pointer to the current LEDStripData for the given LED Strip
- * 
- * @return True if finished setting color, false if not
- **/
-bool LedDriver::SetColor(   uint8_t stripID,
-                            uint8_t brightnessFadeSpeed,
-                            LEDStripData curDataStrip,
-                            LEDStripData *prevDataStrip)
-{
-     bool fadeFinished = false;
-
-    fadeFinished = FadeToColor(stripID,
-                               255,    // Set fade speed to max
-                               brightnessFadeSpeed,
-                               curDataStrip,
-                               prevDataStrip);
-
-    return fadeFinished;
-};
-
-
-/**
- * Fades the colors of a led strip to a their new values
- * 
- * @parameter stripID               Number of the led strip to fade the colors for
- * @parameter colorFadeSpeed        The Speed with which the color gets faded to their new value
- * @parameter brightnessFadeSpeed   The Speed with which the brightness gets faded to their new value
- * @parameter curDataStrip          The new data for the led strip
- * @parameter prevDataStrip         The current data of the led strip
- * 
- * @return True if faded to new color, false if not
- **/
 bool LedDriver::FadeToColor(uint8_t stripID,
-                            uint8_t colorFadeSpeed,
-                            uint8_t brightnessFadeSpeed,
-                            LEDStripData curDataStrip,
-                            LEDStripData *prevDataStrip)
+                            NetworkLEDStripData commandNetworkLEDStripData)
 {
-    bool fadeFinished = false;
-
-    // StripID needs to be given else return
-    if(stripID != 1 && stripID != 2)
-    {
-        return fadeFinished;
-    }
-
-    // ---- Phase offset for each channel
-    uint16_t RED_PHASE_OFFSET   = 0;
-    uint16_t CW_PHASE_OFFSET    = 820;
-    uint16_t GREEN_PHASE_OFFSET = 1640;
-    uint16_t WW_PHASE_OFFSET    = 2460;
-    uint16_t BLUE_PHASE_OFFSET  = 3280;
-
-    // ---- Register
-    // -- CW
-    uint8_t CW_REG_ON_L     = 0x00;
-    uint8_t CW_REG_ON_H     = 0x00;
-    uint8_t CW_REG_OFF_L    = 0x00;
-    uint8_t CW_REG_OFF_H    = 0x00;
-
-    // -- ww
-    uint8_t WW_REG_ON_L     = 0x00;
-    uint8_t WW_REG_ON_H     = 0x00;
-    uint8_t WW_REG_OFF_L    = 0x00;
-    uint8_t WW_REG_OFF_H    = 0x00;
-
-    // -- RED
-    uint8_t RED_REG_ON_L    = 0x00;
-    uint8_t RED_REG_ON_H    = 0x00;
-    uint8_t RED_REG_OFF_L   = 0x00;
-    uint8_t RED_REG_OFF_H   = 0x00;
-
-    // -- GREEN
-    uint8_t GREEN_REG_ON_L  = 0x00;
-    uint8_t GREEN_REG_ON_H  = 0x00;
-    uint8_t GREEN_REG_OFF_L = 0x00;
-    uint8_t GREEN_REG_OFF_H = 0x00;
-
-    // -- BLUE
-    uint8_t BLUE_REG_ON_L   = 0x00;
-    uint8_t BLUE_REG_ON_H   = 0x00;
-    uint8_t BLUE_REG_OFF_L  = 0x00;
-    uint8_t BLUE_REG_OFF_H  = 0x00;
-
-    // Register for led strip 1
-    if(stripID == 1)
-    {
-        CW_REG_ON_L     = LED3_ON_L;    //= LED6_ON_L;
-        CW_REG_ON_H     = LED3_ON_H;    //= LED6_ON_H;
-        CW_REG_OFF_L    = LED3_OFF_L;   //= LED6_OFF_L;
-        CW_REG_OFF_H    = LED3_OFF_H;   //= LED6_OFF_H;
-        // -- ww                
-        WW_REG_ON_L     = LED7_ON_L;    //= LED7_ON_L;
-        WW_REG_ON_H     = LED7_ON_H;    //= LED7_ON_H;
-        WW_REG_OFF_L    = LED7_OFF_L;   //= LED7_OFF_L;
-        WW_REG_OFF_H    = LED7_OFF_H;   //= LED7_OFF_H;
-        // -- RED              
-        RED_REG_ON_L    = LED5_ON_L;    //= LED3_ON_L;
-        RED_REG_ON_H    = LED5_ON_H;    //= LED3_ON_H;
-        RED_REG_OFF_L   = LED5_OFF_L;   //= LED3_OFF_L;
-        RED_REG_OFF_H   = LED5_OFF_H;   //= LED3_OFF_H;
-        // -- GREEN             
-        GREEN_REG_ON_L  = LED6_ON_L;    //= LED4_ON_L;
-        GREEN_REG_ON_H  = LED6_ON_H;    //= LED4_ON_H;
-        GREEN_REG_OFF_L = LED6_OFF_L;   //= LED4_OFF_L;
-        GREEN_REG_OFF_H = LED6_OFF_H;   //= LED4_OFF_H;
-        // -- BLUE             
-        BLUE_REG_ON_L   = LED4_ON_L;    //= LED5_ON_L;
-        BLUE_REG_ON_H   = LED4_ON_H;    //= LED5_ON_H;
-        BLUE_REG_OFF_L  = LED4_OFF_L;   //= LED5_OFF_L;
-        BLUE_REG_OFF_H  = LED4_OFF_H;   //= LED5_OFF_H; 
-    }
-
-    // Register for led strip 2
-    if(stripID == 2)
-    {
-        CW_REG_ON_L     = LED8_ON_L;    //= LED1_ON_L;
-        CW_REG_ON_H     = LED8_ON_H;    //= LED1_ON_H;
-        CW_REG_OFF_L    = LED8_OFF_L;   //= LED1_OFF_L;
-        CW_REG_OFF_H    = LED8_OFF_H;   //= LED1_OFF_H;
-        // -- ww                
-        WW_REG_ON_L     = LED12_ON_L;   //= LED12_ON_L;
-        WW_REG_ON_H     = LED12_ON_H;   //= LED12_ON_H;
-        WW_REG_OFF_L    = LED12_OFF_L;  //= LED12_OFF_L;
-        WW_REG_OFF_H    = LED12_OFF_H;  //= LED12_OFF_H;
-        // -- RED               
-        RED_REG_ON_L    = LED10_ON_L;    //= LED8_ON_L;
-        RED_REG_ON_H    = LED10_ON_H;    //= LED8_ON_H;
-        RED_REG_OFF_L   = LED10_OFF_L;   //= LED8_OFF_L;
-        RED_REG_OFF_H   = LED10_OFF_H;   //= LED8_OFF_H;
-        // -- GREEN             
-        GREEN_REG_ON_L  = LED11_ON_L;   //= LED9_ON_L;
-        GREEN_REG_ON_H  = LED11_ON_H;   //= LED9_ON_H;
-        GREEN_REG_OFF_L = LED11_OFF_L;  //= LED9_OFF_L;
-        GREEN_REG_OFF_H = LED11_OFF_H;  //= LED9_OFF_H;
-        // -- BLUE              
-        BLUE_REG_ON_L   = LED9_ON_L;    //= LED10_ON_L;
-        BLUE_REG_ON_H   = LED9_ON_H;    //= LED10_ON_H;
-        BLUE_REG_OFF_L  = LED9_OFF_L;   //= LED10_OFF_L;
-        BLUE_REG_OFF_H  = LED9_OFF_H;   //= LED10_OFF_H; 
-    }
-
-    // ---- Fade
-    /*
-        Only call register functions if new values need to be written
-    */
-    
-    int _colorFadeSpeed = colorFadeSpeed;
-    int _brightnessFadeSpeed = brightnessFadeSpeed;
-
-    // -- Brightness
-    int _curBrightness = curDataStrip.brightness;
-    int _prevBrightness = prevDataStrip->brightness;
-    bool brightnessChanged = false;
-
-    if((_prevBrightness + _brightnessFadeSpeed) < _curBrightness)
-    {
-        prevDataStrip->brightness += _brightnessFadeSpeed;
-        brightnessChanged = true;
-    }
-    if((_prevBrightness - _brightnessFadeSpeed) > _curBrightness)
-    {
-        prevDataStrip->brightness -= _brightnessFadeSpeed;
-        brightnessChanged = true;
-    }
-    if(((_prevBrightness + _brightnessFadeSpeed) >= _curBrightness) 
-        && ((_prevBrightness - _brightnessFadeSpeed) <= _curBrightness)
-        && !brightnessChanged
-        && prevDataStrip->brightness != curDataStrip.brightness)
-    {
-        prevDataStrip->brightness = curDataStrip.brightness;
-        brightnessChanged = true;
-    }
-
-    // -- Red
-    int _curRed = curDataStrip.red;
-    int _prevRed = prevDataStrip->red;
-    bool redChanged = false;
-
-    if((_prevRed + _colorFadeSpeed) < _curRed)
-    {
-        prevDataStrip->red += _colorFadeSpeed;
-        redChanged = true;
-    }
-    if((_prevRed - _colorFadeSpeed) > _curRed)
-    {
-        prevDataStrip->red -= _colorFadeSpeed;
-        redChanged = true;
-    }
-    if(((_prevRed + _colorFadeSpeed) >= _curRed) 
-        && ((_prevRed - _colorFadeSpeed) <= _curRed)
-        && !redChanged
-        && prevDataStrip->red != curDataStrip.red)
-    {
-        prevDataStrip->red = curDataStrip.red;
-        redChanged = true;
-    }
-    if(redChanged || brightnessChanged)
-    {
-        UpdateLEDChannel(   i2cAddress,
-                            RED_REG_ON_L,
-                            RED_REG_ON_H,
-                            RED_REG_OFF_L,
-                            RED_REG_OFF_H,
-                            RED_PHASE_OFFSET,
-                            prevDataStrip->red,
-                            prevDataStrip->brightness);
-    }
-
-    // -- Green
-    int _curGreen = curDataStrip.green;
-    int _prevGreen = prevDataStrip->green;
-    bool greenChanged = false;
-
-    if((_prevGreen + _colorFadeSpeed) < _curGreen)
-    {
-        prevDataStrip->green += _colorFadeSpeed;
-        greenChanged = true;
-    }
-    if((_prevGreen - _colorFadeSpeed) > _curGreen)
-    {
-        prevDataStrip->green -= _colorFadeSpeed;
-        greenChanged = true;
-    }
-    if(((_prevGreen + _colorFadeSpeed) >= _curGreen) 
-        && ((_prevGreen - _colorFadeSpeed) <= _curGreen)
-        && !greenChanged
-        && prevDataStrip->green != curDataStrip.green)
-    {
-        prevDataStrip->green = curDataStrip.green;
-        greenChanged = true;
-    }
-    if(greenChanged || brightnessChanged)
-    {
-        UpdateLEDChannel(   i2cAddress,
-                            GREEN_REG_ON_L,
-                            GREEN_REG_ON_H,
-                            GREEN_REG_OFF_L,
-                            GREEN_REG_OFF_H,
-                            GREEN_PHASE_OFFSET,
-                            prevDataStrip->green,
-                            prevDataStrip->brightness);
-    }
-
-    // -- Blue
-    int _curBlue = curDataStrip.blue;
-    int _prevBlue = prevDataStrip->blue;
-    bool blueChanged = false;
-
-    if((_prevBlue + _colorFadeSpeed) < _curBlue)
-    {
-        prevDataStrip->blue += _colorFadeSpeed;
-        blueChanged = true;
-    }
-    if((_prevBlue - _colorFadeSpeed) > _curBlue)
-    {
-        prevDataStrip->blue -= _colorFadeSpeed;
-        blueChanged = true;
-    }
-    if(((_prevBlue + _colorFadeSpeed) >= _curBlue) 
-        && ((_prevBlue - _colorFadeSpeed) <= _curBlue)
-        && !blueChanged
-        && prevDataStrip->blue != curDataStrip.blue)
-    {
-        prevDataStrip->blue = curDataStrip.blue;
-        blueChanged = true;
-    }
-    if(blueChanged || brightnessChanged)
-    {
-        UpdateLEDChannel(   i2cAddress,
-                            BLUE_REG_ON_L,
-                            BLUE_REG_ON_H,
-                            BLUE_REG_OFF_L,
-                            BLUE_REG_OFF_H,
-                            BLUE_PHASE_OFFSET,
-                            prevDataStrip->blue,
-                            prevDataStrip->brightness);
-    }
 
 
-    // -- Cold White
-    int _curCW = curDataStrip.cw;
-    int _prevCW = prevDataStrip->cw;
-    bool cwChanged = false;
-
-    if((_prevCW + _colorFadeSpeed) < _curCW)
-    {
-        prevDataStrip->cw += _colorFadeSpeed;
-        cwChanged = true;
-    }
-    if((_prevCW - _colorFadeSpeed) > _curCW)
-    {
-        prevDataStrip->cw -= _colorFadeSpeed;
-        cwChanged = true;
-    }
-    if(((_prevCW + _colorFadeSpeed) >= _curCW) 
-        && ((_prevCW - _colorFadeSpeed) <= _curCW)
-        && !cwChanged
-        && prevDataStrip->cw != curDataStrip.cw)
-    {
-        prevDataStrip->cw = curDataStrip.cw;
-        cwChanged = true;
-    }
-    if(cwChanged || brightnessChanged)
-    {
-        UpdateLEDChannel(   i2cAddress,
-                            CW_REG_ON_L,
-                            CW_REG_ON_H,
-                            CW_REG_OFF_L,
-                            CW_REG_OFF_H,
-                            CW_PHASE_OFFSET,
-                            prevDataStrip->cw,
-                            prevDataStrip->brightness);
-    }
-
-    // -- Warm White
-    int _curWW = curDataStrip.ww;
-    int _prevWW = prevDataStrip->ww;
-    bool wwChanged = false;
-
-    if((_prevWW + _colorFadeSpeed) < _curWW)
-    {
-        prevDataStrip->ww += _colorFadeSpeed;
-        wwChanged = true;
-    }
-    if((_prevWW - _colorFadeSpeed) > _curWW)
-    {
-        prevDataStrip->ww -= _colorFadeSpeed;
-        wwChanged = true;
-    }
-    if(((_prevWW + _colorFadeSpeed) >= _curWW) 
-        && ((_prevWW - _colorFadeSpeed) <= _curWW)
-        && !wwChanged
-        && prevDataStrip->ww != curDataStrip.ww)
-    {
-        prevDataStrip->ww = curDataStrip.ww;
-        wwChanged = true;
-    }
-    if(wwChanged || brightnessChanged)
-    {
-        UpdateLEDChannel(   i2cAddress,
-                            WW_REG_ON_L,
-                            WW_REG_ON_H,
-                            WW_REG_OFF_L,
-                            WW_REG_OFF_H,
-                            WW_PHASE_OFFSET,
-                            prevDataStrip->ww,
-                            prevDataStrip->brightness);
-    }
-
-    // Check for fade fadeFinished
-    if( prevDataStrip->brightness   == curDataStrip.brightness
-        && prevDataStrip->red       == curDataStrip.red
-        && prevDataStrip->green     == curDataStrip.green
-        && prevDataStrip->blue      == curDataStrip.blue
-        && prevDataStrip->cw        == curDataStrip.cw
-        && prevDataStrip->ww        == curDataStrip.ww) 
-    {
-        fadeFinished = true;
-    }
-
-    // DEBUG
-    if(stripID == 1)
-    {
-        //Serial.println("");
-        //Serial.println("# ============ #");
-        //Serial.print("bright: ");
-        //Serial.print(prevDataStrip->brightness);
-        //Serial.print(" | ");
-        //Serial.println(curDataStrip.brightness);
-        //Serial.print("red   : ");
-        //Serial.print(prevDataStrip->red);
-        //Serial.print(" | ");
-        //Serial.println(curDataStrip.red);
-        //Serial.print("green : ");
-        //Serial.print(prevDataStrip->green);
-        //Serial.print(" | ");
-        //Serial.println(curDataStrip.green);
-        //Serial.print("blue  : ");
-        //Serial.print(prevDataStrip->blue);
-        //Serial.print(" | ");
-        //Serial.println(curDataStrip.blue);
-        //Serial.print("cw    : ");
-        //Serial.print(prevDataStrip->cw);
-        //Serial.print(" | ");
-        //Serial.println(curDataStrip.cw);
-        //Serial.print("ww    : ");
-        //Serial.print(prevDataStrip->ww);
-        //Serial.print(" | ");
-        //Serial.println(curDataStrip.ww);
-        //Serial.println("# ============ #");
-    }
-
-    return fadeFinished;
 };
 
+
+bool LedDriver::FadeToColor(uint8_t stripID,
+                            HighLevelLEDStripData commandHighLevelLEDStripData)
+{
+
+
+};
+
+
+bool LedDriver::FadeToColor(uint8_t stripID,
+                            LowLevelLEDStripData commandLowLevelLEDStripData)
+{
+
+
+};
+
+
+bool LedDriver::FadeToBlack(uint8_t stripID)
+{
+
+
+};
 
 
 /**
  * Writes a color value to the specified register with phase shift
  * 
- * @parameter i2cAddress        The i2c address of the pca9685 (pwm ic)
- * @parameter REG_ON_L          The on register for the low byte
- * @parameter REG_ON_H          The on register fot the high byte
- * @parameter REG_OFF_L         The off register for the low byte
- * @parameter REG_OFF_H         The off register for the high byte
+ * @parameter REG               The LED Color channel registers to update with new color and brightness
  * @parameter phaseShift        The phase shift value to apply to the given LED channel
  * @parameter colorValue        The color value of the given LED channel
  * @parameter brightnessValue   The brightness of the given LED channel
  **/
-void LedDriver::UpdateLEDChannel(   uint8_t i2cAddress,
-                                    uint8_t REG_ON_L,
-                                    uint8_t REG_ON_H,
-                                    uint8_t REG_OFF_L,
-                                    uint8_t REG_OFF_H,
-                                    uint16_t phaseShift,
-                                    uint8_t colorValue, 
-                                    uint16_t brightnessValue)
+void LedDriver::UpdateLEDChannel(LEDColorReg REG,
+                                 uint16_t phaseShift,
+                                 uint8_t colorValue, 
+                                 uint16_t brightnessValue)
 {
     /* 
         LED_ON => Value at which the LED is ON
@@ -1168,8 +300,8 @@ void LedDriver::UpdateLEDChannel(   uint8_t i2cAddress,
 
     // LED_ON_REG
     uint16_t ON_REG = phaseShift;
-    i2c->write8(i2cAddress, REG_ON_L, lowByte(ON_REG));
-    i2c->write8(i2cAddress, REG_ON_H, highByte(ON_REG));
+    i2c->write8(i2cAddress, REG.ON_L, lowByte(ON_REG));
+    i2c->write8(i2cAddress, REG.ON_H, highByte(ON_REG));
 
     // LED_OFF_REG
     uint16_t OFF_REG = 0;
@@ -1181,11 +313,122 @@ void LedDriver::UpdateLEDChannel(   uint8_t i2cAddress,
     {
         OFF_REG = data + phaseShift - 4096;
     }
-    i2c->write8(i2cAddress, REG_OFF_L, lowByte(OFF_REG));
-    i2c->write8(i2cAddress, REG_OFF_H, highByte(OFF_REG));
+    i2c->write8(i2cAddress, REG.OFF_L, lowByte(OFF_REG));
+    i2c->write8(i2cAddress, REG.OFF_H, highByte(OFF_REG));
 
 };
 
+
+/**
+ * Returns a pointer to the low level led strip data of the coresponding stripID
+ * 
+ * @parameter stripID   Strip ID of the LED strip
+ * 
+ * @return Pointer to the LowLevelLEDStripData of the given stripID
+ */
+LowLevelLEDStripData* LedDriver::getLowLevelLEDStripDataOfStrip(uint8_t stripID)
+{
+
+    // LED Strip 1
+    if(stripID == 1)
+    {
+        return &stateLowLevelLEDStrip1Data;
+    }
+
+    // LED Strip 2
+    if(stripID == 2)
+    {
+        return &stateLowLevelLEDStrip2Data;
+    }
+
+};
+
+
+/**
+ * Returns all color channel registers of the given LED strip ID
+ * 
+ * @parameter stripID   Strip ID of the LED strip
+ * 
+ * @return LEDStripColorReg with all color channel register
+ */
+LEDStripColorReg LedDriver::getColorRegForLEDStrip(uint8_t stripID)
+{
+    // LED Strip 1
+    if(stripID == 1)
+    {
+        LEDStripColorReg STRIP;
+
+        // CW
+        STRIP.CW_REG.ON_L       = LED3_ON_L;    //= LED6_ON_L;
+        STRIP.CW_REG.ON_H       = LED3_ON_H;    //= LED6_ON_H;
+        STRIP.CW_REG.OFF_L      = LED3_OFF_L;   //= LED6_OFF_L;
+        STRIP.CW_REG.OFF_H      = LED3_OFF_H;   //= LED6_OFF_H;
+
+        // WW
+        STRIP.WW_REG.ON_L       = LED7_ON_L;    //= LED7_ON_L;
+        STRIP.WW_REG.ON_H       = LED7_ON_H;    //= LED7_ON_H;
+        STRIP.WW_REG.OFF_L      = LED7_OFF_L;   //= LED7_OFF_L;
+        STRIP.WW_REG.OFF_H      = LED7_OFF_H;   //= LED7_OFF_H;
+
+        // RED
+        STRIP.RED_REG.ON_L      = LED5_ON_L;    //= LED3_ON_L;
+        STRIP.RED_REG.ON_H      = LED5_ON_H;    //= LED3_ON_H;
+        STRIP.RED_REG.OFF_L     = LED5_OFF_L;   //= LED3_OFF_L;
+        STRIP.RED_REG.OFF_H     = LED5_OFF_H;   //= LED3_OFF_H;
+
+        // GREEN
+        STRIP.GREEN_REG.ON_L    = LED6_ON_L;    //= LED4_ON_L;
+        STRIP.GREEN_REG.ON_H    = LED6_ON_H;    //= LED4_ON_H;
+        STRIP.GREEN_REG.OFF_L   = LED6_OFF_L;   //= LED4_OFF_L;
+        STRIP.GREEN_REG.OFF_H   = LED6_OFF_H;   //= LED4_OFF_H;
+
+        // BLUE
+        STRIP.BLUE_REG.ON_L     = LED4_ON_L;    //= LED5_ON_L;
+        STRIP.BLUE_REG.ON_H     = LED4_ON_H;    //= LED5_ON_H;
+        STRIP.BLUE_REG.OFF_L    = LED4_OFF_L;   //= LED5_OFF_L;
+        STRIP.BLUE_REG.OFF_H    = LED4_OFF_H;   //= LED5_OFF_H;
+         
+        return STRIP;
+    }
+
+    // LED Strip 2
+    if(stripID == 2)
+    {
+        LEDStripColorReg STRIP;
+
+        // CW
+        STRIP.CW_REG.ON_L       = LED8_ON_L;    //= LED1_ON_L;
+        STRIP.CW_REG.ON_H       = LED8_ON_H;    //= LED1_ON_H;
+        STRIP.CW_REG.OFF_L      = LED8_OFF_L;   //= LED1_OFF_L;
+        STRIP.CW_REG.OFF_H      = LED8_OFF_H;   //= LED1_OFF_H;
+
+        // WW
+        STRIP.WW_REG.ON_L       = LED12_ON_L;   //= LED12_ON_L;
+        STRIP.WW_REG.ON_H       = LED12_ON_H;   //= LED12_ON_H;
+        STRIP.WW_REG.OFF_L      = LED12_OFF_L;  //= LED12_OFF_L;
+        STRIP.WW_REG.OFF_H      = LED12_OFF_H;  //= LED12_OFF_H;
+
+        // RED
+        STRIP.RED_REG.ON_L      = LED10_ON_L;    //= LED8_ON_L;
+        STRIP.RED_REG.ON_H      = LED10_ON_H;    //= LED8_ON_H;
+        STRIP.RED_REG.OFF_L     = LED10_OFF_L;   //= LED8_OFF_L;
+        STRIP.RED_REG.OFF_H     = LED10_OFF_H;   //= LED8_OFF_H;
+
+        // GREEN
+        STRIP.GREEN_REG.ON_L    = LED11_ON_L;   //= LED9_ON_L;
+        STRIP.GREEN_REG.ON_H    = LED11_ON_H;   //= LED9_ON_H;
+        STRIP.GREEN_REG.OFF_L   = LED11_OFF_L;  //= LED9_OFF_L;
+        STRIP.GREEN_REG.OFF_H   = LED11_OFF_H;  //= LED9_OFF_H;
+
+        // BLUE
+        STRIP.BLUE_REG.ON_L     = LED9_ON_L;    //= LED10_ON_L;
+        STRIP.BLUE_REG.ON_H     = LED9_ON_H;    //= LED10_ON_H;
+        STRIP.BLUE_REG.OFF_L    = LED9_OFF_L;   //= LED10_OFF_L;
+        STRIP.BLUE_REG.OFF_H    = LED9_OFF_H;   //= LED10_OFF_H;
+
+        return STRIP;
+    }
+};
 
 
 /**

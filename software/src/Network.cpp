@@ -211,8 +211,8 @@ void Network::HandleMqtt()
             mqttClient.subscribe(mqtt_strip2_json_command); 
 
             // Publish mqtt update about current led data
-            MqttUpdateAfterDc(stLedStrip1Data, mqtt_strip1_json_state);
-            MqttUpdateAfterDc(stLedStrip2Data, mqtt_strip2_json_state);
+            MqttUpdateAfterDc(stNetworkLedStrip1Data, mqtt_strip1_json_state);
+            MqttUpdateAfterDc(stNetworkLedStrip2Data, mqtt_strip2_json_state);
 
             mqttState = NetworkMQTTState::SuperviseMqttConnection;
         }
@@ -269,9 +269,9 @@ void Network::HandleNTP()
 
         if(updateSuccessful)
         {
-            stTimeData.hour = timeClient.getHours();
-            stTimeData.minute = timeClient.getMinutes();
-            stTimeData.second = timeClient.getSeconds();
+            stNetworkTimeData.hour = timeClient.getHours();
+            stNetworkTimeData.minute = timeClient.getMinutes();
+            stNetworkTimeData.second = timeClient.getSeconds();
         }
 
     }
@@ -339,12 +339,12 @@ void Network::MotionDetectedUpdate(bool motion)
  * @parameter ledStripData  LEDStripData struct to send
  * @parameter topic         Mqtt topic to send the data to
  **/
-void Network::MqttUpdateAfterDc(LEDStripData ledStripData,
+void Network::MqttUpdateAfterDc(NetworkLEDStripData networkLedStripData,
                                 const char* topic)
 {
     // Create json message
     StaticJsonDocument<256> doc;
-    if(ledStripData.power)
+    if(networkLedStripData.power)
     {
         doc["state"] = "ON";
     }
@@ -352,12 +352,12 @@ void Network::MqttUpdateAfterDc(LEDStripData ledStripData,
     {
         doc["state"] = "OFF";   
     }
-    doc["brightness"]   = ledStripData.brightness;
-    doc["color"]["r"]   = ledStripData.red;
-    doc["color"]["g"]   = ledStripData.green;
-    doc["color"]["b"]   = ledStripData.blue;
-    doc["white_value"]  = ledStripData.cw;
-    doc["effect"]       = LEDEffectToString(ledStripData.effect);
+    doc["brightness"]   = networkLedStripData.ledStripData.brightnessValue;
+    doc["color"]["r"]   = networkLedStripData.ledStripData.redColorValue;
+    doc["color"]["g"]   = networkLedStripData.ledStripData.greenColorValue;
+    doc["color"]["b"]   = networkLedStripData.ledStripData.blueColorValue;
+    doc["white_value"]  = networkLedStripData.ledStripData.cwColorValue;
+    doc["effect"]       = LEDEffectToString(networkLedStripData.effect);
     
     // Serialize json message and send
     char message[256];
@@ -553,7 +553,7 @@ void mqttCallback(char *topic, byte *payload, unsigned int length)
         uint8_t data = atoi(message);
         if (data >= 0 && data <= 1)
         {
-            mainController.network.stMotionData.power = (bool)data;
+            mainController.network.stNetworkMotionData.power = (bool)data;
         }
     }
     
@@ -563,17 +563,17 @@ void mqttCallback(char *topic, byte *payload, unsigned int length)
         uint8_t red = atoi(strtok(message, ",")); 
         if (red >= 0 && red <= 255)
         {
-            mainController.network.stMotionData.red = red;
+            mainController.network.stNetworkMotionData.redColorValue = red;
         }
         uint8_t green = atoi(strtok(NULL, ",")); 
         if (green >= 0 && green <= 255)
         {
-            mainController.network.stMotionData.green = green;
+            mainController.network.stNetworkMotionData.greenColorValue = green;
         }
         uint8_t blue = atoi(strtok(NULL, ",")); 
         if (blue >= 0 && blue <= 255)
         {
-            mainController.network.stMotionData.blue = blue;
+            mainController.network.stNetworkMotionData.blueColorValue = blue;
         }
     }
 
@@ -583,7 +583,7 @@ void mqttCallback(char *topic, byte *payload, unsigned int length)
         uint8_t data = atoi(message);
         if (data >= 0 && data <= 1000)
         {
-            mainController.network.stMotionData.timeout = data;
+            mainController.network.stNetworkMotionData.timeout = data;
         }
     }
     
@@ -606,11 +606,11 @@ void mqttCallback(char *topic, byte *payload, unsigned int length)
         {
             if(mainController.network.doc["state"] == "ON")
             {
-                mainController.network.stLedStrip1Data.power = true;
+                mainController.network.stNetworkLedStrip1Data.power = true;
             }
             else
             {
-                mainController.network.stLedStrip1Data.power = false;
+                mainController.network.stNetworkLedStrip1Data.power = false;
             }
         }
 
@@ -618,14 +618,14 @@ void mqttCallback(char *topic, byte *payload, unsigned int length)
         JsonVariant brightness = mainController.network.doc["brightness"]; 
         if(!brightness.isNull())
         {
-            mainController.network.stLedStrip1Data.brightness = brightness.as<uint16_t>();
+            mainController.network.stNetworkLedStrip1Data.ledStripData.brightnessValue = brightness.as<uint16_t>();
         }
 
         // ======== White Value ======== //
         JsonVariant white_value = mainController.network.doc["white_value"]; 
         if(!white_value.isNull())
         {
-            mainController.network.stLedStrip1Data.cw = white_value.as<uint8_t>();
+            mainController.network.stNetworkLedStrip1Data.ledStripData.cwColorValue = white_value.as<uint8_t>();
         }
 
         // ======== Color ======== //
@@ -636,19 +636,19 @@ void mqttCallback(char *topic, byte *payload, unsigned int length)
             JsonVariant r = mainController.network.doc["color"]["r"]; 
             if(!r.isNull())
             {
-                mainController.network.stLedStrip1Data.red = r.as<uint8_t>();
+                mainController.network.stNetworkLedStrip1Data.ledStripData.redColorValue = r.as<uint8_t>();
             }
             // ==== Green ==== //
             JsonVariant g = mainController.network.doc["color"]["g"]; 
             if(!g.isNull())
             {
-                mainController.network.stLedStrip1Data.green = g.as<uint8_t>();
+                mainController.network.stNetworkLedStrip1Data.ledStripData.greenColorValue = g.as<uint8_t>();
             }
             // ==== Blue ==== //
             JsonVariant b = mainController.network.doc["color"]["b"]; 
             if(!b.isNull())
             {
-                mainController.network.stLedStrip1Data.blue = b.as<uint8_t>();
+                mainController.network.stNetworkLedStrip1Data.ledStripData.blueColorValue = b.as<uint8_t>();
             }
         }
 
@@ -656,14 +656,14 @@ void mqttCallback(char *topic, byte *payload, unsigned int length)
         JsonVariant effect = mainController.network.doc["effect"]; 
         if(!effect.isNull())
         {
-            mainController.network.stLedStrip1Data.effect = StringToLEDEffect(effect.as<String>());
+            mainController.network.stNetworkLedStrip1Data.effect = StringToLEDEffect(effect.as<String>());
         }
 
         // Send message back to mqtt state topic
         mainController.network.mqttClient.publish(mqtt_strip1_json_state, memMessage);
     }
 
-    //######################################## mqtt_strip1_json_command ########################################//
+    //######################################## mqtt_strip2_json_command ########################################//
     if (String(mqtt_strip2_json_command).equals(topic))
     {
         // Deserialize message
@@ -681,11 +681,11 @@ void mqttCallback(char *topic, byte *payload, unsigned int length)
         {
             if(mainController.network.doc["state"] == "ON")
             {
-                mainController.network.stLedStrip2Data.power = true;
+                mainController.network.stNetworkLedStrip2Data.power = true;
             }
             else
             {
-                mainController.network.stLedStrip2Data.power = false;
+                mainController.network.stNetworkLedStrip2Data.power = false;
             }
         }
 
@@ -693,14 +693,14 @@ void mqttCallback(char *topic, byte *payload, unsigned int length)
         JsonVariant brightness = mainController.network.doc["brightness"]; 
         if(!brightness.isNull())
         {
-            mainController.network.stLedStrip2Data.brightness = brightness.as<uint16_t>();
+            mainController.network.stNetworkLedStrip2Data.ledStripData.brightnessValue = brightness.as<uint16_t>();
         }
 
         // ======== White Value ======== //
         JsonVariant white_value = mainController.network.doc["white_value"]; 
         if(!white_value.isNull())
         {
-            mainController.network.stLedStrip2Data.cw = white_value.as<uint8_t>();
+            mainController.network.stNetworkLedStrip2Data.ledStripData.cwColorValue = white_value.as<uint8_t>();
         }
 
         // ======== Color ======== //
@@ -711,19 +711,19 @@ void mqttCallback(char *topic, byte *payload, unsigned int length)
             JsonVariant r = mainController.network.doc["color"]["r"]; 
             if(!r.isNull())
             {
-                mainController.network.stLedStrip2Data.red = r.as<uint8_t>();
+                mainController.network.stNetworkLedStrip2Data.ledStripData.redColorValue = r.as<uint8_t>();
             }
             // ==== Green ==== //
             JsonVariant g = mainController.network.doc["color"]["g"]; 
             if(!g.isNull())
             {
-                mainController.network.stLedStrip2Data.green = g.as<uint8_t>();
+                mainController.network.stNetworkLedStrip2Data.ledStripData.greenColorValue = g.as<uint8_t>();
             }
             // ==== Blue ==== //
             JsonVariant b = mainController.network.doc["color"]["b"]; 
             if(!b.isNull())
             {
-                mainController.network.stLedStrip2Data.blue = b.as<uint8_t>();
+                mainController.network.stNetworkLedStrip2Data.ledStripData.blueColorValue = b.as<uint8_t>();
             }
         }
 
@@ -731,7 +731,7 @@ void mqttCallback(char *topic, byte *payload, unsigned int length)
         JsonVariant effect = mainController.network.doc["effect"]; 
         if(!effect.isNull())
         {
-            mainController.network.stLedStrip2Data.effect = StringToLEDEffect(effect.as<String>());
+            mainController.network.stNetworkLedStrip2Data.effect = StringToLEDEffect(effect.as<String>());
         }
 
         // Send message back to mqtt state topic

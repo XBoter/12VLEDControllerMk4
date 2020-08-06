@@ -34,64 +34,61 @@ class LedDriver : public IBaseClass
         I2C *i2c;
         PirReader *pirReader;
         Network *network;
-        MotionData motionData;
+
+        // Network Motion data
+        NetworkMotionData networkMotionData;
         
-        // Data for LED Strip
-        LEDStripData curDataStrip1; 
-        LEDStripData curDataStrip2;
-        LEDStripData prevDataStrip1;
-        LEDStripData prevDataStrip2;
+        // LED Strip command data
+        /*
+            New data for the led strip to change to
+        */
+        NetworkLEDStripData commandNetworkLEDStrip1Data;
+        NetworkLEDStripData commandNetworkLEDStrip2Data;
+
+        HighLevelLEDStripData commandHighLevelLEDStrip1Data; 
+        HighLevelLEDStripData commandHighLevelLEDStrip2Data;
+
+        LowLevelLEDStripData commandLowLevelLEDStrip1Data; 
+        LowLevelLEDStripData commandLowLevelLEDStrip2Data;
+
+        // LED Strip state data
+        /*
+            Current data of the led strip => Gets displayed
+        */
+        LowLevelLEDStripData stateLowLevelLEDStrip1Data;
+        LowLevelLEDStripData stateLowLevelLEDStrip2Data;
         
+        // Default Values
+        /*
+            Default values for some parameters if not specifed
+        */
+
         // Effect Alarm
-        uint8_t effectAlarmState = 0;
-        unsigned long PrevMillis_AlarmEffectPauseTime = 0;
-        LEDStripData alarmEffectData;
-        uint8_t alarmColorSpeed = 0;
-        uint8_t alarmBrightnessSpeed = 0;
-        bool alarmFadeFinished = false;
     public:
 
     // ## Functions ## //
     private:
         void HandleLEDStrip(uint8_t stripID,
-                            uint8_t colorFadeSpeed,
-                            uint8_t brightnessFadeSpeed,
-                            MotionData motionData,
-                            LEDStripData curDataStrip,
-                            LEDStripData *prevDataStrip);
+                            NetworkLEDStripData commandNetworkLEDStripData);
 
-        void UpdateLEDChannel(uint8_t i2cAddress,
-                              uint8_t REG_ON_L,
-                              uint8_t REG_ON_H,
-                              uint8_t REG_OFF_L,
-                              uint8_t REG_OFF_H,
+        bool FadeToColor(uint8_t stripID,
+                         NetworkLEDStripData commandNetworkLEDStripData);
+
+        bool FadeToColor(uint8_t stripID,
+                         HighLevelLEDStripData commandHighLevelLEDStripData);
+
+        bool FadeToColor(uint8_t stripID,
+                         LowLevelLEDStripData commandLowLevelLEDStripData);
+
+        bool FadeToBlack(uint8_t stripID);
+
+        void UpdateLEDChannel(LEDColorReg REG,
                               uint16_t phaseShift,
                               uint8_t colorValue,
                               uint16_t brightnessValue);
 
-        bool FadeToColor(uint8_t stripID,
-                         uint8_t colorFadeSpeed,
-                         uint8_t brightnessFadeSpeed,
-                         LEDStripData curDataStrip,
-                         LEDStripData *prevDataStrip);
-
-        bool SetColor(uint8_t stripID,
-                      uint8_t brightnessFadeSpeed,
-                      LEDStripData curDataStrip,
-                      LEDStripData *prevDataStrip);
-
-        bool FadeToBlack(uint8_t stripID,
-                         uint8_t colorFadeSpeed,
-                         uint8_t brightnessFadeSpeed,
-                         LEDStripData curDataStrip,
-                         LEDStripData *prevDataStrip);
-
-        bool TransitionToNewEffect(uint8_t stripID,
-                                   uint8_t colorFadeSpeed,
-                                   uint8_t brightnessFadeSpeed,
-                                   LEDStripData curDataStrip,
-                                   LEDStripData *prevDataStrip);
-
+        LowLevelLEDStripData* getLowLevelLEDStripDataOfStrip(uint8_t stripID);
+        LEDStripColorReg getColorRegForLEDStrip(uint8_t stripID);
         void PrintAllRegister();
         void PrintByte(byte b);
     public:

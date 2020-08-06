@@ -47,11 +47,15 @@ class Information : public IBaseClass
         void FormatPrintLEDStrip(String name,
                                  String power,
                                  String brightness,
+                                 String brightnessFadeTime,
+                                 String brightnessFadeCurve,
                                  String cw,
                                  String ww,
                                  String red,
                                  String green,
                                  String blue,
+                                 String colorFadeTime,
+                                 String colorFadeCurve,
                                  String effect);
 
         void FormatPrintMotion(String name,
@@ -71,6 +75,7 @@ class Information : public IBaseClass
         void InsertPrint();
         String BoolToString(bool b);
         String LEDEffectToString(LEDEffect effect);
+        String FadeCurveToString(FadeCurve curve);
     public:
 
 
