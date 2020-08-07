@@ -35,7 +35,6 @@ enum class FadeCurve
     EaseIn,
     EaseOut,
     EaseInOut,
-    EaseOutIn, 
 };
 
 

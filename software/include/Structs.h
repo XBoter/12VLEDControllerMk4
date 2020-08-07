@@ -147,3 +147,60 @@ struct LowLevelLEDStripData
 
 };
 
+
+/**
+ * Hold the actual values of the LED strip and prev fade times
+ */
+struct LEDStripData
+{
+    // ---- RED
+    // -- Color
+    uint8_t redColorValue                       = 0;
+    uint8_t prevRedColorValue                   = 0;
+    unsigned long prevMillisRedColorFade        = 0;
+    // -- Brightness
+    uint16_t redBrightnessValue                 = 0;
+    uint16_t prevRedBrightnessValue             = 0;
+    unsigned long prevMillisRedBrightnessFade   = 0;
+
+    // ---- GREEN
+    // -- Color
+    uint8_t greenColorValue                     = 0;
+    uint8_t prevGreenColorValue                 = 0;
+    unsigned long prevMillisGreenColorFade      = 0;
+    // -- Brightness
+    uint16_t greenBrightnessValue               = 0;
+    uint16_t prevGreenBrightnessValue           = 0;
+    unsigned long prevMillisGreenBrightnessFade = 0;
+
+    // ---- BLUE
+    // -- Color
+    uint8_t blueColorValue                      = 0;
+    uint8_t prevBlueColorValue                  = 0;
+    unsigned long prevMillisBlueColorFade       = 0;
+    // -- Brightness
+    uint16_t blueBrightnessValue                = 0;
+    uint16_t prevBlueBrightnessValue            = 0;
+    unsigned long prevMillisBlueBrightnessFade  = 0;
+
+    // ---- CW
+    // -- Color
+    uint8_t cwColorValue                        = 0;
+    uint8_t prevCwColorValue                    = 0;
+    unsigned long prevMillisCwColorFade         = 0;
+    // -- Brightness
+    uint16_t cwBrightnessValue                  = 0;
+    uint16_t prevCwBrightnessValue              = 0;
+    unsigned long prevMillisCwBrightnessFade    = 0;
+
+    // ---- WW
+    // -- Color
+    uint8_t wwColorValue                        = 0;
+    uint8_t prevWwColorValue                    = 0;
+    unsigned long prevMillisWwColorFade         = 0;
+    // -- Brightness
+    uint16_t wwBrightnessValue                  = 0;
+    uint16_t prevWwBrightnessValue              = 0;
+    unsigned long prevMillisWwBrightnessFade    = 0;
+
+};

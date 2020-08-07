@@ -13,8 +13,8 @@
 #define Name         "12V LED Controller Mk4"
 #define Programmer   "Nico Weidenfeller"
 #define Created      "28.06.2020"
-#define LastModifed  "04.08.2020"
-#define Version      "0.18.0"
+#define LastModifed  "07.08.2020"
+#define Version      "0.19.0"
 
 /*
       ToDo     Change Shut Resistor to 0.02 Ohm for better reading 
@@ -42,6 +42,8 @@ class Main
       unsigned long PrevMillis_Loop = 0;
 
    public:
+
+      // Components
       I2C i2c = I2C();
       Network network = Network();
       PowerMeasurement powerMessurement = PowerMeasurement(INA219AIDR_I2C_ADDRESS, 

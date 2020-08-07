@@ -559,10 +559,6 @@ String Information::FadeCurveToString(FadeCurve curve)
              return "EaseInOut";
             break;
 
-        case FadeCurve::EaseOutIn:
-             return "EaseOutIn";
-            break;
-
         default:
             return "None";
             break;

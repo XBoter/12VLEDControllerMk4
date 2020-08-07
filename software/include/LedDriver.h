@@ -30,10 +30,16 @@ class LedDriver : public IBaseClass
 
     // ## Data ## //
     private:
+
         uint8_t i2cAddress;
         I2C *i2c;
         PirReader *pirReader;
         Network *network;
+
+        // LED Strip Refresh rate
+        unsigned long previousMillisRefreshRate = 0;
+        uint16_t intervalRefreshRate = 0;
+        double LED_STRIP_REFRESH_RATE = 90;  // x Times per Second
 
         // Network Motion data
         NetworkMotionData networkMotionData;
@@ -55,13 +61,15 @@ class LedDriver : public IBaseClass
         /*
             Current data of the led strip => Gets displayed
         */
-        LowLevelLEDStripData stateLowLevelLEDStrip1Data;
-        LowLevelLEDStripData stateLowLevelLEDStrip2Data;
-        
+        // Current
+        LEDStripData currentLEDStrip1Data; // Gets set to new value
+        LEDStripData currentLEDStrip2Data; // Gets set to new value
+        // Previous
+        LEDStripData prevLEDStrip1Data;
+        LEDStripData prevLEDStrip2Data;
+
         // Default Values
-        /*
-            Default values for some parameters if not specifed
-        */
+        HighLevelLEDStripData defaultHighLevelLEDStripData;
 
         // Effect Alarm
     public:
@@ -80,17 +88,46 @@ class LedDriver : public IBaseClass
         bool FadeToColor(uint8_t stripID,
                          LowLevelLEDStripData commandLowLevelLEDStripData);
 
-        bool FadeToBlack(uint8_t stripID);
+        bool FadeToBlack(uint8_t stripID,
+                         NetworkLEDStripData commandNetworkLEDStripData);
+
+        bool FadeToBlack(uint8_t stripID,
+                         HighLevelLEDStripData commandHighLevelLEDStripData);
+
+        void UpdateLEDStrip(uint8_t stripID);
 
         void UpdateLEDChannel(LEDColorReg REG,
                               uint16_t phaseShift,
                               uint8_t colorValue,
                               uint16_t brightnessValue);
 
-        LowLevelLEDStripData* getLowLevelLEDStripDataOfStrip(uint8_t stripID);
+        uint16_t getCurveValue(FadeCurve curve,
+                               double percent,
+                               int start,
+                               int end);
+
+        LEDStripData* getCurrentLEDStripData(uint8_t stripID);
+        LEDStripData* getPreviousLEDStripData(uint8_t stripID);
         LEDStripColorReg getColorRegForLEDStrip(uint8_t stripID);
         void PrintAllRegister();
         void PrintByte(byte b);
+
+        uint16_t linear(double percent,
+                        int start,
+                        int end);
+
+        uint16_t easeInQuart(double percent,
+                             int start,
+                             int end);
+
+        uint16_t easeOutQuart(double percent,
+                              int start,
+                              int end);
+
+        uint16_t easeInOutQuart(double percent,
+                                int start,
+                                int end);
+
     public:
 
 };

@@ -186,35 +186,39 @@ void Network::HandleMqtt()
     switch (mqttState)
     {
     case NetworkMQTTState::StartMqtt:
-        if (mqttClient.connect(MQTT_CLIENT_NAME, MQTT_USERNAME, MQTT_PASSWORD))
+        // Only try reconnect when WiFi is connected
+        if(wifiConnected)
         {
-            // ==== Global ==== //
-            // Sun
-            mqttClient.subscribe(mqtt_sun_command);   
+            if (mqttClient.connect(MQTT_CLIENT_NAME, MQTT_USERNAME, MQTT_PASSWORD))
+            {
+                // ==== Global ==== //
+                // Sun
+                mqttClient.subscribe(mqtt_sun_command);   
 
-            // Master
-            mqttClient.subscribe(mqtt_master_present_command);   
-            
-            // PC
-            mqttClient.subscribe(mqtt_pc_present_command);   
+                // Master
+                mqttClient.subscribe(mqtt_master_present_command);   
 
-            // Motion 
-            mqttClient.subscribe(mqtt_motion_detection_power_command);   
-            mqttClient.subscribe(mqtt_motion_detection_rgb_command); 
-            mqttClient.subscribe(mqtt_motion_detection_timeout_command); 
+                // PC
+                mqttClient.subscribe(mqtt_pc_present_command);   
 
-            // ==== Specific ==== //
-            // Strip 1
-            mqttClient.subscribe(mqtt_strip1_json_command); 
+                // Motion 
+                mqttClient.subscribe(mqtt_motion_detection_power_command);   
+                mqttClient.subscribe(mqtt_motion_detection_rgb_command); 
+                mqttClient.subscribe(mqtt_motion_detection_timeout_command); 
 
-            // Strip 2  
-            mqttClient.subscribe(mqtt_strip2_json_command); 
+                // ==== Specific ==== //
+                // Strip 1
+                mqttClient.subscribe(mqtt_strip1_json_command); 
 
-            // Publish mqtt update about current led data
-            MqttUpdateAfterDc(stNetworkLedStrip1Data, mqtt_strip1_json_state);
-            MqttUpdateAfterDc(stNetworkLedStrip2Data, mqtt_strip2_json_state);
+                // Strip 2  
+                mqttClient.subscribe(mqtt_strip2_json_command); 
 
-            mqttState = NetworkMQTTState::SuperviseMqttConnection;
+                // Publish mqtt update about current led data
+                MqttUpdateAfterDc(stNetworkLedStrip1Data, mqtt_strip1_json_state);
+                MqttUpdateAfterDc(stNetworkLedStrip2Data, mqtt_strip2_json_state);
+
+                mqttState = NetworkMQTTState::SuperviseMqttConnection;
+            }
         }
         break;
 
