@@ -122,9 +122,8 @@ void LedDriver::Run()
 /**
  * Handels the LED Strip
  *
- * @parameter stripID                       The strip id of the LED Strip which the transition gets applied to
- * @parameter motionData                    The motion data for the led strip
- * @parameter commandNetworkLEDStripData    The speed with which a brightnessValue gets faded to a new value
+ * @parameter stripID                       The ID of the used led strip
+ * @parameter commandNetworkLEDStripData    NetworkLEDStripData for the used LED strip define in stripID
  **/
 
 void LedDriver::HandleLEDStrip(uint8_t stripID,
@@ -261,6 +260,12 @@ void LedDriver::HandleLEDStrip(uint8_t stripID,
 };
 
 
+/**
+ * Fade all color LED channels to their new value
+ * 
+ * @parameter stripID                       The ID of the used led strip
+ * @parameter commandHighLevelLEDStripData  NetworkLEDStripData for the used LED strip define in stripID
+ **/
 bool LedDriver::FadeToColor(uint8_t stripID,
                             NetworkLEDStripData commandNetworkLEDStripData)
 {
@@ -277,6 +282,12 @@ bool LedDriver::FadeToColor(uint8_t stripID,
 };
 
 
+/**
+ * Fade all color LED channels to their new value
+ * 
+ * @parameter stripID                       The ID of the used led strip
+ * @parameter commandHighLevelLEDStripData  HighLevelLEDStripData for the used LED strip define in stripID
+ **/
 bool LedDriver::FadeToColor(uint8_t stripID,
                             HighLevelLEDStripData commandHighLevelLEDStripData)
 {
@@ -340,6 +351,12 @@ bool LedDriver::FadeToColor(uint8_t stripID,
 };
 
 
+/**
+ * Fade all color LED channels to their new value
+ * 
+ * @parameter stripID                       The ID of the used led strip
+ * @parameter commandHighLevelLEDStripData  LowLevelLEDStripData for the used LED strip define in stripID
+ **/
 bool LedDriver::FadeToColor(uint8_t stripID,
                             LowLevelLEDStripData commandLowLevelLEDStripData)
 {
@@ -578,6 +595,12 @@ bool LedDriver::FadeToColor(uint8_t stripID,
 };
 
 
+/**
+ * Fade all LED channel to black
+ * 
+ * @parameter stripID                       The ID of the used led strip
+ * @parameter commandHighLevelLEDStripData  NetworkLEDStripData for the used LED strip define in stripID
+ **/
 bool LedDriver::FadeToBlack(uint8_t stripID,
                             NetworkLEDStripData commandNetworkLEDStripData)
 {
@@ -596,6 +619,12 @@ bool LedDriver::FadeToBlack(uint8_t stripID,
 };
 
 
+/**
+ * Fade all LED channel to black
+ * 
+ * @parameter stripID                       The ID of the used led strip
+ * @parameter commandHighLevelLEDStripData  HighLevelLEDStripData for the used LED strip define in stripID
+ **/
 bool LedDriver::FadeToBlack(uint8_t stripID,
                             HighLevelLEDStripData commandHighLevelLEDStripData)
 {
@@ -612,6 +641,11 @@ bool LedDriver::FadeToBlack(uint8_t stripID,
 
 
 
+/**
+ * Updates all led channels to the current LED strip data if the changed from the previous value
+ * 
+ * @parameter stripID  The ID of the used led strip
+ **/
 void LedDriver::UpdateLEDStrip(uint8_t stripID)
 {
     // Get current data of strip
