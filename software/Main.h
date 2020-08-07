@@ -18,7 +18,6 @@
 
 /*
       ToDo     Change Shut Resistor to 0.02 Ohm for better reading 
-      ToDo     Investigate spontaneous performance problems
       ToDo     Add NTP Summer/Winter time swap => For now only Winter Time 
       ToDo     Rework doc string. Information about how to use stuff in header, and how it works in source 
 */

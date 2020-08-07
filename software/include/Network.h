@@ -66,9 +66,9 @@ class Network : public IBaseClass
         // Time
         NetworkTimeData stNetworkTimeData;
         // Master
-        bool parameter_master_present = false;
+        bool parameter_master_present = true;
         // PC
-        bool parameter_pc_present = false;
+        bool parameter_pc_present = true;
         // Motion
         NetworkMotionData stNetworkMotionData;
         // LED Strip 1

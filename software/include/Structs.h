@@ -70,6 +70,17 @@ struct HighLevelLEDStripData
     uint16_t brightnessValue        = 0;
     uint16_t brightnessFadeTime     = 0;
     FadeCurve brightnessFadeCurve   = FadeCurve::None;
+
+};
+
+
+/**
+ * Struct with data for LED effets
+ */ 
+struct LEDEffectData
+{
+    LEDEffect prevEffect = LEDEffect::None;
+    uint8_t transitionState = 0;
 };
 
 
@@ -80,6 +91,7 @@ struct NetworkLEDStripData
 {
     bool power = false;
     HighLevelLEDStripData ledStripData;
+    ControllerMode mode = ControllerMode::Idle;
     LEDEffect effect = LEDEffect::None;
 };
 

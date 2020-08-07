@@ -36,6 +36,9 @@ class LedDriver : public IBaseClass
         PirReader *pirReader;
         Network *network;
 
+        // Master power
+        bool master_power = false;
+
         // LED Strip Refresh rate
         unsigned long previousMillisRefreshRate = 0;
         uint16_t intervalRefreshRate = 0;
@@ -57,7 +60,7 @@ class LedDriver : public IBaseClass
         LowLevelLEDStripData commandLowLevelLEDStrip1Data; 
         LowLevelLEDStripData commandLowLevelLEDStrip2Data;
 
-        // LED Strip state data
+        // LED Strip data
         /*
             Current data of the led strip => Gets displayed
         */
@@ -68,6 +71,10 @@ class LedDriver : public IBaseClass
         LEDStripData prevLEDStrip1Data;
         LEDStripData prevLEDStrip2Data;
 
+        // LED Effect data
+        LEDEffectData strip1LEDEffectData;
+        LEDEffectData strip2LEDEffectData;
+
         // Default Values
         HighLevelLEDStripData defaultHighLevelLEDStripData;
 
@@ -76,8 +83,17 @@ class LedDriver : public IBaseClass
 
     // ## Functions ## //
     private:
-        void HandleLEDStrip(uint8_t stripID,
-                            NetworkLEDStripData commandNetworkLEDStripData);
+        void HandleControllerMode(uint8_t stripID,
+                                  NetworkLEDStripData commandNetworkLEDStripData);
+
+        void HandleLEDEffect(uint8_t stripID,
+                             NetworkLEDStripData commandNetworkLEDStripData);
+
+        bool SetColor(uint8_t stripID,
+                      NetworkLEDStripData commandNetworkLEDStripData);
+
+        bool SetColor(uint8_t stripID,
+                      HighLevelLEDStripData commandHighLevelLEDStripData);
 
         bool FadeToColor(uint8_t stripID,
                          NetworkLEDStripData commandNetworkLEDStripData);
@@ -106,11 +122,25 @@ class LedDriver : public IBaseClass
                                int start,
                                int end);
 
+        HighLevelLEDStripData getDefaultHigh();
+
+        LowLevelLEDStripData getDefaultLow();
+
+        void ResetEffectData(uint8_t stripID);
+
+        LEDEffectData* getStripLEDEffectData(uint8_t stripID);
+
         LEDStripData* getCurrentLEDStripData(uint8_t stripID);
+
         LEDStripData* getPreviousLEDStripData(uint8_t stripID);
+
         LEDStripColorReg getColorRegForLEDStrip(uint8_t stripID);
+
         void PrintAllRegister();
+
         void PrintByte(byte b);
+
+        void setMasterPower(bool power);
 
         uint16_t linear(double percent,
                         int start,
