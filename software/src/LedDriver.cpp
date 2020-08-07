@@ -360,7 +360,7 @@ bool LedDriver::FadeToColor(uint8_t stripID,
 bool LedDriver::FadeToColor(uint8_t stripID,
                             LowLevelLEDStripData commandLowLevelLEDStripData)
 {
-
+    bool fadeFinished = true;
     unsigned long curMillis = previousMillisRefreshRate;
 
     // Get current data of strip
@@ -384,6 +384,7 @@ bool LedDriver::FadeToColor(uint8_t stripID,
         {
             ptrCurrentLEDStripData->prevRedColorValue = ptrCurrentLEDStripData->redColorValue;
         }
+        fadeFinished = false;
     }
     else
     {
@@ -406,6 +407,7 @@ bool LedDriver::FadeToColor(uint8_t stripID,
         {
             ptrCurrentLEDStripData->prevRedBrightnessValue = ptrCurrentLEDStripData->redBrightnessValue;
         }
+        fadeFinished = false;
     }
     else
     {
@@ -429,6 +431,7 @@ bool LedDriver::FadeToColor(uint8_t stripID,
         {
             ptrCurrentLEDStripData->prevGreenColorValue = ptrCurrentLEDStripData->greenColorValue;
         }
+        fadeFinished = false;
     }
     else
     {
@@ -451,6 +454,7 @@ bool LedDriver::FadeToColor(uint8_t stripID,
         {
             ptrCurrentLEDStripData->prevGreenBrightnessValue = ptrCurrentLEDStripData->redBrightnessValue;
         }
+        fadeFinished = false;
     }
     else
     {
@@ -474,6 +478,7 @@ bool LedDriver::FadeToColor(uint8_t stripID,
         {
             ptrCurrentLEDStripData->prevBlueColorValue = ptrCurrentLEDStripData->blueColorValue;
         }
+        fadeFinished = false;
     }
     else
     {
@@ -496,6 +501,7 @@ bool LedDriver::FadeToColor(uint8_t stripID,
         {
             ptrCurrentLEDStripData->prevBlueBrightnessValue = ptrCurrentLEDStripData->blueBrightnessValue;
         }
+        fadeFinished = false;
     }
     else
     {
@@ -519,6 +525,7 @@ bool LedDriver::FadeToColor(uint8_t stripID,
         {
             ptrCurrentLEDStripData->prevCwColorValue = ptrCurrentLEDStripData->cwColorValue;
         }
+        fadeFinished = false;
     }
     else
     {
@@ -541,6 +548,7 @@ bool LedDriver::FadeToColor(uint8_t stripID,
         {
             ptrCurrentLEDStripData->prevCwBrightnessValue = ptrCurrentLEDStripData->cwBrightnessValue;
         }
+        fadeFinished = false;
     }
     else
     {
@@ -564,6 +572,7 @@ bool LedDriver::FadeToColor(uint8_t stripID,
         {
             ptrCurrentLEDStripData->prevWwColorValue = ptrCurrentLEDStripData->wwColorValue;
         }
+        fadeFinished = false;
     }
     else
     {
@@ -586,12 +595,14 @@ bool LedDriver::FadeToColor(uint8_t stripID,
         {
             ptrCurrentLEDStripData->prevWwBrightnessValue = ptrCurrentLEDStripData->wwBrightnessValue;
         }
+        fadeFinished = false;
     }
     else
     {
         ptrCurrentLEDStripData->prevMillisWwBrightnessFade = curMillis;
     }
 
+    return fadeFinished;
 };
 
 
