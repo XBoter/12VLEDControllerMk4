@@ -66,6 +66,7 @@ class Information : public IBaseClass
                                String timeout);
 
         void FormatPrintMotionDetected(String motionDetected,
+                                       String sensorTriggered, 
                                        String sensor1Triggered,
                                        String sensor2Triggered);
 

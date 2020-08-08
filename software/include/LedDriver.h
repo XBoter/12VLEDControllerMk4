@@ -75,6 +75,10 @@ class LedDriver : public IBaseClass
         LEDEffectData strip1LEDEffectData;
         LEDEffectData strip2LEDEffectData;
 
+        // Control mode data
+        ControlModeData strip1ControlModeData;
+        ControlModeData strip2ControlModeData;
+
         // Default Values
         HighLevelLEDStripData defaultHighLevelLEDStripData;
 
@@ -89,12 +93,16 @@ class LedDriver : public IBaseClass
         void HandleLEDEffect(uint8_t stripID,
                              NetworkLEDStripData commandNetworkLEDStripData);
 
+        uint16_t getTimeBasedBrightness();
+
+        // ---- SetColor
         bool SetColor(uint8_t stripID,
                       NetworkLEDStripData commandNetworkLEDStripData);
 
         bool SetColor(uint8_t stripID,
                       HighLevelLEDStripData commandHighLevelLEDStripData);
 
+        // ---- FadeToColor
         bool FadeToColor(uint8_t stripID,
                          NetworkLEDStripData commandNetworkLEDStripData);
 
@@ -104,12 +112,20 @@ class LedDriver : public IBaseClass
         bool FadeToColor(uint8_t stripID,
                          LowLevelLEDStripData commandLowLevelLEDStripData);
 
+        // ---- FadeToBlack
         bool FadeToBlack(uint8_t stripID,
                          NetworkLEDStripData commandNetworkLEDStripData);
 
         bool FadeToBlack(uint8_t stripID,
                          HighLevelLEDStripData commandHighLevelLEDStripData);
 
+        bool FadeAllStripsToBlack(uint8_t stripID,
+                                  NetworkLEDStripData commandNetworkLEDStripData);
+
+        bool FadeAllStripsToBlack(uint8_t stripID,
+                                  HighLevelLEDStripData commandHighLevelLEDStripData);
+
+        // ---- LED Strip
         void UpdateLEDStrip(uint8_t stripID);
 
         void UpdateLEDChannel(LEDColorReg REG,
@@ -126,6 +142,8 @@ class LedDriver : public IBaseClass
 
         LowLevelLEDStripData getDefaultLow();
 
+        ControlModeData* getControlModeData(uint8_t stripID);
+
         void ResetEffectData(uint8_t stripID);
 
         LEDEffectData* getStripLEDEffectData(uint8_t stripID);
@@ -139,8 +157,6 @@ class LedDriver : public IBaseClass
         void PrintAllRegister();
 
         void PrintByte(byte b);
-
-        void setMasterPower(bool power);
 
         uint16_t linear(double percent,
                         int start,

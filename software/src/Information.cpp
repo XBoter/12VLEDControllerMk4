@@ -192,9 +192,10 @@ void Information::Run()
         || this->pirReader->sensor1Triggered    != memPirReader.sensor1Triggered
         || this->pirReader->sensor2Triggered    != memPirReader.sensor2Triggered)
     {
-        FormatPrintMotionDetected(  BoolToString(this->pirReader->motionDetected),
-                                    BoolToString(this->pirReader->sensor1Triggered),
-                                    BoolToString(this->pirReader->sensor2Triggered));
+        FormatPrintMotionDetected(BoolToString(this->pirReader->motionDetected),
+                                  BoolToString(this->pirReader->sensorTriggered),
+                                  BoolToString(this->pirReader->sensor1Triggered),
+                                  BoolToString(this->pirReader->sensor2Triggered));
 
         memPirReader.motionDetected     = this->pirReader->motionDetected ;
         memPirReader.sensor1Triggered   = this->pirReader->sensor1Triggered;
@@ -388,6 +389,7 @@ void Information::FormatPrintMotion(    String name,
  * @parameter sensor2Triggered  The current value of the 2 pir motion sensor
  **/
 void Information::FormatPrintMotionDetected(String motionDetected,
+                                            String sensorTriggered,
                                             String sensor1Triggered,
                                             String sensor2Triggered)
 {
@@ -400,6 +402,10 @@ void Information::FormatPrintMotionDetected(String motionDetected,
     // Motion Detected
     InsertPrint();
     Serial.println("Motion Detected : " + motionDetected);
+
+    // Sensor 1 Triggered
+    InsertPrint();
+    Serial.println("PIR Sensor      : " + sensorTriggered);
 
     // Sensor 1 Triggered
     InsertPrint();

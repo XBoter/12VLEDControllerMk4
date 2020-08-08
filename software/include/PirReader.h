@@ -25,14 +25,16 @@ class PirReader : public IBaseClass
     // ## Data ## //
     private:
         Network *network;
-        bool memMotionDetected = false;
+        bool memSensorTriggered= false;
+        unsigned long prevMillisMotion = 0;
 
     public:
-        uint8_t pinPirSensor1 = 0;
-        uint8_t pinPirSensor2 = 0;
-        bool motionDetected;   // Indicates if motion is detected
-        bool sensor1Triggered; // Indicates if sensor 1 got triggered
-        bool sensor2Triggered; // Indicates if sensor 2 got triggered
+        uint8_t pinPirSensor1       = 0;
+        uint8_t pinPirSensor2       = 0;
+        bool motionDetected         = false;    // Indicates if motion is detected
+        bool sensorTriggered        = false;    // Indicates if at least one sensor got triggered
+        bool sensor1Triggered       = false;    // Indicates if sensor 1 got triggered
+        bool sensor2Triggered       = false;    // Indicates if sensor 2 got triggered
 
     // ## Functions ## //
     private:

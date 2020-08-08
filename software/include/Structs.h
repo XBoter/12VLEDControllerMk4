@@ -5,7 +5,7 @@
 // Struct for time data
 struct NetworkTimeData
 {
-    uint8_t hour    = 0;
+    uint8_t hour    = 12;
     uint8_t minute  = 0;
     uint8_t second  = 0;
 };
@@ -47,6 +47,28 @@ struct LEDStripColorReg
 
 
 /**
+ * Struct with data for control mode
+ */ 
+struct ControlModeData
+{
+    ControllerMode prevMode = ControllerMode::Idle;
+    uint8_t transitionState = 0;
+    unsigned long prevMillis = 0;
+};
+
+
+/**
+ * Struct with data for LED effets
+ */ 
+struct LEDEffectData
+{
+    LEDEffect prevEffect = LEDEffect::None;
+    uint8_t transitionState = 0;
+    unsigned long prevMillis = 0;
+};
+
+
+/**
  * A high level struct for the color channels with simple settings
  * For all channel ther is:
  *   - Color Fade Time          => The time it takes in millis to fade to the new value
@@ -71,16 +93,6 @@ struct HighLevelLEDStripData
     uint16_t brightnessFadeTime     = 0;
     FadeCurve brightnessFadeCurve   = FadeCurve::None;
 
-};
-
-
-/**
- * Struct with data for LED effets
- */ 
-struct LEDEffectData
-{
-    LEDEffect prevEffect = LEDEffect::None;
-    uint8_t transitionState = 0;
 };
 
 
@@ -214,5 +226,8 @@ struct LEDStripData
     uint16_t wwBrightnessValue                  = 0;
     uint16_t prevWwBrightnessValue              = 0;
     unsigned long prevMillisWwBrightnessFade    = 0;
+
+    // ---- INFO
+    bool fadeFinished = false;
 
 };

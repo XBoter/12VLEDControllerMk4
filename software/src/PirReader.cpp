@@ -66,17 +66,26 @@ void PirReader::Run()
 
     // Check if motion detected
     if (sensor1Triggered || sensor2Triggered) {
+        sensorTriggered = true;
         motionDetected = true;
+        prevMillisMotion = millis();
     }
-    if (!sensor1Triggered && !sensor2Triggered) {
+    if(!sensor1Triggered && !sensor2Triggered)
+    {
+        sensorTriggered = false;
+    }
+ 
+    // Update motionDetected based on timeout 
+    if(millis() - prevMillisMotion >= (network->stNetworkMotionData.timeout * 1000))
+    {
         motionDetected = false;
     }
 
     // Publish motion detected to mqtt
-    if(motionDetected != memMotionDetected)
+    if(sensorTriggered != memSensorTriggered)
     {
-        this->network->MotionDetectedUpdate(motionDetected);
-        memMotionDetected = motionDetected;
+        this->network->MotionDetectedUpdate(sensorTriggered);
+        memSensorTriggered = sensorTriggered;
     }
 
 };
