@@ -127,7 +127,7 @@ void Information::Run()
                             String(this->network->stNetworkLedStrip1Data.ledStripData.blueColorValue),
                             String(this->network->stNetworkLedStrip1Data.ledStripData.colorFadeTime),
                             FadeCurveToString(this->network->stNetworkLedStrip1Data.ledStripData.colorFadeCurve),
-                            LEDEffectToString(this->network->stNetworkLedStrip1Data.effect)); 
+                            SingleLEDEffectToString(this->network->stNetworkLedStrip1Data.effect)); 
 
         memNetwork.stNetworkLedStrip1Data.power                             = this->network->stNetworkLedStrip1Data.power;
         memNetwork.stNetworkLedStrip1Data.ledStripData.brightnessValue      = this->network->stNetworkLedStrip1Data.ledStripData.brightnessValue;
@@ -170,7 +170,7 @@ void Information::Run()
                             String(this->network->stNetworkLedStrip2Data.ledStripData.blueColorValue),
                             String(this->network->stNetworkLedStrip2Data.ledStripData.colorFadeTime),
                             FadeCurveToString(this->network->stNetworkLedStrip2Data.ledStripData.colorFadeCurve),
-                            LEDEffectToString(this->network->stNetworkLedStrip2Data.effect)); 
+                            SingleLEDEffectToString(this->network->stNetworkLedStrip2Data.effect)); 
 
         memNetwork.stNetworkLedStrip2Data.power                             = this->network->stNetworkLedStrip2Data.power;
         memNetwork.stNetworkLedStrip2Data.ledStripData.brightnessValue      = this->network->stNetworkLedStrip2Data.ledStripData.brightnessValue;
@@ -471,58 +471,58 @@ String Information::BoolToString(bool b)
 
 
 /**
- * Converts a LEDEffect to a String
+ * Converts a SingleLEDEffect to a String
  * 
- * @parameter effect    The LEDEffect to convert to string
+ * @parameter effect    The SingleLEDEffect to convert to string
  * 
- * @return effect The corresponding string effect to the given LEDEffect
+ * @return effect The corresponding string effect to the given SingleLEDEffect
  **/
-String Information::LEDEffectToString(LEDEffect effect)
+String Information::SingleLEDEffectToString(SingleLEDEffect effect)
 {
     switch (effect)
     {
 
-        case LEDEffect::None:
+        case SingleLEDEffect::None:
             return "None";
             break;
     
-        case LEDEffect::Alarm:
+        case SingleLEDEffect::Alarm:
             return "Alarm";
             break;
 
-        case LEDEffect::Music:
+        case SingleLEDEffect::Music:
             return "Music";
             break;
 
-        case LEDEffect::Sleep:
+        case SingleLEDEffect::Sleep:
             return "Sleep";
             break;
 
-        case LEDEffect::Weekend:
+        case SingleLEDEffect::Weekend:
             return "Weekend";
             break;
 
-        case LEDEffect::RGB:
+        case SingleLEDEffect::RGB:
             return "RGB";
             break;
 
-        case LEDEffect::CW:
+        case SingleLEDEffect::CW:
             return "CW";
             break;
 
-        case LEDEffect::WW:
+        case SingleLEDEffect::WW:
             return "WW";
             break;
 
-        case LEDEffect::RGBCW:
+        case SingleLEDEffect::RGBCW:
             return "RGBCW";
             break;
 
-        case LEDEffect::RGBWW:
+        case SingleLEDEffect::RGBWW:
             return "RGBWW";
             break;       
 
-        case LEDEffect::CWWW:
+        case SingleLEDEffect::CWWW:
             return "CWWW";
             break;      
 
@@ -530,7 +530,42 @@ String Information::LEDEffectToString(LEDEffect effect)
             return "None";
             break;
     }
-}
+};
+
+
+/**
+ * Converts a MultiLEDEffect to a String
+ * 
+ * @parameter effect    The MultiLEDEffect to convert to string
+ * 
+ * @return effect The corresponding string effect to the given MultiLEDEffect
+ **/
+String Information::MultiLEDEffectToString(MultiLEDEffect effect)
+{
+    switch (effect)
+    {
+
+        case MultiLEDEffect::NoMasterPresent:
+            return "NoMasterPresent";
+            break;
+    
+        case MultiLEDEffect::Idle:
+            return "Idle";
+            break;
+
+        case MultiLEDEffect::Power:
+            return "Power";
+            break;
+
+        case MultiLEDEffect::MotionDetected:
+            return "MotionDetected";
+            break;    
+
+        default:
+            return "Idle";
+            break;
+    }
+};
 
 
 /**

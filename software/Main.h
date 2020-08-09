@@ -13,13 +13,14 @@
 #define Name         "12V LED Controller Mk4"
 #define Programmer   "Nico Weidenfeller"
 #define Created      "28.06.2020"
-#define LastModifed  "08.08.2020"
-#define Version      "0.19.0"
+#define LastModifed  "09.08.2020"
+#define Version      "0.20.0"
 
 /*
       ToDo     Change Shut Resistor to 0.02 Ohm for better reading 
       ToDo     Add NTP Summer/Winter time swap => For now only Winter Time 
       ToDo     Fix bug with FadeAllStripsToBlack returning true before strip 2 is called and can update its fade value
+      ToDo     Move Control Mode from invidual led strip to global 
 */
 
 //++++ Global Defines ++++//

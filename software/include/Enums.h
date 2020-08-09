@@ -1,7 +1,7 @@
 #pragma once
 
-// Diffrent modes of the controller
-enum class ControllerMode
+// LED Effects that use multiple connected LED strips
+enum class MultiLEDEffect
 {
     NoMasterPresent, 
     Idle,
@@ -10,8 +10,8 @@ enum class ControllerMode
 };
 
 
-// Diffrent LED Effects
-enum class LEDEffect 
+// LED Effects that are used by a singel LED strip
+enum class SingleLEDEffect 
 {
     None,
     Alarm,

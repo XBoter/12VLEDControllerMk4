@@ -28,8 +28,8 @@ Network::Network()
 
 // For compiler
 void mqttCallback(char *topic, byte *payload, unsigned int length);
-LEDEffect StringToLEDEffect(String effect);
-String LEDEffectToString(LEDEffect effect);
+SingleLEDEffect StringToSingleLEDEffect(String effect);
+String SingleLEDEffectToString(SingleLEDEffect effect);
 
 
 /**
@@ -363,7 +363,7 @@ void Network::MqttUpdateAfterDc(NetworkLEDStripData networkLedStripData,
     doc["color"]["g"]   = networkLedStripData.ledStripData.greenColorValue;
     doc["color"]["b"]   = networkLedStripData.ledStripData.blueColorValue;
     doc["white_value"]  = networkLedStripData.ledStripData.cwColorValue;
-    doc["effect"]       = LEDEffectToString(networkLedStripData.effect);
+    doc["effect"]       = SingleLEDEffectToString(networkLedStripData.effect);
     
     // Serialize json message and send
     char message[256];
@@ -379,55 +379,55 @@ void Network::MqttUpdateAfterDc(NetworkLEDStripData networkLedStripData,
  * 
  * @return effect The corresponding LEDEffect to the given string effect
  **/
-LEDEffect StringToLEDEffect(String effect)
+SingleLEDEffect StringToSingleLEDEffect(String effect)
 {
     if(effect == "None")
     {
-        return LEDEffect::None;
+        return SingleLEDEffect::None;
     }
     else if(effect == "Alarm")
     {
-        return LEDEffect::Alarm;
+        return SingleLEDEffect::Alarm;
     }
     else if(effect == "Music")
     {
-        return LEDEffect::Music;
+        return SingleLEDEffect::Music;
     }
     else if(effect == "Sleep")
     {
-        return LEDEffect::Sleep;
+        return SingleLEDEffect::Sleep;
     }
     else if(effect == "Weekend")
     {
-        return LEDEffect::Weekend;
+        return SingleLEDEffect::Weekend;
     }
     else if(effect == "RGB")
     {
-        return LEDEffect::RGB;
+        return SingleLEDEffect::RGB;
     }
     else if(effect == "CW")
     {
-        return LEDEffect::CW;
+        return SingleLEDEffect::CW;
     }
     else if(effect == "WW")
     {
-        return LEDEffect::WW;
+        return SingleLEDEffect::WW;
     }
     else if(effect == "RGBCW")
     {
-        return LEDEffect::RGBCW;
+        return SingleLEDEffect::RGBCW;
     }
     else if(effect == "RGBWW")
     {
-        return LEDEffect::RGBWW;
+        return SingleLEDEffect::RGBWW;
     }
     else if(effect == "CWWW")
     {
-        return LEDEffect::CWWW;
+        return SingleLEDEffect::CWWW;
     }
     else // default
     {
-        return LEDEffect::None;
+        return SingleLEDEffect::None;
     }
 };
 
@@ -439,52 +439,52 @@ LEDEffect StringToLEDEffect(String effect)
  * 
  * @return effect The corresponding string effect to the given LEDEffect
  **/
-String LEDEffectToString(LEDEffect effect)
+String SingleLEDEffectToString(SingleLEDEffect effect)
 {
     switch(effect)
     {
 
-        case LEDEffect::None:
+        case SingleLEDEffect::None:
             return "None";
             break;
 
-        case LEDEffect::Alarm:
+        case SingleLEDEffect::Alarm:
             return "Alarm";
             break;
 
-        case LEDEffect::Music:
+        case SingleLEDEffect::Music:
             return "Music";
             break;
 
-        case LEDEffect::Sleep:
+        case SingleLEDEffect::Sleep:
             return "Sleep";
             break;
 
-        case LEDEffect::Weekend:
+        case SingleLEDEffect::Weekend:
             return "Weekend";
             break;
 
-        case LEDEffect::RGB:
+        case SingleLEDEffect::RGB:
             return "RGB";
             break;
 
-        case LEDEffect::CW:
+        case SingleLEDEffect::CW:
             return "CW";
             break;
 
-        case LEDEffect::WW:
+        case SingleLEDEffect::WW:
             return "WW";
             break;
 
-        case LEDEffect::RGBCW:
+        case SingleLEDEffect::RGBCW:
             return "RGBCW";
             break;
 
-        case LEDEffect::RGBWW:
+        case SingleLEDEffect::RGBWW:
             return "RGBWW";
             break;
 
-        case LEDEffect::CWWW:
+        case SingleLEDEffect::CWWW:
             return "CWWW";
             break;
 
@@ -662,7 +662,7 @@ void mqttCallback(char *topic, byte *payload, unsigned int length)
         JsonVariant effect = mainController.network.doc["effect"]; 
         if(!effect.isNull())
         {
-            mainController.network.stNetworkLedStrip1Data.effect = StringToLEDEffect(effect.as<String>());
+            mainController.network.stNetworkLedStrip1Data.effect = StringToSingleLEDEffect(effect.as<String>());
         }
 
         // Send message back to mqtt state topic
@@ -737,7 +737,7 @@ void mqttCallback(char *topic, byte *payload, unsigned int length)
         JsonVariant effect = mainController.network.doc["effect"]; 
         if(!effect.isNull())
         {
-            mainController.network.stNetworkLedStrip2Data.effect = StringToLEDEffect(effect.as<String>());
+            mainController.network.stNetworkLedStrip2Data.effect = StringToSingleLEDEffect(effect.as<String>());
         }
 
         // Send message back to mqtt state topic

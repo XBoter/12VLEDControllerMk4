@@ -75,7 +75,8 @@ class Information : public IBaseClass
         void BottomSpacerPrint();
         void InsertPrint();
         String BoolToString(bool b);
-        String LEDEffectToString(LEDEffect effect);
+        String SingleLEDEffectToString(SingleLEDEffect effect);
+        String MultiLEDEffectToString(MultiLEDEffect effect);
         String FadeCurveToString(FadeCurve curve);
     public:
 

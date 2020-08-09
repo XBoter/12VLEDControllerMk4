@@ -30,100 +30,105 @@ class LedDriver : public IBaseClass
 
     // ## Data ## //
     private:
-
         uint8_t i2cAddress;
         I2C *i2c;
         PirReader *pirReader;
         Network *network;
 
-        // Master power
-        bool master_power = false;
-
-        // LED Strip Refresh rate
+        // ---- LED Strip Refresh Rate
         unsigned long previousMillisRefreshRate = 0;
         uint16_t intervalRefreshRate = 0;
         double LED_STRIP_REFRESH_RATE = 90;  // x Times per Second
 
-        // Network Motion data
-        NetworkMotionData networkMotionData;
-        
-        // LED Strip command data
-        /*
-            New data for the led strip to change to
-        */
-        NetworkLEDStripData commandNetworkLEDStrip1Data;
-        NetworkLEDStripData commandNetworkLEDStrip2Data;
+        // ---- Network data
+        NetworkLEDStripData networkLEDStrip1Data;
+        NetworkLEDStripData networkLEDStrip2Data;
 
-        HighLevelLEDStripData commandHighLevelLEDStrip1Data; 
-        HighLevelLEDStripData commandHighLevelLEDStrip2Data;
+        // ---- LED Effect data
+        // -- Multi
+        MultiLEDStripEffectData curMultiLEDStripEffectData;
+        MultiLEDStripEffectData prevMultiLEDStripEffectData;
+        bool multiLEDStripPower = false; // Indicates if at least one LED strip is powered on 
+        // -- Single
+        SingleLEDStripEffectData singleLEDStrip1EffectData;
+        SingleLEDStripEffectData singleLEDStrip2EffectData;
 
-        LowLevelLEDStripData commandLowLevelLEDStrip1Data; 
-        LowLevelLEDStripData commandLowLevelLEDStrip2Data;
+        // ---- LED Strip command data
+        // -- High Level
+        HighLevelLEDStripData highLevelLEDStrip1Data; 
+        HighLevelLEDStripData highLevelLEDStrip2Data;
+        // -- Low Level
+        LowLevelLEDStripData lowLevelLEDStrip1Data; 
+        LowLevelLEDStripData lowLevelLEDStrip2Data;
 
-        // LED Strip data
-        /*
-            Current data of the led strip => Gets displayed
-        */
-        // Current
+        // ---- LED Strip data
+        // -- Current
         LEDStripData currentLEDStrip1Data; // Gets set to new value
         LEDStripData currentLEDStrip2Data; // Gets set to new value
-        // Previous
+        // -- Previous
         LEDStripData prevLEDStrip1Data;
         LEDStripData prevLEDStrip2Data;
 
-        // LED Effect data
-        LEDEffectData strip1LEDEffectData;
-        LEDEffectData strip2LEDEffectData;
-
-        // Control mode data
-        ControlModeData strip1ControlModeData;
-        ControlModeData strip2ControlModeData;
-
-        // Default Values
+        // ---- Default Data
         HighLevelLEDStripData defaultHighLevelLEDStripData;
 
-        // Effect Alarm
     public:
 
     // ## Functions ## //
     private:
-        void HandleControllerMode(uint8_t stripID,
-                                  NetworkLEDStripData commandNetworkLEDStripData);
+        // ---- Effects
+        void HandleMultiLEDStripEffects();
 
-        void HandleLEDEffect(uint8_t stripID,
-                             NetworkLEDStripData commandNetworkLEDStripData);
+        void HandleSingleLEDStripEffects(uint8_t stripID,
+                                         NetworkLEDStripData commandNetworkLEDStripData);
 
         uint16_t getTimeBasedBrightness();
 
+        void ResetSingleEffectData();
+
+        SingleLEDStripEffectData* getSingleLEDStripEffectData(uint8_t stripID);
+
         // ---- SetColor
+        // -- Single Strip
         bool SetColor(uint8_t stripID,
                       NetworkLEDStripData commandNetworkLEDStripData);
 
         bool SetColor(uint8_t stripID,
                       HighLevelLEDStripData commandHighLevelLEDStripData);
+        // -- Multi Strip
+        bool SetColor(NetworkLEDStripData commandNetworkLEDStripData);
+
+        bool SetColor(HighLevelLEDStripData commandHighLevelLEDStripData);
 
         // ---- FadeToColor
+        // -- Single Strip
         bool FadeToColor(uint8_t stripID,
-                         NetworkLEDStripData commandNetworkLEDStripData);
+                        NetworkLEDStripData commandNetworkLEDStripData);
 
         bool FadeToColor(uint8_t stripID,
-                         HighLevelLEDStripData commandHighLevelLEDStripData);
+                        HighLevelLEDStripData commandHighLevelLEDStripData);
 
         bool FadeToColor(uint8_t stripID,
-                         LowLevelLEDStripData commandLowLevelLEDStripData);
+                        LowLevelLEDStripData commandLowLevelLEDStripData);
+        // -- Multi Strip
+        bool FadeToColor(NetworkLEDStripData commandHighLevelLEDStripData);
+
+        bool FadeToColor(HighLevelLEDStripData commandHighLevelLEDStripData);
+
+        bool FadeToColor(LowLevelLEDStripData commandLowLevelLEDStripData);
 
         // ---- FadeToBlack
+        // -- Single Strip
         bool FadeToBlack(uint8_t stripID,
                          NetworkLEDStripData commandNetworkLEDStripData);
 
         bool FadeToBlack(uint8_t stripID,
                          HighLevelLEDStripData commandHighLevelLEDStripData);
 
-        bool FadeAllStripsToBlack(uint8_t stripID,
-                                  NetworkLEDStripData commandNetworkLEDStripData);
+        // -- Multi Strip
+        bool FadeToBlack(NetworkLEDStripData commandNetworkLEDStripData);
 
-        bool FadeAllStripsToBlack(uint8_t stripID,
-                                  HighLevelLEDStripData commandHighLevelLEDStripData);
+        bool FadeToBlack(HighLevelLEDStripData commandHighLevelLEDStripData);
 
         // ---- LED Strip
         void UpdateLEDStrip(uint8_t stripID);
@@ -141,12 +146,6 @@ class LedDriver : public IBaseClass
         HighLevelLEDStripData getDefaultHigh();
 
         LowLevelLEDStripData getDefaultLow();
-
-        ControlModeData* getControlModeData(uint8_t stripID);
-
-        void ResetEffectData(uint8_t stripID);
-
-        LEDEffectData* getStripLEDEffectData(uint8_t stripID);
 
         LEDStripData* getCurrentLEDStripData(uint8_t stripID);
 

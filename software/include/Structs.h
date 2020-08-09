@@ -47,22 +47,22 @@ struct LEDStripColorReg
 
 
 /**
- * Struct with data for control mode
+ * Holds data for LED effects that use multiple connected LED strips
  */ 
-struct ControlModeData
+struct MultiLEDStripEffectData
 {
-    ControllerMode prevMode = ControllerMode::Idle;
+    MultiLEDEffect multiLEDEffect = MultiLEDEffect::Idle;
     uint8_t transitionState = 0;
     unsigned long prevMillis = 0;
 };
 
 
 /**
- * Struct with data for LED effets
+ * Holds data for LED effects that are only used by one LED strip
  */ 
-struct LEDEffectData
+struct SingleLEDStripEffectData
 {
-    LEDEffect prevEffect = LEDEffect::None;
+    SingleLEDEffect singleLEDEffect = SingleLEDEffect::None;
     uint8_t transitionState = 0;
     unsigned long prevMillis = 0;
 };
@@ -103,8 +103,7 @@ struct NetworkLEDStripData
 {
     bool power = false;
     HighLevelLEDStripData ledStripData;
-    ControllerMode mode = ControllerMode::Idle;
-    LEDEffect effect = LEDEffect::None;
+    SingleLEDEffect effect = SingleLEDEffect::None;
 };
 
 /**

@@ -22,6 +22,11 @@ LedDriver::LedDriver(uint8_t i2cAddress,
 };
 
 
+// # ================================================================ ================================================================ # // 
+// #                                                             INTERFACE                                                             # // 
+// # ================================================================ ================================================================ # // 
+
+
 /**
  * Does init stuff for the LedDriver component
  * 
@@ -48,12 +53,17 @@ bool LedDriver::Init()
             OUTDRV = 1
         */
 
-        // Set default values
+        // ---- Default Values
+        // -- Create default value template
         defaultHighLevelLEDStripData.colorFadeTime          = 1000; // Milliseconds
         defaultHighLevelLEDStripData.colorFadeCurve         = FadeCurve::EaseInOut;
         defaultHighLevelLEDStripData.brightnessFadeTime     = 800; // Milliseconds
         defaultHighLevelLEDStripData.brightnessFadeCurve    = FadeCurve::Linear;
 
+        // -- Set default value template data 
+        /*
+            FadeTimes and FadeCurves get not send over network yet so we use the default values
+        */
         network->stNetworkLedStrip1Data.ledStripData.colorFadeTime         = defaultHighLevelLEDStripData.colorFadeTime;
         network->stNetworkLedStrip1Data.ledStripData.colorFadeCurve        = defaultHighLevelLEDStripData.colorFadeCurve;
         network->stNetworkLedStrip1Data.ledStripData.brightnessFadeTime    = defaultHighLevelLEDStripData.brightnessFadeTime;
@@ -64,7 +74,7 @@ bool LedDriver::Init()
         network->stNetworkLedStrip2Data.ledStripData.brightnessFadeTime    = defaultHighLevelLEDStripData.brightnessFadeTime;
         network->stNetworkLedStrip2Data.ledStripData.brightnessFadeCurve   = defaultHighLevelLEDStripData.brightnessFadeCurve;
 
-        // Calc refresh rate
+        // ---- Calculate refresh rate data
         intervalRefreshRate = (unsigned long)(1000.0 / LED_STRIP_REFRESH_RATE);
         Serial.print("LED Strip get refreshed every '");
         Serial.print(intervalRefreshRate);
@@ -88,22 +98,22 @@ void LedDriver::Run()
         return;
     }
 
-    // -- Copy data from network 
-    networkMotionData           = network->stNetworkMotionData;
-    commandNetworkLEDStrip1Data = network->stNetworkLedStrip1Data;
-    commandNetworkLEDStrip2Data = network->stNetworkLedStrip2Data;
+    // ---- Copy led strip data from network 
+    networkLEDStrip1Data = network->stNetworkLedStrip1Data;
+    networkLEDStrip2Data = network->stNetworkLedStrip2Data;
 
-    // Set master power
-    if(commandNetworkLEDStrip1Data.power || commandNetworkLEDStrip2Data.power)
+    // ---- Multi LED Strip 
+    // -- Set multi led strip power
+    if(networkLEDStrip1Data.power || networkLEDStrip2Data.power)
     {
-        master_power = true;
+        multiLEDStripPower = true;
     }
     else
     {
-        master_power = false;
+        multiLEDStripPower = false;
     }
     
-
+    // ---- Main call of LED logic
     // Refersh LED Strip data every x seconds => Needed for time based color fade
     unsigned long currentMillisRefreshRate = millis();
     if (currentMillisRefreshRate - previousMillisRefreshRate >= intervalRefreshRate) {
@@ -112,13 +122,8 @@ void LedDriver::Run()
         //Serial.println("' Milliseconds");
         previousMillisRefreshRate = currentMillisRefreshRate;
 
-        // ---- Handle led strips
-        // -- Strip 1
-        HandleControllerMode(1,
-                             commandNetworkLEDStrip1Data);
-        // -- Strip 2
-        HandleControllerMode(2,
-                             commandNetworkLEDStrip2Data);
+        // -- Handle multi LED strip effects
+        HandleMultiLEDStripEffects();
 
         // ---- Update LED strip
         // -- Strip 1
@@ -130,70 +135,47 @@ void LedDriver::Run()
 };
 
 
-/**
- * Handels the control mode of the LED strip
- * 
- * @parameter stripID                      The ID of the used led strip 
- * @parameter commandNetworkLEDStripData   NetworkLEDStripData for the used LED strip define in stripID
- */
-void LedDriver::HandleControllerMode(uint8_t stripID,
-                                     NetworkLEDStripData commandNetworkLEDStripData)
-{
-    // StripID needs to be given else return
-    if(stripID != 1 && stripID != 2)
-    {
-        return;
-    }
- 
-    // Get Effect data
-    ControlModeData* modeData = getControlModeData(stripID);
+// # ================================================================ ================================================================ # // 
+// #                                                               EFFECTS                                                             # // 
+// # ================================================================ ================================================================ # //
 
-    // Transition between control modes
+/**
+ * Handels the display of multi LED strip effects
+ */
+void LedDriver::HandleMultiLEDStripEffects()
+{
+    // -- Data
+    HighLevelLEDStripData highLevelLEDStripData;
+
+    // ---- Control use of multi LED strip effects
     if(network->parameter_master_present)
     {
-        if(commandNetworkLEDStripData.power)
+        if(multiLEDStripPower)
         {
-            commandNetworkLEDStripData.mode = ControllerMode::Power;
+            curMultiLEDStripEffectData.multiLEDEffect = MultiLEDEffect::Power;
         }
         else
-        {
-            // Check master power so motion detection only works if all led strips are off
-            if(!master_power)
+        {   
+            if(pirReader->motionDetected && network->stNetworkMotionData.power && network->parameter_sun)
             {
-                if(pirReader->motionDetected)
-                {
-                    if(network->stNetworkMotionData.power)
-                    {
-                        commandNetworkLEDStripData.mode = ControllerMode::MotionDetected;
-                    }
-                    else
-                    {
-                        commandNetworkLEDStripData.mode = ControllerMode::Idle;
-                    }
-                }
-                else
-                {
-                    commandNetworkLEDStripData.mode = ControllerMode::Idle;
-                }
+                curMultiLEDStripEffectData.multiLEDEffect = MultiLEDEffect::MotionDetected;
             }
             else
             {
-               commandNetworkLEDStripData.mode = ControllerMode::Idle;
+                curMultiLEDStripEffectData.multiLEDEffect = MultiLEDEffect::Idle;
             }
         }
     }
     else
     {
-        commandNetworkLEDStripData.mode = ControllerMode::NoMasterPresent;
+        curMultiLEDStripEffectData.multiLEDEffect = MultiLEDEffect::NoMasterPresent;
     }
-    
-    HighLevelLEDStripData highLevelLEDStripData;
 
-    // Handle current control mode
-    switch (commandNetworkLEDStripData.mode)
+    // -- Current multi LED strip effect
+    switch (curMultiLEDStripEffectData.multiLEDEffect)
     {
 
-        case ControllerMode::NoMasterPresent:
+        case MultiLEDEffect::NoMasterPresent:
             /*
                 Fades all to black
             */
@@ -202,102 +184,103 @@ void LedDriver::HandleControllerMode(uint8_t stripID,
             highLevelLEDStripData.blueColorValue = 255;
             highLevelLEDStripData.brightnessValue = 4096;
 
-            switch (modeData->transitionState)
+            switch (curMultiLEDStripEffectData.transitionState)
             {
                 // Check for Mode change
                 case 0:
-                    if(commandNetworkLEDStripData.mode != modeData->prevMode)
+                    if(curMultiLEDStripEffectData.multiLEDEffect != prevMultiLEDStripEffectData.multiLEDEffect)
                     {
-                        modeData->transitionState= 10;
+                        curMultiLEDStripEffectData.transitionState= 10;
                     }
                     else
                     {
                         // Fade all to black
-                        FadeToBlack(stripID,
-                                    commandNetworkLEDStripData);
-                        ResetEffectData(stripID);
+                        FadeToBlack(highLevelLEDStripData);
+                        ResetSingleEffectData();
                     }
                     break;
                 // Fade black
                 case 10:
-                    if(FadeAllStripsToBlack(stripID, highLevelLEDStripData))
+                    if(FadeToBlack(highLevelLEDStripData))
                     {
-                        modeData->prevMillis = millis();
-                        modeData->transitionState = 20;
+                        curMultiLEDStripEffectData.prevMillis = millis();
+                        curMultiLEDStripEffectData.transitionState = 20;
                     }
                 break;
                 // Wait 200 Milliseconds
                 case 20:
-                    if(millis()-modeData->prevMillis >= 200)
+                    if(millis()-curMultiLEDStripEffectData.prevMillis >= 200)
                     {
-                        modeData->transitionState = 30; 
+                        curMultiLEDStripEffectData.transitionState = 30; 
                     }
                 break;
                 // Fade to blue
                 case 30:
-                    if(FadeToColor(stripID, highLevelLEDStripData))
+                    if(FadeToColor(highLevelLEDStripData))
                     {
-                        modeData->transitionState = 40; 
+                        curMultiLEDStripEffectData.transitionState = 40; 
                     }
                 break;
                 // Wait 500 Milliseconds
                 case 40:
-                    if(millis()-modeData->prevMillis >= 500)
+                    if(millis()-curMultiLEDStripEffectData.prevMillis >= 500)
                     {
-                        modeData->prevMode = commandNetworkLEDStripData.mode;
-                        modeData->transitionState = 0; 
+                        prevMultiLEDStripEffectData.multiLEDEffect = curMultiLEDStripEffectData.multiLEDEffect;
+                        curMultiLEDStripEffectData.transitionState = 0; 
                     }
                 break;
             }
             break;
 
-        case ControllerMode::Idle:
+        case MultiLEDEffect::Idle:
             /*
                 Fades all to black
             */
-            FadeToBlack(stripID,
-                        commandNetworkLEDStripData);
-            ResetEffectData(stripID);
-            modeData->prevMode = commandNetworkLEDStripData.mode;
+            FadeToBlack(highLevelLEDStripData);
+            ResetSingleEffectData();
+            prevMultiLEDStripEffectData.multiLEDEffect = curMultiLEDStripEffectData.multiLEDEffect;
             break;
 
-        case ControllerMode::Power:
+        case MultiLEDEffect::Power:
             /*
                 Normal mode which displays the current selected LED effect
             */
-            switch (modeData->transitionState)
+            switch (curMultiLEDStripEffectData.transitionState)
             {
                 // Check for MOde change
                 case 0:
-                    if(commandNetworkLEDStripData.mode != modeData->prevMode)
+                    if(curMultiLEDStripEffectData.multiLEDEffect != prevMultiLEDStripEffectData.multiLEDEffect)
                     {
-                        modeData->transitionState= 10;
+                        curMultiLEDStripEffectData.transitionState= 10;
                     }
                     else
                     {
-                        HandleLEDEffect(stripID,
-                                        commandNetworkLEDStripData);
+                        // ---- Handle single LED strip effects
+                        // -- Strip 1
+                        HandleSingleLEDStripEffects(1, networkLEDStrip1Data);
+                        // -- Strip 2
+                        HandleSingleLEDStripEffects(2, networkLEDStrip2Data);
                     }
                     break;
                 // Fade black
                 case 10:
-                    if(FadeAllStripsToBlack(stripID, highLevelLEDStripData))
+                    if(FadeToBlack(highLevelLEDStripData))
                     {
-                        modeData->transitionState = 20;
+                        curMultiLEDStripEffectData.transitionState = 20;
                     }
                 break;
                 // Set new values
                 case 20:
-                    if(SetColor(stripID, highLevelLEDStripData))
+                    if(SetColor(highLevelLEDStripData))
                     {
-                        modeData->prevMode = commandNetworkLEDStripData.mode;
-                        modeData->transitionState = 0;
+                        prevMultiLEDStripEffectData.multiLEDEffect = curMultiLEDStripEffectData.multiLEDEffect;
+                        curMultiLEDStripEffectData.transitionState = 0;
                     }
                 break;
             }
             break;
 
-        case ControllerMode::MotionDetected:
+        case MultiLEDEffect::MotionDetected:
             /*
                 Fades a color in and out 
             */
@@ -308,35 +291,34 @@ void LedDriver::HandleControllerMode(uint8_t stripID,
             highLevelLEDStripData.blueColorValue    = network->stNetworkMotionData.blueColorValue;
             highLevelLEDStripData.brightnessValue   = getTimeBasedBrightness();
 
-            switch (modeData->transitionState)
+            switch (curMultiLEDStripEffectData.transitionState)
             {
                 // Check for mode change
                 case 0:
-                    if(commandNetworkLEDStripData.mode != modeData->prevMode)
+                    if(curMultiLEDStripEffectData.multiLEDEffect != prevMultiLEDStripEffectData.multiLEDEffect)
                     {
-                        modeData->transitionState= 10;
+                        curMultiLEDStripEffectData.transitionState= 10;
                     }
                     else
                     {
-                        FadeToColor(stripID,
-                                    highLevelLEDStripData);
-                        ResetEffectData(stripID);
+                        FadeToColor(highLevelLEDStripData);
+                        ResetSingleEffectData();
                     }
                     break;
                 // Fade black
                 case 10:
-                    if(FadeAllStripsToBlack(stripID, highLevelLEDStripData))
+                    if(FadeToBlack(highLevelLEDStripData))
                     {
-                        modeData->transitionState = 20;
+                        curMultiLEDStripEffectData.transitionState = 20;
                     }
                 break;
                 // Set new values
                 case 20:
                     highLevelLEDStripData.brightnessValue = 0; // Disable brightness becaue we want to get it faded in
-                    if(SetColor(stripID, highLevelLEDStripData))
+                    if(SetColor(highLevelLEDStripData))
                     {
-                        modeData->prevMode = commandNetworkLEDStripData.mode;
-                        modeData->transitionState = 0;
+                        prevMultiLEDStripEffectData.multiLEDEffect = curMultiLEDStripEffectData.multiLEDEffect;
+                        curMultiLEDStripEffectData.transitionState = 0;
                     }
                 break;
             }
@@ -346,341 +328,345 @@ void LedDriver::HandleControllerMode(uint8_t stripID,
             /*
                 Fades all to black
             */
-            FadeToBlack(stripID,
-                        commandNetworkLEDStripData);
-            ResetEffectData(stripID);
+            curMultiLEDStripEffectData.multiLEDEffect = MultiLEDEffect::Idle;
             break;
 
     }
-
 
 };
 
 
 /**
- * Handels the LED effect of the LED strip
+ * Handels the display of single LED strip effects
  * 
  * @parameter stripID                      The ID of the used led strip 
  * @parameter commandNetworkLEDStripData   NetworkLEDStripData for the used LED strip define in stripID
  */
-void LedDriver::HandleLEDEffect(uint8_t stripID,
-                                NetworkLEDStripData commandNetworkLEDStripData)
+void LedDriver::HandleSingleLEDStripEffects(uint8_t stripID,
+                                            NetworkLEDStripData commandNetworkLEDStripData)
 {
 
     // Get Effect data
-    LEDEffectData* effectData = getStripLEDEffectData(stripID);
+    SingleLEDStripEffectData* effectData = getSingleLEDStripEffectData(stripID);
 
     // Handle current control mode
-    switch(commandNetworkLEDStripData.effect)
+    if(commandNetworkLEDStripData.power)
     {
+        switch(commandNetworkLEDStripData.effect)
+        {
 
-        case LEDEffect::None:
-            /*
-                Normal mode with no restrictions 
-            */
-            switch (effectData->transitionState)
-            {
-                // Check for Effect change
-                case 0:
-                    if(commandNetworkLEDStripData.effect != effectData->prevEffect)
-                    {
-                        effectData->transitionState = 10;
-                    }
-                    else
-                    {
-                        FadeToColor(stripID, commandNetworkLEDStripData);
-                    }
+            case SingleLEDEffect::None:
+                /*
+                    Normal mode with no restrictions 
+                */
+                switch (effectData->transitionState)
+                {
+                    // Check for Effect change
+                    case 0:
+                        if(commandNetworkLEDStripData.effect != effectData->singleLEDEffect)
+                        {
+                            effectData->transitionState = 10;
+                        }
+                        else
+                        {
+                            FadeToColor(stripID, commandNetworkLEDStripData);
+                        }
+                        break;
+                    // Fade black
+                    case 10:
+                        if(FadeToBlack(stripID, commandNetworkLEDStripData))
+                        {
+                            effectData->transitionState = 20;
+                        }
                     break;
-                // Fade black
-                case 10:
-                    if(FadeToBlack(stripID, commandNetworkLEDStripData))
-                    {
-                        effectData->transitionState = 20;
-                    }
-                break;
-                // Set new values
-                case 20:
-                    if(SetColor(stripID, commandNetworkLEDStripData))
-                    {
-                        effectData->prevEffect = commandNetworkLEDStripData.effect;
-                        effectData->transitionState = 0;
-                    }
-                break;
-            }
-            break;
-
-
-        case LEDEffect::Alarm:
-            /*
-                Red puls light 
-            */
-    
-            break;
-
-
-        case LEDEffect::Music:
-            /*
-                Music blinking to music bpm
-            */
-            // Gets implemented in a later version!
-            break;
-
-
-        case LEDEffect::Sleep:
-            /*
-                Fades current color to warm orange (maybe warm white) and then fades to black
-            */
-            // Gets implemented in a later version!
-            break;
-
-
-        case LEDEffect::Weekend:
-            /*
-                Fades a warm orange to bright
-            */
-            // Gets implemented in a later version!
-            break;
-
-
-        case LEDEffect::RGB:
-            /*
-                Only red, green and blue LEDs
-            */
-            // Disable CW and WW
-            commandNetworkLEDStripData.ledStripData.cwColorValue = 0;
-            commandNetworkLEDStripData.ledStripData.wwColorValue = 0;
-            switch (effectData->transitionState)
-            {
-                // Check for Effect change
-                case 0:
-                    if(commandNetworkLEDStripData.effect != effectData->prevEffect)
-                    {
-                        effectData->transitionState = 10;
-                    }
-                    else
-                    {
-                        FadeToColor(stripID, commandNetworkLEDStripData);
-                    }
+                    // Set new values
+                    case 20:
+                        if(SetColor(stripID, commandNetworkLEDStripData))
+                        {
+                            effectData->singleLEDEffect = commandNetworkLEDStripData.effect;
+                            effectData->transitionState = 0;
+                        }
                     break;
-                // Fade black
-                case 10:
-                    if(FadeToBlack(stripID, commandNetworkLEDStripData))
-                    {
-                        effectData->transitionState = 20;
-                    }
+                }
                 break;
-                // Set new values
-                case 20:
-                    if(SetColor(stripID, commandNetworkLEDStripData))
-                    {
-                        effectData->prevEffect = commandNetworkLEDStripData.effect;
-                        effectData->transitionState = 0;
-                    }
-                break;
-            }
-            break;
 
 
-        case LEDEffect::CW:
-            /*
-                Only cold white LEDs
-            */
-            // Disable RGB and WW
-            commandNetworkLEDStripData.ledStripData.redColorValue    = 0;
-            commandNetworkLEDStripData.ledStripData.greenColorValue  = 0;
-            commandNetworkLEDStripData.ledStripData.blueColorValue   = 0;
-            commandNetworkLEDStripData.ledStripData.wwColorValue     = 0;
-            switch (effectData->transitionState)
-            {
-                // Check for Effect change
-                case 0:
-                    if(commandNetworkLEDStripData.effect != effectData->prevEffect)
-                    {
-                        effectData->transitionState = 10;
-                    }
-                    else
-                    {
-                        FadeToColor(stripID, commandNetworkLEDStripData);
-                    }
+            case SingleLEDEffect::Alarm:
+                /*
+                    Red puls light 
+                */
+           
+                break;
+
+
+            case SingleLEDEffect::Music:
+                /*
+                    Music blinking to music bpm
+                */
+                // Gets implemented in a later version!
+                break;
+
+
+            case SingleLEDEffect::Sleep:
+                /*
+                    Fades current color to warm orange (maybe warm white) and then fades to black
+                */
+                // Gets implemented in a later version!
+                break;
+
+
+            case SingleLEDEffect::Weekend:
+                /*
+                    Fades a warm orange to bright
+                */
+                // Gets implemented in a later version!
+                break;
+
+
+            case SingleLEDEffect::RGB:
+                /*
+                    Only red, green and blue LEDs
+                */
+                // Disable CW and WW
+                commandNetworkLEDStripData.ledStripData.cwColorValue = 0;
+                commandNetworkLEDStripData.ledStripData.wwColorValue = 0;
+                switch (effectData->transitionState)
+                {
+                    // Check for Effect change
+                    case 0:
+                        if(commandNetworkLEDStripData.effect != effectData->singleLEDEffect)
+                        {
+                            effectData->transitionState = 10;
+                        }
+                        else
+                        {
+                            FadeToColor(stripID, commandNetworkLEDStripData);
+                        }
+                        break;
+                    // Fade black
+                    case 10:
+                        if(FadeToBlack(stripID, commandNetworkLEDStripData))
+                        {
+                            effectData->transitionState = 20;
+                        }
                     break;
-                // Fade black
-                case 10:
-                    if(FadeToBlack(stripID, commandNetworkLEDStripData))
-                    {
-                        effectData->transitionState = 20;
-                    }
-                break;
-                // Set new values
-                case 20:
-                    if(SetColor(stripID, commandNetworkLEDStripData))
-                    {
-                        effectData->prevEffect = commandNetworkLEDStripData.effect;
-                        effectData->transitionState = 0;
-                    }
-                break;
-            }
-            break;
-
-
-        case LEDEffect::WW:
-            /*
-                Only warm white LEDs
-            */
-            // Disable RGB and CW
-            commandNetworkLEDStripData.ledStripData.redColorValue    = 0;
-            commandNetworkLEDStripData.ledStripData.greenColorValue  = 0;
-            commandNetworkLEDStripData.ledStripData.blueColorValue   = 0;
-            commandNetworkLEDStripData.ledStripData.cwColorValue     = 0;
-            switch (effectData->transitionState)
-            {
-                // Check for Effect change
-                case 0:
-                    if(commandNetworkLEDStripData.effect != effectData->prevEffect)
-                    {
-                        effectData->transitionState = 10;
-                    }
-                    else
-                    {
-                        FadeToColor(stripID, commandNetworkLEDStripData);
-                    }
+                    // Set new values
+                    case 20:
+                        if(SetColor(stripID, commandNetworkLEDStripData))
+                        {
+                            effectData->singleLEDEffect = commandNetworkLEDStripData.effect;
+                            effectData->transitionState = 0;
+                        }
                     break;
-                // Fade black
-                case 10:
-                    if(FadeToBlack(stripID, commandNetworkLEDStripData))
-                    {
-                        effectData->transitionState = 20;
-                    }
+                }
                 break;
-                // Set new values
-                case 20:
-                    if(SetColor(stripID, commandNetworkLEDStripData))
-                    {
-                        effectData->prevEffect = commandNetworkLEDStripData.effect;
-                        effectData->transitionState = 0;
-                    }
-                break;
-            }
-            break;
 
 
-        case LEDEffect::RGBCW:
-            /*
-                Only red, green, blue and cold white LEDs
-            */
-            // Disable WW
-            commandNetworkLEDStripData.ledStripData.wwColorValue = 0;
-            switch (effectData->transitionState)
-            {
-                // Check for Effect change
-                case 0:
-                    if(commandNetworkLEDStripData.effect != effectData->prevEffect)
-                    {
-                        effectData->transitionState = 10;
-                    }
-                    else
-                    {
-                        FadeToColor(stripID, commandNetworkLEDStripData);
-                    }
+            case SingleLEDEffect::CW:
+                /*
+                    Only cold white LEDs
+                */
+                // Disable RGB and WW
+                commandNetworkLEDStripData.ledStripData.redColorValue    = 0;
+                commandNetworkLEDStripData.ledStripData.greenColorValue  = 0;
+                commandNetworkLEDStripData.ledStripData.blueColorValue   = 0;
+                commandNetworkLEDStripData.ledStripData.wwColorValue     = 0;
+                switch (effectData->transitionState)
+                {
+                    // Check for Effect change
+                    case 0:
+                        if(commandNetworkLEDStripData.effect != effectData->singleLEDEffect)
+                        {
+                            effectData->transitionState = 10;
+                        }
+                        else
+                        {
+                            FadeToColor(stripID, commandNetworkLEDStripData);
+                        }
+                        break;
+                    // Fade black
+                    case 10:
+                        if(FadeToBlack(stripID, commandNetworkLEDStripData))
+                        {
+                            effectData->transitionState = 20;
+                        }
                     break;
-                // Fade black
-                case 10:
-                    if(FadeToBlack(stripID, commandNetworkLEDStripData))
-                    {
-                        effectData->transitionState = 20;
-                    }
-                break;
-                // Set new values
-                case 20:
-                    if(SetColor(stripID, commandNetworkLEDStripData))
-                    {
-                        effectData->prevEffect = commandNetworkLEDStripData.effect;
-                        effectData->transitionState = 0;
-                    }
-                break;
-            }
-            break;
-
-
-        case LEDEffect::RGBWW:
-            /*
-                Only red, green, blue and warm white LEDs
-            */
-            // Disable CW
-            commandNetworkLEDStripData.ledStripData.cwColorValue = 0;
-            switch (effectData->transitionState)
-            {
-                // Check for Effect change
-                case 0:
-                    if(commandNetworkLEDStripData.effect != effectData->prevEffect)
-                    {
-                        effectData->transitionState = 10;
-                    }
-                    else
-                    {
-                        FadeToColor(stripID, commandNetworkLEDStripData);
-                    }
+                    // Set new values
+                    case 20:
+                        if(SetColor(stripID, commandNetworkLEDStripData))
+                        {
+                            effectData->singleLEDEffect = commandNetworkLEDStripData.effect;
+                            effectData->transitionState = 0;
+                        }
                     break;
-                // Fade black
-                case 10:
-                    if(FadeToBlack(stripID, commandNetworkLEDStripData))
-                    {
-                        effectData->transitionState = 20;
-                    }
+                }
                 break;
-                // Set new values
-                case 20:
-                    if(SetColor(stripID, commandNetworkLEDStripData))
-                    {
-                        effectData->prevEffect = commandNetworkLEDStripData.effect;
-                        effectData->transitionState = 0;
-                    }
-                break;
-            }
-            break;
 
 
-        case LEDEffect::CWWW:
-            /*
-                Only cold white and warm white LEDs
-            */
-            // Disable RGB
-            commandNetworkLEDStripData.ledStripData.redColorValue    = 0;
-            commandNetworkLEDStripData.ledStripData.greenColorValue  = 0;
-            commandNetworkLEDStripData.ledStripData.blueColorValue   = 0;
-            switch (effectData->transitionState)
-            {
-                // Check for Effect change
-                case 0:
-                    if(commandNetworkLEDStripData.effect != effectData->prevEffect)
-                    {
-                        effectData->transitionState = 10;
-                    }
-                    else
-                    {
-                        FadeToColor(stripID, commandNetworkLEDStripData);
-                    }
+            case SingleLEDEffect::WW:
+                /*
+                    Only warm white LEDs
+                */
+                // Disable RGB and CW
+                commandNetworkLEDStripData.ledStripData.redColorValue    = 0;
+                commandNetworkLEDStripData.ledStripData.greenColorValue  = 0;
+                commandNetworkLEDStripData.ledStripData.blueColorValue   = 0;
+                commandNetworkLEDStripData.ledStripData.cwColorValue     = 0;
+                switch (effectData->transitionState)
+                {
+                    // Check for Effect change
+                    case 0:
+                        if(commandNetworkLEDStripData.effect != effectData->singleLEDEffect)
+                        {
+                            effectData->transitionState = 10;
+                        }
+                        else
+                        {
+                            FadeToColor(stripID, commandNetworkLEDStripData);
+                        }
+                        break;
+                    // Fade black
+                    case 10:
+                        if(FadeToBlack(stripID, commandNetworkLEDStripData))
+                        {
+                            effectData->transitionState = 20;
+                        }
                     break;
-                // Fade black
-                case 10:
-                    if(FadeToBlack(stripID, commandNetworkLEDStripData))
-                    {
-                        effectData->transitionState = 20;
-                    }
+                    // Set new values
+                    case 20:
+                        if(SetColor(stripID, commandNetworkLEDStripData))
+                        {
+                            effectData->singleLEDEffect = commandNetworkLEDStripData.effect;
+                            effectData->transitionState = 0;
+                        }
+                    break;
+                }
                 break;
-                // Set new values
-                case 20:
-                    if(SetColor(stripID, commandNetworkLEDStripData))
-                    {
-                        effectData->prevEffect = commandNetworkLEDStripData.effect;
-                        effectData->transitionState = 0;
-                    }
+
+
+            case SingleLEDEffect::RGBCW:
+                /*
+                    Only red, green, blue and cold white LEDs
+                */
+                // Disable WW
+                commandNetworkLEDStripData.ledStripData.wwColorValue = 0;
+                switch (effectData->transitionState)
+                {
+                    // Check for Effect change
+                    case 0:
+                        if(commandNetworkLEDStripData.effect != effectData->singleLEDEffect)
+                        {
+                            effectData->transitionState = 10;
+                        }
+                        else
+                        {
+                            FadeToColor(stripID, commandNetworkLEDStripData);
+                        }
+                        break;
+                    // Fade black
+                    case 10:
+                        if(FadeToBlack(stripID, commandNetworkLEDStripData))
+                        {
+                            effectData->transitionState = 20;
+                        }
+                    break;
+                    // Set new values
+                    case 20:
+                        if(SetColor(stripID, commandNetworkLEDStripData))
+                        {
+                            effectData->singleLEDEffect = commandNetworkLEDStripData.effect;
+                            effectData->transitionState = 0;
+                        }
+                    break;
+                }
                 break;
-            }
-            break;   
 
-    };
 
-}
+            case SingleLEDEffect::RGBWW:
+                /*
+                    Only red, green, blue and warm white LEDs
+                */
+                // Disable CW
+                commandNetworkLEDStripData.ledStripData.cwColorValue = 0;
+                switch (effectData->transitionState)
+                {
+                    // Check for Effect change
+                    case 0:
+                        if(commandNetworkLEDStripData.effect != effectData->singleLEDEffect)
+                        {
+                            effectData->transitionState = 10;
+                        }
+                        else
+                        {
+                            FadeToColor(stripID, commandNetworkLEDStripData);
+                        }
+                        break;
+                    // Fade black
+                    case 10:
+                        if(FadeToBlack(stripID, commandNetworkLEDStripData))
+                        {
+                            effectData->transitionState = 20;
+                        }
+                    break;
+                    // Set new values
+                    case 20:
+                        if(SetColor(stripID, commandNetworkLEDStripData))
+                        {
+                            effectData->singleLEDEffect = commandNetworkLEDStripData.effect;
+                            effectData->transitionState = 0;
+                        }
+                    break;
+                }
+                break;
+
+
+            case SingleLEDEffect::CWWW:
+                /*
+                    Only cold white and warm white LEDs
+                */
+                // Disable RGB
+                commandNetworkLEDStripData.ledStripData.redColorValue    = 0;
+                commandNetworkLEDStripData.ledStripData.greenColorValue  = 0;
+                commandNetworkLEDStripData.ledStripData.blueColorValue   = 0;
+                switch (effectData->transitionState)
+                {
+                    // Check for Effect change
+                    case 0:
+                        if(commandNetworkLEDStripData.effect != effectData->singleLEDEffect)
+                        {
+                            effectData->transitionState = 10;
+                        }
+                        else
+                        {
+                            FadeToColor(stripID, commandNetworkLEDStripData);
+                        }
+                        break;
+                    // Fade black
+                    case 10:
+                        if(FadeToBlack(stripID, commandNetworkLEDStripData))
+                        {
+                            effectData->transitionState = 20;
+                        }
+                    break;
+                    // Set new values
+                    case 20:
+                        if(SetColor(stripID, commandNetworkLEDStripData))
+                        {
+                            effectData->singleLEDEffect = commandNetworkLEDStripData.effect;
+                            effectData->transitionState = 0;
+                        }
+                    break;
+                }
+                break;   
+
+        };
+    }
+    else
+    {
+        FadeToBlack(stripID, commandNetworkLEDStripData);      
+    }
+
+};
 
 
 /**
@@ -756,34 +742,54 @@ uint16_t LedDriver::getTimeBasedBrightness()
 };
 
 
-/**
- * Sets the color of all color LED channels to their new value
- * 
- * @parameter stripID                       The ID of the used led strip
- * @parameter commandNetworkLEDStripData  NetworkLEDStripData for the used LED strip define in stripID
- **/
-bool LedDriver::SetColor(uint8_t stripID,
-                         NetworkLEDStripData commandNetworkLEDStripData)
+void LedDriver::ResetSingleEffectData()
 {
-    // Increase fade speed to instant
-    commandNetworkLEDStripData.ledStripData.colorFadeTime          = 0;
-    commandNetworkLEDStripData.ledStripData.colorFadeCurve         = FadeCurve::None;
-    commandNetworkLEDStripData.ledStripData.brightnessFadeTime     = 0;
-    commandNetworkLEDStripData.ledStripData.brightnessFadeCurve    = FadeCurve::None;
-
-    bool fadeFinished = false;
-    fadeFinished = FadeToColor(stripID,
-                               commandNetworkLEDStripData);
-    return fadeFinished;
+    // Strip 1
+    SingleLEDStripEffectData* effectDataStrip1 = getSingleLEDStripEffectData(1);
+    effectDataStrip1->transitionState = 0;
+    // Strip 2
+    SingleLEDStripEffectData* effectDataStrip2 = getSingleLEDStripEffectData(2);
+    effectDataStrip1->transitionState = 0;
 };
 
 
 /**
- * Sets the color of all color LED channels to their new value
+ * Returns a pointer to the current LEDEffectData of the coresponding stripID
  * 
- * @parameter stripID                       The ID of the used led strip
- * @parameter commandHighLevelLEDStripData  HighLevelLEDStripData for the used LED strip define in stripID
- **/
+ * @parameter stripID   Strip ID of the LED strip
+ * 
+ * @return Pointer to the current LEDEffectData of the given stripID
+ */
+SingleLEDStripEffectData* LedDriver::getSingleLEDStripEffectData(uint8_t stripID)
+{
+
+    // LED Strip 1
+    if(stripID == 1)
+    {
+        return &singleLEDStrip1EffectData;
+    }
+
+    // LED Strip 2
+    if(stripID == 2)
+    {
+        return &singleLEDStrip2EffectData;
+    }
+
+};
+
+
+// # ================================================================ ================================================================ # // 
+// #                                                             SET COLOR                                                             # // 
+// # ================================================================ ================================================================ # //
+
+
+bool LedDriver::SetColor(uint8_t stripID,
+                         NetworkLEDStripData commandNetworkLEDStripData)
+{
+    return FadeToColor(stripID, commandNetworkLEDStripData.ledStripData);
+};
+
+
 bool LedDriver::SetColor(uint8_t stripID,
                          HighLevelLEDStripData commandHighLevelLEDStripData)
 {
@@ -800,12 +806,38 @@ bool LedDriver::SetColor(uint8_t stripID,
 };
 
 
-/**
- * Fade all color LED channels to their new value
- * 
- * @parameter stripID                       The ID of the used led strip
- * @parameter commandNetworkLEDStripData    NetworkLEDStripData for the used LED strip define in stripID
- **/
+bool LedDriver::SetColor(NetworkLEDStripData commandNetworkLEDStripData)
+{
+    return SetColor(commandNetworkLEDStripData.ledStripData);
+};
+
+
+bool LedDriver::SetColor(HighLevelLEDStripData commandHighLevelLEDStripData)
+{
+    // Increase fade speed to instant
+    commandHighLevelLEDStripData.colorFadeTime          = 0;
+    commandHighLevelLEDStripData.colorFadeCurve         = FadeCurve::None;
+    commandHighLevelLEDStripData.brightnessFadeTime     = 0;
+    commandHighLevelLEDStripData.brightnessFadeCurve    = FadeCurve::None;
+
+    bool fadeStrip1Finished = FadeToColor(1, commandHighLevelLEDStripData);
+    bool fadeStrip2Finished = FadeToColor(2, commandHighLevelLEDStripData);
+    if(fadeStrip1Finished && fadeStrip2Finished)
+    {
+        return true;
+    }
+    else
+    {
+        return false;
+    }
+};
+
+
+// # ================================================================ ================================================================ # // 
+// #                                                            FADE COLOR                                                             # // 
+// # ================================================================ ================================================================ # //
+
+
 bool LedDriver::FadeToColor(uint8_t stripID,
                             NetworkLEDStripData commandNetworkLEDStripData)
 {
@@ -822,12 +854,6 @@ bool LedDriver::FadeToColor(uint8_t stripID,
 };
 
 
-/**
- * Fade all color LED channels to their new value
- * 
- * @parameter stripID                       The ID of the used led strip
- * @parameter commandHighLevelLEDStripData  HighLevelLEDStripData for the used LED strip define in stripID
- **/
 bool LedDriver::FadeToColor(uint8_t stripID,
                             HighLevelLEDStripData commandHighLevelLEDStripData)
 {
@@ -891,12 +917,6 @@ bool LedDriver::FadeToColor(uint8_t stripID,
 };
 
 
-/**
- * Fade all color LED channels to their new value
- * 
- * @parameter stripID                       The ID of the used led strip
- * @parameter commandLowLevelLEDStripData   LowLevelLEDStripData for the used LED strip define in stripID
- **/
 bool LedDriver::FadeToColor(uint8_t stripID,
                             LowLevelLEDStripData commandLowLevelLEDStripData)
 {
@@ -1147,12 +1167,90 @@ bool LedDriver::FadeToColor(uint8_t stripID,
 };
 
 
-/**
- * Fade all LED channel to black
- * 
- * @parameter stripID                       The ID of the used led strip
- * @parameter commandNetworkLEDStripData    NetworkLEDStripData for the used LED strip define in stripID
- **/
+bool LedDriver::FadeToColor(NetworkLEDStripData commandHighLevelLEDStripData)
+{
+    return FadeToColor(commandHighLevelLEDStripData.ledStripData);
+};
+
+
+bool LedDriver::FadeToColor(HighLevelLEDStripData commandHighLevelLEDStripData)
+{
+    // Create Low Level data
+    LowLevelLEDStripData lowLevelLEDStripData;
+    // ---- RED
+    // -- Color
+    lowLevelLEDStripData.redColorValue            = commandHighLevelLEDStripData.redColorValue;
+    lowLevelLEDStripData.redColorFadeTime         = commandHighLevelLEDStripData.colorFadeTime;
+    lowLevelLEDStripData.redColorFadeCurve        = commandHighLevelLEDStripData.colorFadeCurve;
+    // -- Brightness
+    lowLevelLEDStripData.redBrightnessValue       = commandHighLevelLEDStripData.brightnessValue;
+    lowLevelLEDStripData.redBrightnessFadeTime    = commandHighLevelLEDStripData.brightnessFadeTime;
+    lowLevelLEDStripData.redBrightnessFadeCurve   = commandHighLevelLEDStripData.brightnessFadeCurve;
+
+    // ---- GREEN
+    // -- Color
+    lowLevelLEDStripData.greenColorValue          = commandHighLevelLEDStripData.greenColorValue;
+    lowLevelLEDStripData.greenColorFadeTime       = commandHighLevelLEDStripData.colorFadeTime;
+    lowLevelLEDStripData.greenColorFadeCurve      = commandHighLevelLEDStripData.colorFadeCurve;
+    // -- Brightness
+    lowLevelLEDStripData.greenBrightnessValue     = commandHighLevelLEDStripData.brightnessValue;
+    lowLevelLEDStripData.greenBrightnessFadeTime  = commandHighLevelLEDStripData.brightnessFadeTime;
+    lowLevelLEDStripData.greenBrightnessFadeCurve = commandHighLevelLEDStripData.brightnessFadeCurve;
+    
+    // ---- BLUE
+    // -- Color
+    lowLevelLEDStripData.blueColorValue           = commandHighLevelLEDStripData.blueColorValue;
+    lowLevelLEDStripData.blueColorFadeTime        = commandHighLevelLEDStripData.colorFadeTime;
+    lowLevelLEDStripData.blueColorFadeCurve       = commandHighLevelLEDStripData.colorFadeCurve;
+    // -- Brightness
+    lowLevelLEDStripData.blueBrightnessValue      = commandHighLevelLEDStripData.brightnessValue;
+    lowLevelLEDStripData.blueBrightnessFadeTime   = commandHighLevelLEDStripData.brightnessFadeTime;
+    lowLevelLEDStripData.blueBrightnessFadeCurve  = commandHighLevelLEDStripData.brightnessFadeCurve;
+
+    // ---- CW
+    // -- Color
+    lowLevelLEDStripData.cwColorValue             = commandHighLevelLEDStripData.cwColorValue;
+    lowLevelLEDStripData.cwColorFadeTime          = commandHighLevelLEDStripData.colorFadeTime;
+    lowLevelLEDStripData.cwColorFadeCurve         = commandHighLevelLEDStripData.colorFadeCurve;
+    // -- Brightness
+    lowLevelLEDStripData.cwBrightnessValue        = commandHighLevelLEDStripData.brightnessValue;
+    lowLevelLEDStripData.cwBrightnessFadeTime     = commandHighLevelLEDStripData.brightnessFadeTime;
+    lowLevelLEDStripData.cwBrightnessFadeCurve    = commandHighLevelLEDStripData.brightnessFadeCurve;
+
+    // ---- WW
+    // -- Color
+    lowLevelLEDStripData.wwColorValue             = commandHighLevelLEDStripData.wwColorValue;
+    lowLevelLEDStripData.wwColorFadeTime          = commandHighLevelLEDStripData.colorFadeTime;
+    lowLevelLEDStripData.wwColorFadeCurve         = commandHighLevelLEDStripData.colorFadeCurve;
+    // -- Brightness
+    lowLevelLEDStripData.wwBrightnessValue        = commandHighLevelLEDStripData.brightnessValue;
+    lowLevelLEDStripData.wwBrightnessFadeTime     = commandHighLevelLEDStripData.brightnessFadeTime;
+    lowLevelLEDStripData.wwBrightnessFadeCurve    = commandHighLevelLEDStripData.brightnessFadeCurve;
+
+    return FadeToColor(lowLevelLEDStripData);
+};
+
+
+bool LedDriver::FadeToColor(LowLevelLEDStripData commandLowLevelLEDStripData)
+{
+    bool fadeStrip1Finished = FadeToColor(1, commandLowLevelLEDStripData);
+    bool fadeStrip2Finished = FadeToColor(2, commandLowLevelLEDStripData);
+    if(fadeStrip1Finished && fadeStrip2Finished)
+    {
+        return true;
+    }
+    else
+    {
+        return false;
+    }
+};
+
+
+// # ================================================================ ================================================================ # // 
+// #                                                           FADE TO BLACK                                                           # // 
+// # ================================================================ ================================================================ # //
+
+
 bool LedDriver::FadeToBlack(uint8_t stripID,
                             NetworkLEDStripData commandNetworkLEDStripData)
 {
@@ -1166,12 +1264,6 @@ bool LedDriver::FadeToBlack(uint8_t stripID,
 };
 
 
-/**
- * Fade all LED channel to black
- * 
- * @parameter stripID                       The ID of the used led strip
- * @parameter commandHighLevelLEDStripData  HighLevelLEDStripData for the used LED strip define in stripID
- **/
 bool LedDriver::FadeToBlack(uint8_t stripID,
                             HighLevelLEDStripData commandHighLevelLEDStripData)
 {
@@ -1185,40 +1277,18 @@ bool LedDriver::FadeToBlack(uint8_t stripID,
 };
 
 
-
-/**
- * Fade all LED channel of all led strips to black. Need for sync of strips
- * Returns only true if both strips are black
- * 
- * @parameter stripID                       The ID of the used led strip
- * @parameter commandNetworkLEDStripData    NetworkLEDStripData for the used LED strip define in stripID
- **/
-bool LedDriver::FadeAllStripsToBlack(uint8_t stripID,
-                                     NetworkLEDStripData commandNetworkLEDStripData)
+bool LedDriver::FadeToBlack(NetworkLEDStripData commandNetworkLEDStripData)
 {
-    return FadeAllStripsToBlack(stripID, commandNetworkLEDStripData.ledStripData);
+    return FadeToBlack(commandNetworkLEDStripData.ledStripData);
 };
 
 
-/**
- * Fade all LED channel of all led strips to black. Need for sync of strips
- * Returns only true if both strips are black
- * 
- * @parameter stripID                       The ID of the used led strip
- * @parameter commandHighLevelLEDStripData  HighLevelLEDStripData for the used LED strip define in stripID
- **/
-bool LedDriver::FadeAllStripsToBlack(uint8_t stripID,
-                                     HighLevelLEDStripData commandHighLevelLEDStripData)
+
+bool LedDriver::FadeToBlack(HighLevelLEDStripData commandHighLevelLEDStripData)
 {
-    // Strip 1
-    LEDStripData* strip1 = getCurrentLEDStripData(1);
-
-    // Strip 2
-    LEDStripData* strip2 = getCurrentLEDStripData(2);
-
-    // Fade to black
-    FadeToBlack(stripID, commandHighLevelLEDStripData);
-    if(strip1->fadeFinished && strip2->fadeFinished)
+    bool fadeStrip1Finished = FadeToBlack(1, commandHighLevelLEDStripData);
+    bool fadeStrip2Finished = FadeToBlack(2, commandHighLevelLEDStripData);
+    if(fadeStrip1Finished && fadeStrip2Finished)
     {
         return true;
     }
@@ -1227,6 +1297,11 @@ bool LedDriver::FadeAllStripsToBlack(uint8_t stripID,
         return false;
     }
 };
+
+
+// # ================================================================ ================================================================ # // 
+// #                                                             LED STRIP                                                             # // 
+// # ================================================================ ================================================================ # //
 
 
 /**
@@ -1498,68 +1573,6 @@ LowLevelLEDStripData LedDriver::getDefaultLow()
     return lowLevelLEDStripData;
 };
 
-
-/**
- * Returns a pointer to the current ControlModeData of the coresponding stripID
- * 
- * @parameter stripID   Strip ID of the LED strip
- * 
- * @return Pointer to the current ControlModeData of the given stripID
- */
-ControlModeData* LedDriver::getControlModeData(uint8_t stripID)
-{
-
-    // LED Strip 1
-    if(stripID == 1)
-    {
-        return &strip1ControlModeData;
-    }
-
-    // LED Strip 2
-    if(stripID == 2)
-    {
-        return &strip2ControlModeData;
-    }
-
-};
-
-
-/**
- * Resets the LEDEffectData of the given strip
- * 
- * @parameter stripID   Strip ID of the LED strip
- */
-void LedDriver::ResetEffectData(uint8_t stripID)
-{
-    LEDEffectData* effectData = getStripLEDEffectData(stripID);
-    // Reset Data that needs reset after control mode change
-    effectData->transitionState = 0;
-};
-
-
-/**
- * Returns a pointer to the current LEDEffectData of the coresponding stripID
- * 
- * @parameter stripID   Strip ID of the LED strip
- * 
- * @return Pointer to the current LEDEffectData of the given stripID
- */
-LEDEffectData* LedDriver::getStripLEDEffectData(uint8_t stripID)
-{
-
-    // LED Strip 1
-    if(stripID == 1)
-    {
-        return &strip1LEDEffectData;
-    }
-
-    // LED Strip 2
-    if(stripID == 2)
-    {
-        return &strip2LEDEffectData;
-    }
-
-};
 
 /**
  * Returns a pointer to the current LEDStripData of the coresponding stripID
