@@ -64,6 +64,7 @@ struct SingleLEDStripEffectData
 {
     SingleLEDEffect singleLEDEffect = SingleLEDEffect::None;
     uint8_t transitionState = 0;
+    uint8_t counter = 0;
     unsigned long prevMillis = 0;
 };
 

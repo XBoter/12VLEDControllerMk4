@@ -7,6 +7,8 @@ enum class MultiLEDEffect
     Idle,
     Power,
     MotionDetected,
+    Music,
+    Alarm,
 };
 
 
@@ -14,10 +16,8 @@ enum class MultiLEDEffect
 enum class SingleLEDEffect 
 {
     None,
-    Alarm,
-    Music,
-    Sleep,
-    Weekend,
+    TriplePulse,
+    Rainbow,
     RGB,
     CW,
     WW,

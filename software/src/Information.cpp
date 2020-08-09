@@ -486,20 +486,12 @@ String Information::SingleLEDEffectToString(SingleLEDEffect effect)
             return "None";
             break;
     
-        case SingleLEDEffect::Alarm:
-            return "Alarm";
+        case SingleLEDEffect::TriplePulse:
+            return "TriplePulse";
             break;
 
-        case SingleLEDEffect::Music:
-            return "Music";
-            break;
-
-        case SingleLEDEffect::Sleep:
-            return "Sleep";
-            break;
-
-        case SingleLEDEffect::Weekend:
-            return "Weekend";
+        case SingleLEDEffect::Rainbow:
+            return "Rainbow";
             break;
 
         case SingleLEDEffect::RGB:
@@ -560,6 +552,14 @@ String Information::MultiLEDEffectToString(MultiLEDEffect effect)
         case MultiLEDEffect::MotionDetected:
             return "MotionDetected";
             break;    
+
+        case MultiLEDEffect::Music:
+            return "Music";
+            break; 
+
+        case MultiLEDEffect::Alarm:
+            return "Alarm";
+            break; 
 
         default:
             return "Idle";

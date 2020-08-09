@@ -385,21 +385,13 @@ SingleLEDEffect StringToSingleLEDEffect(String effect)
     {
         return SingleLEDEffect::None;
     }
-    else if(effect == "Alarm")
+    else if(effect == "TriplePulse")
     {
-        return SingleLEDEffect::Alarm;
+        return SingleLEDEffect::TriplePulse;
     }
-    else if(effect == "Music")
+    else if(effect == "Rainbow")
     {
-        return SingleLEDEffect::Music;
-    }
-    else if(effect == "Sleep")
-    {
-        return SingleLEDEffect::Sleep;
-    }
-    else if(effect == "Weekend")
-    {
-        return SingleLEDEffect::Weekend;
+        return SingleLEDEffect::Rainbow;
     }
     else if(effect == "RGB")
     {
@@ -448,20 +440,12 @@ String SingleLEDEffectToString(SingleLEDEffect effect)
             return "None";
             break;
 
-        case SingleLEDEffect::Alarm:
-            return "Alarm";
+        case SingleLEDEffect::TriplePulse:
+            return "TriplePulse";
             break;
 
-        case SingleLEDEffect::Music:
-            return "Music";
-            break;
-
-        case SingleLEDEffect::Sleep:
-            return "Sleep";
-            break;
-
-        case SingleLEDEffect::Weekend:
-            return "Weekend";
+        case SingleLEDEffect::Rainbow:
+            return "Rainbow";
             break;
 
         case SingleLEDEffect::RGB:
