@@ -177,6 +177,9 @@ struct LowLevelLEDStripData
  */
 struct LEDStripData
 {
+    // ---- Refresh Rate
+    unsigned long lastRefreshRateCount = 0; // Needed to check if FadeColor got called every refresh cycle or if skipped
+
     // ---- RED
     // -- Color
     uint8_t redColorValue                       = 0;

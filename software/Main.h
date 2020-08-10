@@ -13,8 +13,8 @@
 #define Name         "12V LED Controller Mk4"
 #define Programmer   "Nico Weidenfeller"
 #define Created      "28.06.2020"
-#define LastModifed  "09.08.2020"
-#define Version      "0.21.0"
+#define LastModifed  "10.08.2020"
+#define Version      "0.22.0"
 
 /*
       ToDo     Change Shut Resistor to 0.02 Ohm for better reading 

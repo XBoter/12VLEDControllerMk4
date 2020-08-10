@@ -39,6 +39,7 @@ class LedDriver : public IBaseClass
         unsigned long previousMillisRefreshRate = 0;
         uint16_t intervalRefreshRate = 0;
         double LED_STRIP_REFRESH_RATE = 90;  // x Times per Second
+        unsigned long refreshRateCounter = 0;
 
         // ---- Network data
         NetworkLEDStripData networkLEDStrip1Data;
