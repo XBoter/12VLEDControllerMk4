@@ -68,9 +68,14 @@ class Network : public IBaseClass
         // Master
         bool parameter_master_present = true;
         // PC
-        bool parameter_pc_present = true;
+        bool parameter_pc_present = false;
+        bool enable_pc_present = false;
         // Motion
         NetworkMotionData stNetworkMotionData;
+        // Music
+        NetworkMusicData stNetworkMusicData;
+        // Alarm
+        NetworkAlarmData stNetworkAlarmData;
         // LED Strip 1
         NetworkLEDStripData stNetworkLedStrip1Data;
         // LED Strip 2

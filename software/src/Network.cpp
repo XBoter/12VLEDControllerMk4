@@ -46,6 +46,11 @@ bool Network::Init()
         mqttClient.setCallback(mqttCallback);
 
         timeClient.begin();
+
+        #ifdef ENABLE_PC_PRESENT_MOTION_DISABLE
+            enable_pc_present = true;
+        #endif
+
         Serial.println("Network initialized");
         init = true;
     }
@@ -207,6 +212,12 @@ void Network::HandleMqtt()
                 mqttClient.subscribe(mqtt_motion_detection_power_command);   
                 mqttClient.subscribe(mqtt_motion_detection_rgb_command); 
                 mqttClient.subscribe(mqtt_motion_detection_timeout_command); 
+
+                // Alarm
+                mqttClient.subscribe(mqtt_alarm_json_command); 
+
+                // Music
+                mqttClient.subscribe(mqtt_music_json_command); 
 
                 // ==== Specific ==== //
                 // Strip 1
@@ -481,6 +492,38 @@ String SingleLEDEffectToString(SingleLEDEffect effect)
 
 
 /**
+ * Converts a string to a AlarmMode
+ * 
+ * @parameter mode    The name of mode as string
+ * 
+ * @return mode The corresponding AlarmMode to the given string mode
+ **/
+AlarmMode StringToAlarmMode(String mode)
+{
+    if(mode == "Nothing")
+    {
+        return AlarmMode::Nothing;
+    }
+    else if(mode == "Warning")
+    {
+        return AlarmMode::Warning;
+    }
+    else if(mode == "Error")
+    {
+        return AlarmMode::Error;
+    }
+    else if(mode == "Critical")
+    {
+        return AlarmMode::Critical;
+    }
+    else // default
+    {
+        return AlarmMode::Nothing;
+    }
+};
+
+
+/**
  * MQTT callback function.
  * Processes all the receives commands from the subscribed topics
  * 
@@ -577,6 +620,55 @@ void mqttCallback(char *topic, byte *payload, unsigned int length)
         }
     }
     
+    //######################################## mqtt_alarm_json_command ########################################//
+    if (String(mqtt_alarm_json_command).equals(topic))
+    {
+        // Deserialize message
+        DeserializationError error = deserializeJson(mainController.network.doc, message);
+        if(error)
+        {
+            Serial.print("Deserialize JSON failed!");
+            Serial.println(error.c_str());
+            return;
+        }
+
+        // ======== Power ======== //
+        JsonVariant power = mainController.network.doc["power"]; 
+        if(!power.isNull())
+        {
+           mainController.network.stNetworkAlarmData.power = power.as<bool>();
+        }
+
+        // ======== mode ======== //
+        JsonVariant mode = mainController.network.doc["mode"]; 
+        if(!mode.isNull())
+        {
+           mainController.network.stNetworkAlarmData.mode = StringToAlarmMode(mode.as<String>());
+        }
+    }
+
+
+    //######################################## mqtt_music_json_command ########################################//
+    if (String(mqtt_music_json_command).equals(topic))
+    {
+        // Deserialize message
+        DeserializationError error = deserializeJson(mainController.network.doc, message);
+        if(error)
+        {
+            Serial.print("Deserialize JSON failed!");
+            Serial.println(error.c_str());
+            return;
+        }
+
+        // ======== Power ======== //
+        JsonVariant power = mainController.network.doc["power"]; 
+        if(!power.isNull())
+        {
+            mainController.network.stNetworkMusicData.power = power.as<bool>();
+        }
+    }
+
+
     //######################################## mqtt_strip1_json_command ########################################//
     if (String(mqtt_strip1_json_command).equals(topic))
     {

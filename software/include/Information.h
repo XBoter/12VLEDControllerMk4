@@ -65,6 +65,16 @@ class Information : public IBaseClass
                                String blue,
                                String timeout);
 
+        void FormatPrintAlarm(String name,
+                              String power,
+                              String mode);
+
+        void FormatPrintMusic(String name,
+                              String power);
+
+        void FormatPrintPcPresent(String name,
+                                  String present);
+
         void FormatPrintMotionDetected(String motionDetected,
                                        String sensorTriggered, 
                                        String sensor1Triggered,
@@ -78,6 +88,7 @@ class Information : public IBaseClass
         String SingleLEDEffectToString(SingleLEDEffect effect);
         String MultiLEDEffectToString(MultiLEDEffect effect);
         String FadeCurveToString(FadeCurve curve);
+        String AlarmModeToString(AlarmMode mode);
     public:
 
 

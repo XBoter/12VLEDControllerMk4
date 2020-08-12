@@ -13,12 +13,13 @@
 #define Name         "12V LED Controller Mk4"
 #define Programmer   "Nico Weidenfeller"
 #define Created      "28.06.2020"
-#define LastModifed  "10.08.2020"
-#define Version      "0.22.0"
+#define LastModifed  "12.08.2020"
+#define Version      "1.0.0"
 
 /*
       ToDo     Change Shut Resistor to 0.02 Ohm for better reading 
       ToDo     Add NTP Summer/Winter time swap => For now only Winter Time 
+      ToDo     Add PCA9685 reset after to many I2C errors => Fix in later version
 */
 
 //++++ Global Defines ++++//

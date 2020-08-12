@@ -76,7 +76,6 @@ void Information::Run()
 
         memNetwork.parameter_pc_present = this->network->parameter_pc_present;
     }
-
     
     // -- Motion Parameter
     if( this->network->stNetworkMotionData.power                != memNetwork.stNetworkMotionData.power
@@ -85,12 +84,12 @@ void Information::Run()
         || this->network->stNetworkMotionData.blueColorValue    != memNetwork.stNetworkMotionData.blueColorValue
         || this->network->stNetworkMotionData.timeout           != memNetwork.stNetworkMotionData.timeout)
     {
-        FormatPrintMotion(  "Motion Parameter", 
-                            BoolToString(this->network->stNetworkMotionData.power),
-                            String(this->network->stNetworkMotionData.redColorValue),
-                            String(this->network->stNetworkMotionData.greenColorValue),
-                            String(this->network->stNetworkMotionData.blueColorValue),
-                            String(this->network->stNetworkMotionData.timeout)); 
+        FormatPrintMotion("Motion Parameter", 
+                          BoolToString(this->network->stNetworkMotionData.power),
+                          String(this->network->stNetworkMotionData.redColorValue),
+                          String(this->network->stNetworkMotionData.greenColorValue),
+                          String(this->network->stNetworkMotionData.blueColorValue),
+                          String(this->network->stNetworkMotionData.timeout)); 
 
         memNetwork.stNetworkMotionData.power            = this->network->stNetworkMotionData.power;
         memNetwork.stNetworkMotionData.redColorValue    = this->network->stNetworkMotionData.redColorValue;
@@ -99,7 +98,36 @@ void Information::Run()
         memNetwork.stNetworkMotionData.timeout          = this->network->stNetworkMotionData.timeout;
     }
 
-    
+    // -- Alarm
+    if(this->network->stNetworkAlarmData.power     != memNetwork.stNetworkAlarmData.power
+        || this->network->stNetworkAlarmData.mode   != memNetwork.stNetworkAlarmData.mode)
+    {
+        FormatPrintAlarm("Alarm Mode",
+                         BoolToString(this->network->stNetworkAlarmData.power),
+                         AlarmModeToString(this->network->stNetworkAlarmData.mode));
+
+        memNetwork.stNetworkAlarmData.power = this->network->stNetworkAlarmData.power;
+        memNetwork.stNetworkAlarmData.mode  = this->network->stNetworkAlarmData.mode;
+    }
+
+    // -- Music
+    if(this->network->stNetworkMusicData.power != memNetwork.stNetworkMusicData.power)
+    {
+        FormatPrintMusic("Music Mode",
+                         BoolToString(this->network->stNetworkMusicData.power));
+
+        memNetwork.stNetworkMusicData.power = this->network->stNetworkMusicData.power;
+    }
+
+    // -- Master PC
+    if(this->network->parameter_pc_present != memNetwork.parameter_pc_present)
+    {
+        FormatPrintPcPresent("Master PC",
+                             BoolToString(this->network->parameter_pc_present));
+
+        memNetwork.parameter_pc_present = this->network->parameter_pc_present;
+    }
+
     // -- LED Strip 1
     // Only High Level LED Strip Data
     if( this->network->stNetworkLedStrip1Data.power                                 != memNetwork.stNetworkLedStrip1Data.power
@@ -218,7 +246,7 @@ void Information::FormatPrintSingle(String name,
 
     // Paramter name
     InsertPrint();
-    Serial.println("Paramter/Component '" + name + "' changed");
+    Serial.println("Paramter/Component/Mode '" + name + "' changed");
     
     // Parameter value
     InsertPrint();
@@ -245,7 +273,7 @@ void Information::FormatPrintTime(  String name,
 
     // Paramter name
     InsertPrint();
-    Serial.println("Paramter/Component '" + name + "' changed");
+    Serial.println("Paramter/Component/Mode '" + name + "' changed");
     
     // Parameter value
     InsertPrint();
@@ -292,7 +320,7 @@ void Information::FormatPrintLEDStrip(String name,
 
     // Paramter name
     InsertPrint();
-    Serial.println("Paramter/Component '" + name + "' changed");
+    Serial.println("Paramter/Component/Mode '" + name + "' changed");
     
     InsertPrint();
     Serial.println("Power                  : " + power);
@@ -355,7 +383,7 @@ void Information::FormatPrintMotion(    String name,
 
     // Paramter name
     InsertPrint();
-    Serial.println("Paramter/Component '" + name + "' changed");
+    Serial.println("Paramter/Component/Mode '" + name + "' changed");
     
     // Power
     InsertPrint();
@@ -376,6 +404,81 @@ void Information::FormatPrintMotion(    String name,
     // Timeout
     InsertPrint();
     Serial.println("Timeout    : " + timeout);
+
+    BottomSpacerPrint();
+};
+
+
+/**
+ * Prints a alarm formatted message to serial
+ * 
+ * @parameter name      The name of the parameter or component
+ * @parameter power     The current alarm power value
+ * @parameter mode      The current mode value
+ **/
+void Information::FormatPrintAlarm(String name,
+                                   String power,
+                                   String mode)
+{
+    TopSpacerPrint();
+
+    // Paramter name
+    InsertPrint();
+    Serial.println("Paramter/Component/Mode '" + name + "' changed");
+    
+    // Power
+    InsertPrint();
+    Serial.println("Power      : " + power);
+
+    // Mode
+    InsertPrint();
+    Serial.println("Mode       : " + mode);
+
+    BottomSpacerPrint();
+};
+
+
+/**
+ * Prints a music formatted message to serial
+ * 
+ * @parameter name      The name of the parameter or component
+ * @parameter power     The current music power value
+ **/
+void Information::FormatPrintMusic(String name,
+                                   String power)
+{
+    TopSpacerPrint();
+
+    // Paramter name
+    InsertPrint();
+    Serial.println("Paramter/Component/Mode '" + name + "' changed");
+    
+    // Power
+    InsertPrint();
+    Serial.println("Power      : " + power);
+
+    BottomSpacerPrint();
+};
+
+
+/**
+ * Prints a pc present formatted message to serial
+ * 
+ * @parameter name      The name of the parameter or component
+ * @parameter present   The current pc present value
+ **/
+void Information::FormatPrintPcPresent(String name,
+                                       String present)
+{
+    TopSpacerPrint();
+
+    // Paramter name
+    InsertPrint();
+    Serial.println("Paramter/Component/Mode '" + name + "' changed");
+    
+    // Power
+    InsertPrint();
+    Serial.println("PC Present : " + present);
 
     BottomSpacerPrint();
 };
@@ -602,6 +705,42 @@ String Information::FadeCurveToString(FadeCurve curve)
 
         default:
             return "None";
+            break;
+    }
+
+};
+
+
+/**
+ * Converts a AlarmMode to a String
+ * 
+ * @parameter mode    The AlarmMode to convert to string
+ * 
+ * @return mode    The corresponding string mode to the given AlarmMode
+ **/
+String Information::AlarmModeToString(AlarmMode mode)
+{
+
+    switch (mode)
+    {
+        case AlarmMode::Nothing:
+             return "Nothing";
+            break;
+
+        case AlarmMode::Warning:
+             return "Warning";
+            break;
+
+        case AlarmMode::Error:
+             return "Error";
+            break;
+
+        case AlarmMode::Critical:
+             return "Critical";
+            break;
+
+        default:
+            return "Nothing";
             break;
     }
 

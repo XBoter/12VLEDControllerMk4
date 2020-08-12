@@ -2,7 +2,9 @@
 
 #include "Enums.h"
 
-// Struct for time data
+/**
+ * Holds the data for the current time
+ */
 struct NetworkTimeData
 {
     uint8_t hour    = 12;
@@ -10,7 +12,10 @@ struct NetworkTimeData
     uint8_t second  = 0;
 };
 
-// Struct for motion data
+
+/**
+ * Holds the data for the motion detection
+ */
 struct NetworkMotionData
 {
     bool power              = false;
@@ -22,13 +27,32 @@ struct NetworkMotionData
 
 
 /**
+ * Holds the data for the multi LED music effect
+ */
+struct NetworkMusicData
+{
+    bool power = false;
+};
+
+
+/**
+ * Holds the data for the multi LED alarm effect
+ */
+struct NetworkAlarmData
+{
+    bool power = false;
+    AlarmMode mode = AlarmMode::Nothing;
+};
+
+
+/**
  * Holds all register for one LED Color
  */
 struct LEDColorReg
 {
     uint8_t ON_L    = 0x00;
     uint8_t ON_H    = 0x00;
-    uint8_t OFF_L    = 0x00;
+    uint8_t OFF_L   = 0x00;
     uint8_t OFF_H   = 0x00;
 };
 
@@ -52,8 +76,10 @@ struct LEDStripColorReg
 struct MultiLEDStripEffectData
 {
     MultiLEDEffect multiLEDEffect = MultiLEDEffect::Idle;
-    uint8_t transitionState = 0;
-    unsigned long prevMillis = 0;
+    uint8_t transitionState     = 0;
+    uint8_t subTransitionState  = 0;
+    uint8_t counter             = 0;
+    unsigned long prevMillis    = 0;
 };
 
 
@@ -63,9 +89,9 @@ struct MultiLEDStripEffectData
 struct SingleLEDStripEffectData
 {
     SingleLEDEffect singleLEDEffect = SingleLEDEffect::None;
-    uint8_t transitionState = 0;
-    uint8_t counter = 0;
-    unsigned long prevMillis = 0;
+    uint8_t transitionState     = 0;
+    uint8_t counter             = 0;
+    unsigned long prevMillis    = 0;
 };
 
 

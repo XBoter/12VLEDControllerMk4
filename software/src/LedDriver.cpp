@@ -98,9 +98,11 @@ void LedDriver::Run()
         return;
     }
 
-    // ---- Copy led strip data from network 
-    networkLEDStrip1Data = network->stNetworkLedStrip1Data;
-    networkLEDStrip2Data = network->stNetworkLedStrip2Data;
+    // ---- Copy data from network to led driver
+    networkMusicData        = network->stNetworkMusicData;
+    networkAlarmData        = network->stNetworkAlarmData;
+    networkLEDStrip1Data    = network->stNetworkLedStrip1Data;
+    networkLEDStrip2Data    = network->stNetworkLedStrip2Data;
 
     // ---- Multi LED Strip 
     // -- Set multi led strip power
@@ -148,36 +150,75 @@ void LedDriver::HandleMultiLEDStripEffects()
 {
     // -- Data
     HighLevelLEDStripData highLevelLEDStripData;
+    LowLevelLEDStripData lowLevelLEDStripData;
 
     // ---- Control use of multi LED strip effects
-    if(network->parameter_master_present)
+    if(networkAlarmData.power || !alarmFinished)
     {
-        if(multiLEDStripPower)
-        {
-            curMultiLEDStripEffectData.multiLEDEffect = MultiLEDEffect::Power;
-        }
-        else
-        {   
-            if(pirReader->motionDetected && network->stNetworkMotionData.power && network->parameter_sun)
-            {
-                curMultiLEDStripEffectData.multiLEDEffect = MultiLEDEffect::MotionDetected;
-            }
-            else
-            {
-                curMultiLEDStripEffectData.multiLEDEffect = MultiLEDEffect::Idle;
-            }
-        }
+        curMultiLEDStripEffectData.multiLEDEffect = MultiLEDEffect::Alarm;
     }
     else
     {
-        curMultiLEDStripEffectData.multiLEDEffect = MultiLEDEffect::NoMasterPresent;
+        if(network->parameter_master_present)
+        {
+            if(networkMusicData.power)
+            {
+                curMultiLEDStripEffectData.multiLEDEffect = MultiLEDEffect::Music;
+            }
+            else
+            {
+                if(multiLEDStripPower)
+                {
+                    curMultiLEDStripEffectData.multiLEDEffect = MultiLEDEffect::Power;
+                }
+                else
+                {   
+                    if(!network->enable_pc_present)
+                    {
+                        if(network->parameter_pc_present)
+                        {
+                            curMultiLEDStripEffectData.multiLEDEffect = MultiLEDEffect::Idle;
+                        }
+                        else
+                        {
+                            if(pirReader->motionDetected && network->stNetworkMotionData.power && network->parameter_sun)
+                            {
+                                curMultiLEDStripEffectData.multiLEDEffect = MultiLEDEffect::MotionDetected;
+                            }
+                            else
+                            {
+                                curMultiLEDStripEffectData.multiLEDEffect = MultiLEDEffect::Idle;
+                            } 
+                        }
+                    }
+                    else
+                    {
+                        if(pirReader->motionDetected && network->stNetworkMotionData.power && network->parameter_sun)
+                        {
+                            curMultiLEDStripEffectData.multiLEDEffect = MultiLEDEffect::MotionDetected;
+                        }
+                        else
+                        {
+                            curMultiLEDStripEffectData.multiLEDEffect = MultiLEDEffect::Idle;
+                        }
+                    }
+                    
+                }
+            }   
+        }
+        else
+        {
+            curMultiLEDStripEffectData.multiLEDEffect = MultiLEDEffect::NoMasterPresent;
+        }    
     }
-
+    
 
     // Check for effect change and reset transitionState
     if(curMultiLEDStripEffectData.multiLEDEffect != prevMultiLEDStripEffectData.multiLEDEffect)
     {
-        curMultiLEDStripEffectData.transitionState = 0;
+        curMultiLEDStripEffectData.transitionState      = 0;
+        curMultiLEDStripEffectData.subTransitionState   = 0;
+        curMultiLEDStripEffectData.counter              = 0;
     }
 
 
@@ -189,7 +230,7 @@ void LedDriver::HandleMultiLEDStripEffects()
             /*
                 Fades all to black
             */
-           ResetSingleEffectData();
+            ResetSingleEffectData();
             highLevelLEDStripData = getDefaultHigh();
 
             highLevelLEDStripData.blueColorValue = 255;
@@ -348,6 +389,7 @@ void LedDriver::HandleMultiLEDStripEffects()
             */
             ResetSingleEffectData();
             highLevelLEDStripData = getDefaultHigh();
+            lowLevelLEDStripData = getDefaultLow();
 
             switch (curMultiLEDStripEffectData.transitionState)
             {
@@ -368,7 +410,298 @@ void LedDriver::HandleMultiLEDStripEffects()
                 break;
                 // Alarm Mode
                 case 20:
-                    
+                    switch(networkAlarmData.mode)
+                    {
+                        /*
+                            Does nothing like the name says. Fascinating i know 
+                        */
+                        case AlarmMode::Nothing:
+                            FadeToBlack(highLevelLEDStripData);
+                            break;
+
+                        /*
+                            Pulses 3 times in a slow frequency
+                            Color orange
+                            Base Brightness 12.5 %
+                        */
+                        case AlarmMode::Warning:
+
+                            highLevelLEDStripData.redColorValue   = 255;
+                            highLevelLEDStripData.greenColorValue = 64;
+                            highLevelLEDStripData.brightnessFadeTime = 1000;
+
+                            switch(curMultiLEDStripEffectData.subTransitionState)
+                            {
+                                // Set color
+                                case 0:
+                                    if(SetColor(highLevelLEDStripData))
+                                    {
+                                        alarmFinished = false;
+                                        curMultiLEDStripEffectData.subTransitionState = 10;
+                                    }
+                                    break;
+                                // Fade to 12.5% Brightness
+                                case 10:
+                                    highLevelLEDStripData.brightnessValue = 512;
+                                    if(FadeToColor(highLevelLEDStripData))
+                                    {
+                                        curMultiLEDStripEffectData.prevMillis = millis();
+                                        curMultiLEDStripEffectData.subTransitionState = 20;
+                                    }
+                                    break;
+                                // Pause for 2500 Milliseconds
+                                case 20:
+                                    if(millis()-curMultiLEDStripEffectData.prevMillis >= 2500)
+                                    {
+                                        curMultiLEDStripEffectData.subTransitionState = 30;
+                                    }
+                                    break;
+                                // Fade to 100% Brightness
+                                case 30:
+                                    highLevelLEDStripData.brightnessValue = 4096;
+                                    if(FadeToColor(highLevelLEDStripData))
+                                    {
+                                        curMultiLEDStripEffectData.subTransitionState = 40;
+                                    }
+                                    break;
+                                // Fade to 12.5% Brightness
+                                case 40:
+                                    highLevelLEDStripData.brightnessValue = 512;
+                                    if(FadeToColor(highLevelLEDStripData))
+                                    {
+                                        curMultiLEDStripEffectData.subTransitionState = 50;
+                                    }
+                                    break;
+                                // Check Counter or power
+                                case 50:
+                                    if(curMultiLEDStripEffectData.counter >= 2)
+                                    {
+                                        curMultiLEDStripEffectData.counter = 0;
+                                        curMultiLEDStripEffectData.subTransitionState = 10;
+                                    }
+                                    else
+                                    {
+                                        curMultiLEDStripEffectData.counter++;
+                                        curMultiLEDStripEffectData.subTransitionState = 30;
+                                    }
+                                    if(!networkAlarmData.power)
+                                    {
+                                        curMultiLEDStripEffectData.subTransitionState = 60;
+                                    }
+                                    break;
+                                // Change color to green
+                                case 60:
+                                    highLevelLEDStripData.redColorValue   = 0;
+                                    highLevelLEDStripData.greenColorValue = 255;
+                                    highLevelLEDStripData.brightnessValue = 4096;
+                                    if(FadeToColor(highLevelLEDStripData))
+                                    {
+                                        curMultiLEDStripEffectData.prevMillis = millis();
+                                        curMultiLEDStripEffectData.subTransitionState = 70;
+                                    }
+                                    break;
+                                // Wait 3000 Milliseconds and set alarmFinished
+                                case 70:
+                                    if(millis()-curMultiLEDStripEffectData.prevMillis >= 3000)
+                                    {
+                                        alarmFinished = true;
+                                    }
+                                    break;
+                            }
+                            break;
+
+                        /*
+                            Pulses 3 times in a medium frequency
+                            Color red
+                            Base Brightness 12.5 %
+                        */
+                        case AlarmMode::Error:
+
+                            highLevelLEDStripData.redColorValue      = 255;
+                            highLevelLEDStripData.brightnessFadeTime = 500;
+
+                            switch(curMultiLEDStripEffectData.subTransitionState)
+                            {
+                                // Set color
+                                case 0:
+                                    if(SetColor(highLevelLEDStripData))
+                                    {
+                                        alarmFinished = false;
+                                        curMultiLEDStripEffectData.subTransitionState = 10;
+                                    }
+                                    break;
+                                // Fade to 12.5% Brightness
+                                case 10:
+                                    highLevelLEDStripData.brightnessValue = 512;
+                                    if(FadeToColor(highLevelLEDStripData))
+                                    {
+                                        curMultiLEDStripEffectData.prevMillis = millis();
+                                        curMultiLEDStripEffectData.subTransitionState = 20;
+                                    }
+                                    break;
+                                // Pause for 1500 Milliseconds
+                                case 20:
+                                    if(millis()-curMultiLEDStripEffectData.prevMillis >= 1500)
+                                    {
+                                        curMultiLEDStripEffectData.subTransitionState = 30;
+                                    }
+                                    break;
+                                // Fade to 100% Brightness
+                                case 30:
+                                    highLevelLEDStripData.brightnessValue = 4096;
+                                    if(FadeToColor(highLevelLEDStripData))
+                                    {
+                                        curMultiLEDStripEffectData.subTransitionState = 40;
+                                    }
+                                    break;
+                                // Fade to 12.5% Brightness
+                                case 40:
+                                    highLevelLEDStripData.brightnessValue = 512;
+                                    if(FadeToColor(highLevelLEDStripData))
+                                    {
+                                        curMultiLEDStripEffectData.subTransitionState = 50;
+                                    }
+                                    break;
+                                // Check Counter or power
+                                case 50:
+                                    if(curMultiLEDStripEffectData.counter >= 2)
+                                    {
+                                        curMultiLEDStripEffectData.counter = 0;
+                                        curMultiLEDStripEffectData.subTransitionState = 10;
+                                    }
+                                    else
+                                    {
+                                        curMultiLEDStripEffectData.counter++;
+                                        curMultiLEDStripEffectData.subTransitionState = 30;
+                                    }
+                                    if(!networkAlarmData.power)
+                                    {
+                                        curMultiLEDStripEffectData.subTransitionState = 60;
+                                    }
+                                    break;
+                                // Change color to green
+                                case 60:
+                                    highLevelLEDStripData.redColorValue   = 0;
+                                    highLevelLEDStripData.greenColorValue = 255;
+                                    highLevelLEDStripData.brightnessValue = 4096;
+                                    if(FadeToColor(highLevelLEDStripData))
+                                    {
+                                        curMultiLEDStripEffectData.prevMillis = millis();
+                                        curMultiLEDStripEffectData.subTransitionState = 70;
+                                    }
+                                    break;
+                                // Wait 3000 Milliseconds and set alarmFinished
+                                case 70:
+                                    if(millis()-curMultiLEDStripEffectData.prevMillis >= 3000)
+                                    {
+                                        alarmFinished = true;
+                                    }
+                                    break;
+                            }
+                            break;
+
+                        /*
+                            Pulses 3 times in a fast frequency
+                            Color red, cw
+                            Base Brightness Red 12.5 %
+                            Base Brightness Cw 25 %
+                        */
+                        case AlarmMode::Critical:
+
+                            highLevelLEDStripData.redColorValue     = 255;
+                            highLevelLEDStripData.cwColorValue      = 255;
+
+                            lowLevelLEDStripData.redColorValue          = 255;
+                            lowLevelLEDStripData.redBrightnessFadeTime  = 400;
+                            lowLevelLEDStripData.cwColorValue           = 255;
+                            lowLevelLEDStripData.cwBrightnessValue      = 1024;
+                            lowLevelLEDStripData.cwBrightnessFadeTime   = 300;
+
+                            switch(curMultiLEDStripEffectData.subTransitionState)
+                            {
+                                // Set color
+                                case 0:
+                                    if(SetColor(highLevelLEDStripData))
+                                    {
+                                        alarmFinished = false;
+                                        curMultiLEDStripEffectData.subTransitionState = 10;
+                                    }
+                                    break;
+                                // Fade to 12.5% Brightness
+                                case 10:
+                                    lowLevelLEDStripData.redBrightnessValue = 512;
+                                    lowLevelLEDStripData.cwBrightnessValue = 1024;
+                                    if(FadeToColor(lowLevelLEDStripData))
+                                    {
+                                        curMultiLEDStripEffectData.prevMillis = millis();
+                                        curMultiLEDStripEffectData.subTransitionState = 20;
+                                    }
+                                    break;
+                                // Pause for 1000 Milliseconds
+                                case 20:
+                                    if(millis()-curMultiLEDStripEffectData.prevMillis >= 1000)
+                                    {
+                                        curMultiLEDStripEffectData.subTransitionState = 30;
+                                    }
+                                    break;
+                                // Fade to 100% Brightness
+                                case 30:
+                                    lowLevelLEDStripData.redBrightnessValue = 4096;
+                                    lowLevelLEDStripData.cwBrightnessValue = 256;
+                                    if(FadeToColor(lowLevelLEDStripData))
+                                    {
+                                        curMultiLEDStripEffectData.subTransitionState = 40;
+                                    }
+                                    break;
+                                // Fade to 12.5% Brightness
+                                case 40:
+                                    lowLevelLEDStripData.redBrightnessValue = 512;
+                                    lowLevelLEDStripData.cwBrightnessValue = 256;
+                                    if(FadeToColor(lowLevelLEDStripData))
+                                    {
+                                        curMultiLEDStripEffectData.subTransitionState = 50;
+                                    }
+                                    break;
+                                // Check Counter or power
+                                case 50:
+                                    if(curMultiLEDStripEffectData.counter >= 2)
+                                    {
+                                        curMultiLEDStripEffectData.counter = 0;
+                                        curMultiLEDStripEffectData.subTransitionState = 10;
+                                    }
+                                    else
+                                    {
+                                        curMultiLEDStripEffectData.counter++;
+                                        curMultiLEDStripEffectData.subTransitionState = 30;
+                                    }
+                                    if(!networkAlarmData.power)
+                                    {
+                                        curMultiLEDStripEffectData.subTransitionState = 60;
+                                    }
+                                    break;
+                                // Change color to green
+                                case 60:
+                                    highLevelLEDStripData.redColorValue   = 0;
+                                    highLevelLEDStripData.greenColorValue = 255;
+                                    highLevelLEDStripData.cwColorValue    = 0;
+                                    highLevelLEDStripData.brightnessValue = 4096;
+                                    if(FadeToColor(highLevelLEDStripData))
+                                    {
+                                        curMultiLEDStripEffectData.prevMillis = millis();
+                                        curMultiLEDStripEffectData.subTransitionState = 70;
+                                    }
+                                    break;
+                                // Wait 3000 Milliseconds and set alarmFinished
+                                case 70:
+                                    if(millis()-curMultiLEDStripEffectData.prevMillis >= 3000)
+                                    {
+                                        alarmFinished = true;
+                                    }
+                                    break;
+                            }
+                            break;
+
+                    }
                 break;
             }
             break;

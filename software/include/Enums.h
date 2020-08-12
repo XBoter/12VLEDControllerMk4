@@ -38,6 +38,16 @@ enum class FadeCurve
 };
 
 
+// Diffrent Alarm modes
+enum class AlarmMode
+{
+    Nothing,
+    Warning,
+    Error,
+    Critical,
+};
+
+
 // Enum for the wifi state
 enum class NetworkWiFiState
 {

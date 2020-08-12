@@ -42,8 +42,14 @@ class LedDriver : public IBaseClass
         unsigned long refreshRateCounter = 0;
 
         // ---- Network data
+        NetworkMusicData networkMusicData;
+        NetworkAlarmData networkAlarmData;
+
         NetworkLEDStripData networkLEDStrip1Data;
         NetworkLEDStripData networkLEDStrip2Data;
+
+        // ---- Alarm
+        bool alarmFinished = true;
 
         // ---- LED Effect data
         // -- Multi
