@@ -24,9 +24,9 @@
 <img src="electronics/12VLEDControllerMk4PCB.svg" width=600>
 
 ## Images
-<img src="12VLEDControllerMk4Soldered.jpg" width=600>
+<img src="electronics/12VLEDControllerMk4Soldered.jpg" width=600>
 
-<img src="12VLEDControllerMk4SolderedWithLEDandPIR.jpg" width=600>
+<img src="electronics/12VLEDControllerMk4SolderedWithLEDandPIR.jpg" width=600>
 
 ## Used Libraries
 [NTPClient](https://github.com/arduino-libraries/NTPClient)
