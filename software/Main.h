@@ -8,13 +8,15 @@
 #include "include/Network.h"
 #include "include/Information.h"
 #include "include/PirReader.h"
+#include "include/Configuration.h"
+#include "include/OTAGit.h"
 
 //-------------------- Basic Information --------------------//
-#define Name         "12V LED Controller Mk4"
-#define Programmer   "Nico Weidenfeller"
-#define Created      "28.06.2020"
-#define LastModifed  "12.08.2020"
-#define Version      "1.0.0"
+#define Name "12V LED Controller Mk4"
+#define Programmer "Nico Weidenfeller"
+#define Created "28.06.2020"
+#define LastModifed "19.01.2021"
+#define Version "1.1.0"
 
 /*
       ToDo     Change Shut Resistor to 0.02 Ohm for better reading 
@@ -33,42 +35,42 @@
 class Main
 {
    // ## Constructor ## //
-   public:
-      Main();
+public:
+   Main();
 
    // ## Data ## //
-   private:
-      unsigned long PrevMillis_Loop = 0;
+private:
+   unsigned long PrevMillis_Loop = 0;
+   uint8_t state = 0;
 
-   public:
+public:
+   // Components
+   I2C i2c = I2C();
+   Network network = Network();
+   Configuration configuration = Configuration();
+   OTAGit otaGit = OTAGit();
+   PowerMeasurement powerMessurement = PowerMeasurement(INA219AIDR_I2C_ADDRESS,
+                                                        &i2c,
+                                                        &network,
+                                                        0.002); // 2 mOhm
 
-      // Components
-      I2C i2c = I2C();
-      Network network = Network();
-      PowerMeasurement powerMessurement = PowerMeasurement(INA219AIDR_I2C_ADDRESS, 
-                                                           &i2c, 
-                                                           &network,
-                                                           0.002); // 2 mOhm
+   PirReader pirReader = PirReader(PIR_SENSOR_1_PIN,
+                                   PIR_SENSOR_2_PIN,
+                                   &network);
 
-      PirReader pirReader = PirReader(PIR_SENSOR_1_PIN, 
-                                      PIR_SENSOR_2_PIN, 
-                                      &network);
+   LedDriver ledDriver = LedDriver(PCA9685PW_I2C_ADDRESS,
+                                   &i2c,
+                                   &network,
+                                   &pirReader);
 
-
-      LedDriver ledDriver = LedDriver(PCA9685PW_I2C_ADDRESS, 
-                                      &i2c, 
-                                      &network, 
-                                      &pirReader);
-
-      Information information = Information(&network, 
-                                            &pirReader);
+   Information information = Information(&network,
+                                         &pirReader);
 
    // ## Functions ## //
-   private:
-   public:
-      void _loop();
-      void _setup();
-
+private:
+public:
+   void _loop();
+   void _setup();
 };
 
 // Tell compiler to create only one instance of Main

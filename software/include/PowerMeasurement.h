@@ -31,10 +31,10 @@ class PowerMeasurement : public IBaseClass
         I2C *i2c;
         Network *network;
 
-        double shuntResistorOhm = 0.0;  // Ohm
+        double shuntResistorOhm = 0.02;  // Ohm
         int calibrationValue = 0;
-        double maxExpectedCurrentA = 10;   // Ampere 
-        double currentLSB = 0;
+        double maxExpectedCurrentA = 4.0;   // Ampere 
+        double currentLSB = 0.0;
         double powerLSB = 0;
         
         // Timer

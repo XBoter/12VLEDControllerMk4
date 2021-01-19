@@ -30,60 +30,92 @@ bool PowerMeasurement::Init()
     if (!init)
     {
         i2c->Init();
-
-        // -- Configuring INA219
-        // Bit 15 Reset
-        // Bit 14 Not used
-        // Bit 13 Bus Voltage Range (0 = 16V, 1 = 32V)
-        // Bit 11-12 Programmable Gain Amplifier
-        // Bit 7-10 Bus ADC
-        // Bit 3-6 Shunt ADC
-        // Bit 2-0 Mode
-
-        // -- Settings
-        // Bit 11-12 Programmable Gain Amplifier => 11 => +-320mV
-        // Bit 7-10 Bus ADC => 0011 => 12 Bit Resolution => Conversion Time 532 μs
-        // Bit 3-6 Shunt ADC => 0011 => 12 Bit Resolution => Conversion Time 532 μs
-        // Bit 2-0 Mode => 111 => Shunt and Bus continuous
         
+        /*
+            Calculations INA219
+            Datasheet: https://datasheet.lcsc.com/szlcsc/1810181516_Texas-Instruments-INA219AIDR_C138706.pdf
+
+                                         
+            LSB Shunt Voltage Register = +-0.04V / 4096 = 0.000009765V == 9.77μV ≈ 10μV <== !VALUE FROM DATASHEET!
+            LSB Bus Voltage Register = 16V / 4096 = 0,0039V == 3.90mV ≈ 4mV <== !VALUE FROM DATASHEET!
+
+            VShunt = Shunt Voltage Register * 10μV
+            VBus = Bus Voltage Register * 4mV
+
+            VBusMax = 16V
+
+            VShuntMax = +-80mV  (PGA Register Options: +-40mV +-80mV +-160mV +-320mV)
+            RShunt = 0.02Ω
+
+            IMaxExpected = 3A
+            IMaxPossible = VShuntMax / RShunt => 0.08V / 0.02Ω = 4A 
+
+            LSBMinimum = IMaxExpected / 32767 => 3A / 32767 = 91.55 μA
+            LSBMaximum = IMaxExpected / 4096 => 3A / 4096 = 732.42 μA
+
+            LSBMinimum < LSBCurrent < LSBmaximum
+            LSBCurrent = 92μA
+
+            LSBPower = 20 * LSBCurrent => 20 * 92μA = 1840μA == 1.84mA
+
+            CalibrationRegister = trunc(0.04096 / (LSBCurrent + RShunt)) => trunc(0.04096 / (0.000092A * 0.02Ω)) = 22261 == 0b101011011110101
+
+            IMaxShuntCalc = CurrentLSB * 32767 = 92μA * 32767 = 3.014564A
+
+            IF IMaxShuntCalc >= IMaxPossbile then: IMaxBeforeOverflow = IMaxPossible
+            else: IMaxBeforeOverflow = IMaxShuntCalc
+
+            IF 3.014564A >= then 4A: IMaxBeforeOverflow = 4A
+            else: IMaxBeforeOverflow = 3.014564A 
+
+            !!! => IMaxBeforeOverflow = 3.014564A 
+
+            VMaxShuntCalc = IMaxBeforeOverflow * RShunt => 3.014564A * 0.02Ω = 0.060V
+
+            IF VMaxShuntCalc >= VShuntMax then: VMaxShuntBeforeOverflow = VShuntMax
+            else: VMaxShuntBeforeOverflow = VMaxShuntCalc
+
+            IF 0.06V >= then 0.08V: VMaxShuntBeforeOverflow = 0.08V
+            else: VMaxShuntBeforeOverflow = 0.06V
+
+            !!! => VMaxShuntBeforeOverflow = 0.06V 
+
+            PMax = IMaxBeforeOverflow * VBusMax => 3.014564A * 16V = 48.23W
+
+        */
+       
+        // ==== Config Register Structure ==== //
+        // Bit 15 Reset         : 0
+        // Bit 14 -             : 0
+        // Bit 13 BRNG          : 0
+        // Bit 12 PG1           : 0
+        // Bit 11 PG0           : 1
+        // Bit 10 BADC 4        : 0
+        // Bit 9  BADC 3        : 0
+        // Bit 8  BADC 2        : 1
+        // Bit 7  BADC 1        : 1
+        // Bit 6  SADC 4        : 0
+        // Bit 5  SADC 3        : 0
+        // Bit 4  SADC 2        : 1
+        // Bit 3  SADC 1        : 1
+        // Bit 2  MODE 3        : 1
+        // Bit 1  MODE 2        : 1
+        // Bit 0  MODE 1        : 1
+
+        uint16_t ConfigRegister = 0b0000100110011111;
+
         Serial.println("Setting config register");
-        uint16_t config = 0b0001100110011111;
-        i2c->write16(i2cAddress, CONFIG, config);
-        Serial.print("Register Value    : ");
+        i2c->write16(i2cAddress, CONFIG, ConfigRegister);
+        Serial.print("Config Register : ");
         Print2ByteValue(i2c->read16(i2cAddress, CONFIG));
 
-        Serial.println("Calculating calibration register value");
+        uint16_t CalibrationRegister = 0b101011011110101;
 
-        // Calc current LSB
-        currentLSB = maxExpectedCurrentA / 32768.0;
-        Serial.print("Current LSB       : ");
-        Serial.println(currentLSB);
-
-        // Calc power LSB
-        powerLSB = 20 * currentLSB;
-        Serial.print("Power LSB         : ");
-        Serial.println(powerLSB);
-
-        // Calc calibration value
-        calibrationValue = (int)(0.04096 / (currentLSB * shuntResistorOhm));
-        Serial.print("Calibration Value : ");
-        Serial.println(calibrationValue);
-
-        // Bound check calibration value
-        if(calibrationValue > 65,536)
-        {
-            calibrationValue = 0;
-            Serial.println("");
-            Serial.println("Calibration Value out of range of 16 Bit register");
-            Serial.println("Resetting calibration value to 0");
-        }
-
-        // Setting calibration value
         Serial.println("Setting calibration register");
-        uint16_t calibration = (uint16_t)calibrationValue;
-        i2c->write16(i2cAddress, CALIBRATION, calibration);
-        Serial.print("Register Value    : ");
+        i2c->write16(i2cAddress, CALIBRATION, CalibrationRegister);
+        Serial.print("Calibration Register : ");
         Print2ByteValue(i2c->read16(i2cAddress, CALIBRATION));
+
 
         Serial.println("Power Measurement Unit initialized");
         init = true;
@@ -112,38 +144,36 @@ void PowerMeasurement::Run()
         if (network->wifiConnected || network->mqttConnected)
         {
 
-            // Get/Calc Shunt Voltage
-            uint16_t shuntVoltRegister = i2c->read16(i2cAddress, SHUNT_VOLTAGE);
-            valueShunt_mV = shuntVoltRegister * 0.01; // mV
+         
 
-            // Get/Calc BusVoltage
-            uint16_t busVoltRegister = i2c->read16(i2cAddress, BUS_VOLTAGE);
-            uint16_t busVoltageRaw = (busVoltRegister >> 3) * 4;
-            valueBus_V = busVoltageRaw * 0.001; // V
+            // Get Register Values
+            uint16_t ShuntVoltageRegister = i2c->read16(i2cAddress, SHUNT_VOLTAGE);
+            uint16_t BusVoltageRegister = i2c->read16(i2cAddress, BUS_VOLTAGE);
+            uint16_t BusVoltageRegisterShift = (BusVoltageRegister >> 3) * 4;
 
-            /* 
-            For calc values look up https://datasheet.lcsc.com/szlcsc/1810181516_Texas-Instruments-INA219AIDR_C138706.pdf
-            */
-            double cal_Value = 122650.0; // Calibration Value
-            double mA_Multiplyer = 0.2;  // 0.2mA/Bit
-            double mW_Multiplyer = 4.0;  // 4mW/Bit
+            // Calc VShunt and VBus 
+            double VShunt = ShuntVoltageRegister * 0.01; // Convert to mV
+            double VBus = BusVoltageRegisterShift * 0.001; // Convert to V
 
-            // Calc current
-            double current = (((double)shuntVoltRegister * (double)cal_Value) / 4096.0);
-            valueCurrent_mA = current * mA_Multiplyer;
+            Serial.print("mVShunt ");
+            Serial.print(VShunt);
+            Serial.print(" | VBus ");
+            Serial.print(VBus);
 
-            // Calc power
-            double power = (((double)current * (double)busVoltageRaw) / 5000.0);
-            valuePower_mW = power * mW_Multiplyer;
+            // Calc Current 
+            //double CurrentBitMultiplier = 0.092;  // 0.092mA/Bit
+            double CurrentBitMultiplier = 0.015;  // 0.015mA/Bit => LSB Calc based on max current of 0.5A
 
-            //PrintAllRegister();
+            double current = (double)ShuntVoltageRegister * CurrentBitMultiplier * 10.0; // Value is in mA
+            Serial.print(" | mABus ");
+            Serial.print(current);
+     
+            // Calc Power
+            double power = current *  (VBus / 1000);
+            Serial.print(" | WPower ");
+            Serial.print(power);
 
-            //Serial.print("Bus Current : ");
-            //Serial.println(valueCurrent_mA);
-            //Serial.print("Bus Voltage : ");
-            //Serial.println(valueBus_V);
-            //Serial.print("Power : ");
-            //Serial.println(valuePower_mW);
+            Serial.println("");
         }
         else
         {

@@ -1,36 +1,21 @@
 #include "../include/Network.h"
 #include "../Main.h"
 
-
-//++++ Defines for WiFi Secrets +++//
-#define WZ_WIFI_SETTINGS
-//#define HDS_WIFI_SETTINGS
-#include <secrets_wifi.h>
-
-//++++ Defines for MQTT Secrets +++//
-#define WZ_MQTT_SETTINGS
-//#define WZ_FUTURE_MQTT_SETTINGS
-//#define HDS_MQTT_SETTINGS
-#include <secrets_mqtt.h>
-
 //++++ Defines for MQTT Path Secrets +++//
 #define DEV_LED_CONTROLLER_MK4
 #include <secrets_mqtt_paths_mk2.h>
 
 /**
  * Empty constructor
- */ 
-Network::Network()
-{
-    
-};
+ */
+Network::Network(){
 
+};
 
 // For compiler
 void mqttCallback(char *topic, byte *payload, unsigned int length);
 SingleLEDEffect StringToSingleLEDEffect(String effect);
 String SingleLEDEffectToString(SingleLEDEffect effect);
-
 
 /**
  * Does init stuff for the Network component
@@ -39,17 +24,23 @@ String SingleLEDEffectToString(SingleLEDEffect effect);
  */
 bool Network::Init()
 {
-    if(!init)
+    if (!init)
     {
+        data = mainController.configuration.getData();
+
         mqttClient.setClient(wifiMqtt);
-        mqttClient.setServer(MQTT_SERVER, MQTT_PORT);
+        mqttClient.setServer(data.mqttBrokerIpAddress.c_str(),
+                             data.mqttBrokerPort);
         mqttClient.setCallback(mqttCallback);
 
         timeClient.begin();
 
-        #ifdef ENABLE_PC_PRESENT_MOTION_DISABLE
-            enable_pc_present = true;
-        #endif
+        wifiState = NetworkWiFiState::StartWifi;
+        mqttState = NetworkMQTTState::StartMqtt;
+
+#ifdef ENABLE_PC_PRESENT_MOTION_DISABLE
+        enable_pc_present = true;
+#endif
 
         Serial.println("Network initialized");
         init = true;
@@ -58,13 +49,12 @@ bool Network::Init()
     return init;
 };
 
-
 /**
  * Runs the Network component. 
  */
 void Network::Run()
 {
-    if(!init)
+    if (!init)
     {
         return;
     }
@@ -124,10 +114,7 @@ void Network::Run()
 
     // -- Heartbeat
     Heartbeat();
-
-  
 };
-
 
 /**
  * Handels the WiFi connection.
@@ -139,7 +126,8 @@ void Network::HandleWifi()
     {
     case NetworkWiFiState::StartWifi:
         WiFi.mode(WIFI_STA);
-        WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
+        WiFi.begin(data.wifiSSID.c_str(),
+                   data.wifiPassword.c_str());
         delay(1); // Call delay(1) for the WiFi stack
         wifiState = NetworkWiFiState::SuperviseWiFiConnection;
         break;
@@ -148,7 +136,7 @@ void Network::HandleWifi()
         if (WiFi.status() != WL_CONNECTED)
         {
             wifiState = NetworkWiFiState::CheckWiFiDisconnect; // Check if dc occurred
-            PrevMillis_WiFiTimeout = millis();          // Set time for WiFi timeout check
+            PrevMillis_WiFiTimeout = millis();                 // Set time for WiFi timeout check
         }
         else
         {
@@ -181,7 +169,6 @@ void Network::HandleWifi()
     }
 };
 
-
 /**
  * Handels the MQTT connection after the wifi is connected
  * Subscribes to a list pre defined topics
@@ -189,42 +176,44 @@ void Network::HandleWifi()
  */
 void Network::HandleMqtt()
 {
- 
+
     switch (mqttState)
     {
     case NetworkMQTTState::StartMqtt:
         // Only try reconnect when WiFi is connected
-        if(wifiConnected)
+        if (wifiConnected)
         {
-            if (mqttClient.connect(MQTT_CLIENT_NAME, MQTT_USERNAME, MQTT_PASSWORD))
+            if (mqttClient.connect(data.mqttClientName.c_str(),
+                                   data.mqttBrokerUsername.c_str(),
+                                   data.mqttBrokerPassword.c_str()))
             {
                 // ==== Global ==== //
                 // Sun
-                mqttClient.subscribe(mqtt_sun_command);   
+                mqttClient.subscribe(mqtt_sun_command);
 
                 // Master
-                mqttClient.subscribe(mqtt_master_present_command);   
+                mqttClient.subscribe(mqtt_master_present_command);
 
                 // PC
-                mqttClient.subscribe(mqtt_pc_present_command);   
+                mqttClient.subscribe(mqtt_pc_present_command);
 
-                // Motion 
-                mqttClient.subscribe(mqtt_motion_detection_power_command);   
-                mqttClient.subscribe(mqtt_motion_detection_rgb_command); 
-                mqttClient.subscribe(mqtt_motion_detection_timeout_command); 
+                // Motion
+                mqttClient.subscribe(mqtt_motion_detection_power_command);
+                mqttClient.subscribe(mqtt_motion_detection_rgb_command);
+                mqttClient.subscribe(mqtt_motion_detection_timeout_command);
 
                 // Alarm
-                mqttClient.subscribe(mqtt_alarm_json_command); 
+                mqttClient.subscribe(mqtt_alarm_json_command);
 
                 // Music
-                mqttClient.subscribe(mqtt_music_json_command); 
+                mqttClient.subscribe(mqtt_music_json_command);
 
                 // ==== Specific ==== //
                 // Strip 1
-                mqttClient.subscribe(mqtt_strip1_json_command); 
+                mqttClient.subscribe(mqtt_strip1_json_command);
 
-                // Strip 2  
-                mqttClient.subscribe(mqtt_strip2_json_command); 
+                // Strip 2
+                mqttClient.subscribe(mqtt_strip2_json_command);
 
                 // Publish mqtt update about current led data
                 MqttUpdateAfterDc(stNetworkLedStrip1Data, mqtt_strip1_json_state);
@@ -239,7 +228,7 @@ void Network::HandleMqtt()
         if (!mqttClient.connected())
         {
             mqttState = NetworkMQTTState::CheckMqttDisconnect; // Check if dc occurred
-            PrevMillis_MQTTTimeout = millis();          // Set time for WiFi timeout check
+            PrevMillis_MQTTTimeout = millis();                 // Set time for WiFi timeout check
         }
         else
         {
@@ -272,7 +261,6 @@ void Network::HandleMqtt()
     }
 };
 
-
 /**
  * Handles the Network Time Protocol for accurate time updates
  */
@@ -280,28 +268,26 @@ void Network::HandleNTP()
 {
     // Get Time update
     unsigned long CurMillis_NTPTimeout = millis();
-    if (CurMillis_NTPTimeout - PrevMillis_NTPTimeout >= TimeOut_NTPTimeout) {
+    if (CurMillis_NTPTimeout - PrevMillis_NTPTimeout >= TimeOut_NTPTimeout)
+    {
         PrevMillis_NTPTimeout = CurMillis_NTPTimeout;
         bool updateSuccessful = timeClient.update();
 
-        if(updateSuccessful)
+        if (updateSuccessful)
         {
             stNetworkTimeData.hour = timeClient.getHours();
             stNetworkTimeData.minute = timeClient.getMinutes();
             stNetworkTimeData.second = timeClient.getSeconds();
         }
-
     }
-    
 };
-
 
 /**
  * Publishes a heartbeat update to the defined mqtt path every few milliseconds if mqtt is available
  */
 void Network::Heartbeat()
 {
-    if(mqttConnected)
+    if (mqttConnected)
     {
         unsigned long CurMillis_HeartbeatTimeout = millis();
         if (CurMillis_HeartbeatTimeout - PrevMillis_HeartbeatTimeout >= TimeOut_HeartbeatTimeout)
@@ -312,7 +298,6 @@ void Network::Heartbeat()
     }
 };
 
-
 /**
  * Publishes a electrical measurement update in json format
  * 
@@ -320,22 +305,21 @@ void Network::Heartbeat()
  * @parameter busVoltage    The value of the bus voltage in V to send
  * @parameter busCurrent    The value of the bus current in mA
  **/
-void Network::ElectricalMeasurementUpdate(  double currentPower,
-                                            double busVoltage,
-                                            double busCurrent)
+void Network::ElectricalMeasurementUpdate(double currentPower,
+                                          double busVoltage,
+                                          double busCurrent)
 {
     // Create json message
     StaticJsonDocument<256> doc;
-    doc["currentPower"]  = currentPower;
-    doc["busVoltage"]    = busVoltage;
-    doc["busCurrent"]    = busCurrent;
+    doc["currentPower"] = currentPower;
+    doc["busVoltage"] = busVoltage;
+    doc["busCurrent"] = busCurrent;
 
     // Serialize json message and send
     char message[256];
     serializeJson(doc, message);
     mqttClient.publish(mqtt_electrical_measurement_json_state, message);
 };
-
 
 /**
  * Publishes a motion detection update to the defined mqtt path
@@ -349,7 +333,6 @@ void Network::MotionDetectedUpdate(bool motion)
     mqttClient.publish(mqtt_motion_detected_state, message);
 };
 
-
 /**
  * Updates the current ledStripData to a mqtt topic in json format
  * 
@@ -357,31 +340,30 @@ void Network::MotionDetectedUpdate(bool motion)
  * @parameter topic         Mqtt topic to send the data to
  **/
 void Network::MqttUpdateAfterDc(NetworkLEDStripData networkLedStripData,
-                                const char* topic)
+                                const char *topic)
 {
     // Create json message
     StaticJsonDocument<256> doc;
-    if(networkLedStripData.power)
+    if (networkLedStripData.power)
     {
         doc["state"] = "ON";
     }
     else
     {
-        doc["state"] = "OFF";   
+        doc["state"] = "OFF";
     }
-    doc["brightness"]   = networkLedStripData.ledStripData.brightnessValue;
-    doc["color"]["r"]   = networkLedStripData.ledStripData.redColorValue;
-    doc["color"]["g"]   = networkLedStripData.ledStripData.greenColorValue;
-    doc["color"]["b"]   = networkLedStripData.ledStripData.blueColorValue;
-    doc["white_value"]  = networkLedStripData.ledStripData.cwColorValue;
-    doc["effect"]       = SingleLEDEffectToString(networkLedStripData.effect);
-    
+    doc["brightness"] = networkLedStripData.ledStripData.brightnessValue;
+    doc["color"]["r"] = networkLedStripData.ledStripData.redColorValue;
+    doc["color"]["g"] = networkLedStripData.ledStripData.greenColorValue;
+    doc["color"]["b"] = networkLedStripData.ledStripData.blueColorValue;
+    doc["white_value"] = networkLedStripData.ledStripData.cwColorValue;
+    doc["effect"] = SingleLEDEffectToString(networkLedStripData.effect);
+
     // Serialize json message and send
     char message[256];
     serializeJson(doc, message);
     mqttClient.publish(topic, message);
 };
-
 
 /**
  * Converts a string to a LEDEffect
@@ -392,39 +374,39 @@ void Network::MqttUpdateAfterDc(NetworkLEDStripData networkLedStripData,
  **/
 SingleLEDEffect StringToSingleLEDEffect(String effect)
 {
-    if(effect == "None")
+    if (effect == "None")
     {
         return SingleLEDEffect::None;
     }
-    else if(effect == "TriplePulse")
+    else if (effect == "TriplePulse")
     {
         return SingleLEDEffect::TriplePulse;
     }
-    else if(effect == "Rainbow")
+    else if (effect == "Rainbow")
     {
         return SingleLEDEffect::Rainbow;
     }
-    else if(effect == "RGB")
+    else if (effect == "RGB")
     {
         return SingleLEDEffect::RGB;
     }
-    else if(effect == "CW")
+    else if (effect == "CW")
     {
         return SingleLEDEffect::CW;
     }
-    else if(effect == "WW")
+    else if (effect == "WW")
     {
         return SingleLEDEffect::WW;
     }
-    else if(effect == "RGBCW")
+    else if (effect == "RGBCW")
     {
         return SingleLEDEffect::RGBCW;
     }
-    else if(effect == "RGBWW")
+    else if (effect == "RGBWW")
     {
         return SingleLEDEffect::RGBWW;
     }
-    else if(effect == "CWWW")
+    else if (effect == "CWWW")
     {
         return SingleLEDEffect::CWWW;
     }
@@ -433,7 +415,6 @@ SingleLEDEffect StringToSingleLEDEffect(String effect)
         return SingleLEDEffect::None;
     }
 };
-
 
 /**
  * Converts a LEDEffect to a String
@@ -444,52 +425,50 @@ SingleLEDEffect StringToSingleLEDEffect(String effect)
  **/
 String SingleLEDEffectToString(SingleLEDEffect effect)
 {
-    switch(effect)
+    switch (effect)
     {
 
-        case SingleLEDEffect::None:
-            return "None";
-            break;
+    case SingleLEDEffect::None:
+        return "None";
+        break;
 
-        case SingleLEDEffect::TriplePulse:
-            return "TriplePulse";
-            break;
+    case SingleLEDEffect::TriplePulse:
+        return "TriplePulse";
+        break;
 
-        case SingleLEDEffect::Rainbow:
-            return "Rainbow";
-            break;
+    case SingleLEDEffect::Rainbow:
+        return "Rainbow";
+        break;
 
-        case SingleLEDEffect::RGB:
-            return "RGB";
-            break;
+    case SingleLEDEffect::RGB:
+        return "RGB";
+        break;
 
-        case SingleLEDEffect::CW:
-            return "CW";
-            break;
+    case SingleLEDEffect::CW:
+        return "CW";
+        break;
 
-        case SingleLEDEffect::WW:
-            return "WW";
-            break;
+    case SingleLEDEffect::WW:
+        return "WW";
+        break;
 
-        case SingleLEDEffect::RGBCW:
-            return "RGBCW";
-            break;
+    case SingleLEDEffect::RGBCW:
+        return "RGBCW";
+        break;
 
-        case SingleLEDEffect::RGBWW:
-            return "RGBWW";
-            break;
+    case SingleLEDEffect::RGBWW:
+        return "RGBWW";
+        break;
 
-        case SingleLEDEffect::CWWW:
-            return "CWWW";
-            break;
+    case SingleLEDEffect::CWWW:
+        return "CWWW";
+        break;
 
-        default:
-            return "None";
-            break;
-
+    default:
+        return "None";
+        break;
     }
 };
-
 
 /**
  * Converts a string to a AlarmMode
@@ -500,19 +479,19 @@ String SingleLEDEffectToString(SingleLEDEffect effect)
  **/
 AlarmMode StringToAlarmMode(String mode)
 {
-    if(mode == "Nothing")
+    if (mode == "Nothing")
     {
         return AlarmMode::Nothing;
     }
-    else if(mode == "Warning")
+    else if (mode == "Warning")
     {
         return AlarmMode::Warning;
     }
-    else if(mode == "Error")
+    else if (mode == "Error")
     {
         return AlarmMode::Error;
     }
-    else if(mode == "Critical")
+    else if (mode == "Critical")
     {
         return AlarmMode::Critical;
     }
@@ -521,7 +500,6 @@ AlarmMode StringToAlarmMode(String mode)
         return AlarmMode::Nothing;
     }
 };
-
 
 /**
  * MQTT callback function.
@@ -535,8 +513,8 @@ void mqttCallback(char *topic, byte *payload, unsigned int length)
 {
 
     //-- Get Message and add terminator
-    char message[length + 1];       // Main data received
-    char memMessage[length + 1];    // Mem of main data because main data gets changed after json deserialize
+    char message[length + 1];    // Main data received
+    char memMessage[length + 1]; // Mem of main data because main data gets changed after json deserialize
     for (int i = 0; i < length; i++)
     {
         message[i] = (char)payload[i];
@@ -545,7 +523,6 @@ void mqttCallback(char *topic, byte *payload, unsigned int length)
     message[length] = '\0';
     memMessage[length] = '\0';
 
-    
     //######################################## mqtt_sun_command ########################################//
     if (String(mqtt_sun_command).equals(topic))
     {
@@ -560,7 +537,7 @@ void mqttCallback(char *topic, byte *payload, unsigned int length)
     if (String(mqtt_master_present_command).equals(topic))
     {
         String temp_message = strtok(message, "\0");
-        if(temp_message.equals("home"))
+        if (temp_message.equals("home"))
         {
             mainController.network.parameter_master_present = true;
         }
@@ -589,21 +566,21 @@ void mqttCallback(char *topic, byte *payload, unsigned int length)
             mainController.network.stNetworkMotionData.power = (bool)data;
         }
     }
-    
+
     //######################################## mqtt_motion_detection_rgb_command ########################################//
     if (String(mqtt_motion_detection_rgb_command).equals(topic))
     {
-        uint8_t red = atoi(strtok(message, ",")); 
+        uint8_t red = atoi(strtok(message, ","));
         if (red >= 0 && red <= 255)
         {
             mainController.network.stNetworkMotionData.redColorValue = red;
         }
-        uint8_t green = atoi(strtok(NULL, ",")); 
+        uint8_t green = atoi(strtok(NULL, ","));
         if (green >= 0 && green <= 255)
         {
             mainController.network.stNetworkMotionData.greenColorValue = green;
         }
-        uint8_t blue = atoi(strtok(NULL, ",")); 
+        uint8_t blue = atoi(strtok(NULL, ","));
         if (blue >= 0 && blue <= 255)
         {
             mainController.network.stNetworkMotionData.blueColorValue = blue;
@@ -619,13 +596,13 @@ void mqttCallback(char *topic, byte *payload, unsigned int length)
             mainController.network.stNetworkMotionData.timeout = data;
         }
     }
-    
+
     //######################################## mqtt_alarm_json_command ########################################//
     if (String(mqtt_alarm_json_command).equals(topic))
     {
         // Deserialize message
         DeserializationError error = deserializeJson(mainController.network.doc, message);
-        if(error)
+        if (error)
         {
             Serial.print("Deserialize JSON failed!");
             Serial.println(error.c_str());
@@ -633,27 +610,26 @@ void mqttCallback(char *topic, byte *payload, unsigned int length)
         }
 
         // ======== Power ======== //
-        JsonVariant power = mainController.network.doc["power"]; 
-        if(!power.isNull())
+        JsonVariant power = mainController.network.doc["power"];
+        if (!power.isNull())
         {
-           mainController.network.stNetworkAlarmData.power = power.as<bool>();
+            mainController.network.stNetworkAlarmData.power = power.as<bool>();
         }
 
         // ======== mode ======== //
-        JsonVariant mode = mainController.network.doc["mode"]; 
-        if(!mode.isNull())
+        JsonVariant mode = mainController.network.doc["mode"];
+        if (!mode.isNull())
         {
-           mainController.network.stNetworkAlarmData.mode = StringToAlarmMode(mode.as<String>());
+            mainController.network.stNetworkAlarmData.mode = StringToAlarmMode(mode.as<String>());
         }
     }
-
 
     //######################################## mqtt_music_json_command ########################################//
     if (String(mqtt_music_json_command).equals(topic))
     {
         // Deserialize message
         DeserializationError error = deserializeJson(mainController.network.doc, message);
-        if(error)
+        if (error)
         {
             Serial.print("Deserialize JSON failed!");
             Serial.println(error.c_str());
@@ -661,13 +637,12 @@ void mqttCallback(char *topic, byte *payload, unsigned int length)
         }
 
         // ======== Power ======== //
-        JsonVariant power = mainController.network.doc["power"]; 
-        if(!power.isNull())
+        JsonVariant power = mainController.network.doc["power"];
+        if (!power.isNull())
         {
             mainController.network.stNetworkMusicData.power = power.as<bool>();
         }
     }
-
 
     //######################################## mqtt_strip1_json_command ########################################//
     if (String(mqtt_strip1_json_command).equals(topic))
@@ -675,7 +650,7 @@ void mqttCallback(char *topic, byte *payload, unsigned int length)
 
         // Deserialize message
         DeserializationError error = deserializeJson(mainController.network.doc, message);
-        if(error)
+        if (error)
         {
             Serial.print("Deserialize JSON failed!");
             Serial.println(error.c_str());
@@ -683,10 +658,10 @@ void mqttCallback(char *topic, byte *payload, unsigned int length)
         }
 
         // ======== Power ======== //
-        JsonVariant state = mainController.network.doc["state"]; 
-        if(!state.isNull())
+        JsonVariant state = mainController.network.doc["state"];
+        if (!state.isNull())
         {
-            if(mainController.network.doc["state"] == "ON")
+            if (mainController.network.doc["state"] == "ON")
             {
                 mainController.network.stNetworkLedStrip1Data.power = true;
             }
@@ -697,46 +672,46 @@ void mqttCallback(char *topic, byte *payload, unsigned int length)
         }
 
         // ======== Brightness ======== //
-        JsonVariant brightness = mainController.network.doc["brightness"]; 
-        if(!brightness.isNull())
+        JsonVariant brightness = mainController.network.doc["brightness"];
+        if (!brightness.isNull())
         {
             mainController.network.stNetworkLedStrip1Data.ledStripData.brightnessValue = brightness.as<uint16_t>();
         }
 
         // ======== White Value ======== //
-        JsonVariant white_value = mainController.network.doc["white_value"]; 
-        if(!white_value.isNull())
+        JsonVariant white_value = mainController.network.doc["white_value"];
+        if (!white_value.isNull())
         {
             mainController.network.stNetworkLedStrip1Data.ledStripData.cwColorValue = white_value.as<uint8_t>();
         }
 
         // ======== Color ======== //
-        JsonVariant color = mainController.network.doc["color"]; 
-        if(!color.isNull())
+        JsonVariant color = mainController.network.doc["color"];
+        if (!color.isNull())
         {
             // ==== Red ==== //
-            JsonVariant r = mainController.network.doc["color"]["r"]; 
-            if(!r.isNull())
+            JsonVariant r = mainController.network.doc["color"]["r"];
+            if (!r.isNull())
             {
                 mainController.network.stNetworkLedStrip1Data.ledStripData.redColorValue = r.as<uint8_t>();
             }
             // ==== Green ==== //
-            JsonVariant g = mainController.network.doc["color"]["g"]; 
-            if(!g.isNull())
+            JsonVariant g = mainController.network.doc["color"]["g"];
+            if (!g.isNull())
             {
                 mainController.network.stNetworkLedStrip1Data.ledStripData.greenColorValue = g.as<uint8_t>();
             }
             // ==== Blue ==== //
-            JsonVariant b = mainController.network.doc["color"]["b"]; 
-            if(!b.isNull())
+            JsonVariant b = mainController.network.doc["color"]["b"];
+            if (!b.isNull())
             {
                 mainController.network.stNetworkLedStrip1Data.ledStripData.blueColorValue = b.as<uint8_t>();
             }
         }
 
         // ======== Effect ======== //
-        JsonVariant effect = mainController.network.doc["effect"]; 
-        if(!effect.isNull())
+        JsonVariant effect = mainController.network.doc["effect"];
+        if (!effect.isNull())
         {
             mainController.network.stNetworkLedStrip1Data.effect = StringToSingleLEDEffect(effect.as<String>());
         }
@@ -750,7 +725,7 @@ void mqttCallback(char *topic, byte *payload, unsigned int length)
     {
         // Deserialize message
         DeserializationError error = deserializeJson(mainController.network.doc, message);
-        if(error)
+        if (error)
         {
             Serial.print("Deserialize JSON failed!");
             Serial.println(error.c_str());
@@ -758,10 +733,10 @@ void mqttCallback(char *topic, byte *payload, unsigned int length)
         }
 
         // ======== Power ======== //
-        JsonVariant state = mainController.network.doc["state"]; 
-        if(!state.isNull())
+        JsonVariant state = mainController.network.doc["state"];
+        if (!state.isNull())
         {
-            if(mainController.network.doc["state"] == "ON")
+            if (mainController.network.doc["state"] == "ON")
             {
                 mainController.network.stNetworkLedStrip2Data.power = true;
             }
@@ -772,46 +747,46 @@ void mqttCallback(char *topic, byte *payload, unsigned int length)
         }
 
         // ======== Brightness ======== //
-        JsonVariant brightness = mainController.network.doc["brightness"]; 
-        if(!brightness.isNull())
+        JsonVariant brightness = mainController.network.doc["brightness"];
+        if (!brightness.isNull())
         {
             mainController.network.stNetworkLedStrip2Data.ledStripData.brightnessValue = brightness.as<uint16_t>();
         }
 
         // ======== White Value ======== //
-        JsonVariant white_value = mainController.network.doc["white_value"]; 
-        if(!white_value.isNull())
+        JsonVariant white_value = mainController.network.doc["white_value"];
+        if (!white_value.isNull())
         {
             mainController.network.stNetworkLedStrip2Data.ledStripData.cwColorValue = white_value.as<uint8_t>();
         }
 
         // ======== Color ======== //
-        JsonVariant color = mainController.network.doc["color"]; 
-        if(!color.isNull())
+        JsonVariant color = mainController.network.doc["color"];
+        if (!color.isNull())
         {
             // ==== Red ==== //
-            JsonVariant r = mainController.network.doc["color"]["r"]; 
-            if(!r.isNull())
+            JsonVariant r = mainController.network.doc["color"]["r"];
+            if (!r.isNull())
             {
                 mainController.network.stNetworkLedStrip2Data.ledStripData.redColorValue = r.as<uint8_t>();
             }
             // ==== Green ==== //
-            JsonVariant g = mainController.network.doc["color"]["g"]; 
-            if(!g.isNull())
+            JsonVariant g = mainController.network.doc["color"]["g"];
+            if (!g.isNull())
             {
                 mainController.network.stNetworkLedStrip2Data.ledStripData.greenColorValue = g.as<uint8_t>();
             }
             // ==== Blue ==== //
-            JsonVariant b = mainController.network.doc["color"]["b"]; 
-            if(!b.isNull())
+            JsonVariant b = mainController.network.doc["color"]["b"];
+            if (!b.isNull())
             {
                 mainController.network.stNetworkLedStrip2Data.ledStripData.blueColorValue = b.as<uint8_t>();
             }
         }
 
         // ======== Effect ======== //
-        JsonVariant effect = mainController.network.doc["effect"]; 
-        if(!effect.isNull())
+        JsonVariant effect = mainController.network.doc["effect"];
+        if (!effect.isNull())
         {
             mainController.network.stNetworkLedStrip2Data.effect = StringToSingleLEDEffect(effect.as<String>());
         }
@@ -819,7 +794,4 @@ void mqttCallback(char *topic, byte *payload, unsigned int length)
         // Send message back to mqtt state topic
         mainController.network.mqttClient.publish(mqtt_strip2_json_state, memMessage);
     }
-
 }
-
-

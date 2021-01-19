@@ -3,15 +3,12 @@
 // Global instace of the mainController
 Main mainController;
 
-
 /**
  *  Empty constructor
  */
 Main::Main()
 {
-
 }
-
 
 /**
  * Setup function for Arduino file to call in setup
@@ -37,26 +34,54 @@ void Main::_setup()
     Serial.println("# ======================== #");
     Serial.println("");
 
-    // Init all components
-    i2c.Init();
-    network.Init();
-    powerMessurement.Init();
-    ledDriver.Init();
-    information.Init();
-    pirReader.Init();
+    // Init all configuration
+    configuration.Init();
 };
-
 
 /**
  * Loop function for Arduino file to call in loop
  */
 void Main::_loop()
 {
-    // Run all components
-    i2c.Run();
-    network.Run();
-    powerMessurement.Run();
-    ledDriver.Run();
-    information.Run();
-    pirReader.Run();
+    // Run configuration before all other components
+    configuration.Run();
+
+    if (configuration.isFinished)
+    {
+        switch (state)
+        {
+        case 0:
+            // Init all components
+            otaGit.Init();
+            i2c.Init();
+            network.Init();
+            powerMessurement.Init();
+            ledDriver.Init();
+            information.Init();
+            pirReader.Init();
+            state++;
+            break;
+
+        case 1:
+            // Run all components
+            otaGit.Run();
+            i2c.Run();
+            network.Run();
+            powerMessurement.Run();
+            ledDriver.Run();
+            information.Run();
+            pirReader.Run();
+            break;
+        }
+    }
+    else
+    {
+        i2c.init = false;
+        network.init = false;
+        powerMessurement.init = false;
+        ledDriver.init = false;
+        information.init = false;
+        pirReader.init = false;
+        state = 0;
+    }
 };

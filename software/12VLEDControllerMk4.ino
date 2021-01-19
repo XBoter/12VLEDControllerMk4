@@ -12,11 +12,31 @@
 
 void setup()
 {
+  //initEEPROM();
   mainController._setup();
 }
-
 
 void loop()
 {
   mainController._loop();
+}
+
+void initEEPROM()
+{
+  Serial.begin(115200);
+  Serial.println("Start of EEPROM init");
+  EEPROM.begin(512);
+  for (int i = 0; i < 512; i++)
+  {
+    EEPROM.write(i, 0);
+  }
+
+  uint configDataAddr = 0;
+  ConfiguredData data;
+
+  EEPROM.put(configDataAddr, data);
+  EEPROM.commit();
+
+  EEPROM.end();
+  Serial.println("Finished EEPROM init");
 }

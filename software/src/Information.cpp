@@ -464,8 +464,8 @@ void Information::FormatPrintMusic(String name,
 /**
  * Prints a pc present formatted message to serial
  * 
- * @parameter name      The name of the parameter or component
- * @parameter present   The current pc present value
+ * @param name      The name of the parameter or component
+ * @param present   The current pc present value
  **/
 void Information::FormatPrintPcPresent(String name,
                                        String present)
@@ -487,9 +487,9 @@ void Information::FormatPrintPcPresent(String name,
 /**
  * Prints a motion Detected formatted message to serial
  * 
- * @parameter motionDetected    The current value of the motion
- * @parameter sensor1Triggered  The current value of the 1 pir motion sensor
- * @parameter sensor2Triggered  The current value of the 2 pir motion sensor
+ * @param motionDetected    The current value of the motion
+ * @param sensor1Triggered  The current value of the 1 pir motion sensor
+ * @param sensor2Triggered  The current value of the 2 pir motion sensor
  **/
 void Information::FormatPrintMotionDetected(String motionDetected,
                                             String sensorTriggered,
