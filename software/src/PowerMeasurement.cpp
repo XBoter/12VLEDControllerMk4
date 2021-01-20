@@ -144,8 +144,6 @@ void PowerMeasurement::Run()
         if (network->wifiConnected || network->mqttConnected)
         {
 
-         
-
             // Get Register Values
             uint16_t ShuntVoltageRegister = i2c->read16(i2cAddress, SHUNT_VOLTAGE);
             uint16_t BusVoltageRegister = i2c->read16(i2cAddress, BUS_VOLTAGE);
@@ -155,25 +153,25 @@ void PowerMeasurement::Run()
             double VShunt = ShuntVoltageRegister * 0.01; // Convert to mV
             double VBus = BusVoltageRegisterShift * 0.001; // Convert to V
 
-            Serial.print("mVShunt ");
-            Serial.print(VShunt);
-            Serial.print(" | VBus ");
-            Serial.print(VBus);
+            //Serial.print("mVShunt ");
+            //Serial.print(VShunt);
+            //Serial.print(" | VBus ");
+            //Serial.print(VBus);
 
             // Calc Current 
             //double CurrentBitMultiplier = 0.092;  // 0.092mA/Bit
             double CurrentBitMultiplier = 0.015;  // 0.015mA/Bit => LSB Calc based on max current of 0.5A
 
             double current = (double)ShuntVoltageRegister * CurrentBitMultiplier * 10.0; // Value is in mA
-            Serial.print(" | mABus ");
-            Serial.print(current);
+            //Serial.print(" | mABus ");
+            //Serial.print(current);
      
             // Calc Power
             double power = current *  (VBus / 1000);
-            Serial.print(" | WPower ");
-            Serial.print(power);
+            //Serial.print(" | WPower ");
+            //Serial.print(power);
 
-            Serial.println("");
+            //Serial.println("");
         }
         else
         {

@@ -131,11 +131,25 @@ bool Configuration::Init()
     digitalWrite(LED_BUILTIN, HIGH);
     pinMode(LED_BUILTIN, OUTPUT);
 
-    EEPROM.begin(512);
-    EEPROM.get(configDataAddr, data);
+    Serial.println("Mount LittleFS");
+    if (!LittleFS.begin())
+    {
+        Serial.println("LittleFS mount Failed!");
+        return false;
+    }
+    else
+    {
+        Serial.println("LittleFS mount OK!");
+        Serial.println("");
+    }
+
+    // Initial LittleFS steps
+    createConfigIfMissing();
+    listConfigs();
+    loadConfig();
 
     // DEBUG get current saved config data
-    Serial.println("#==== EEPROM Content ====#");
+    Serial.println("#==== LittleFS Content ====#");
     Serial.println("WiFi Password   : " + String(data.wifiPassword));
     Serial.println("WiFi SSID       : " + String(data.wifiSSID));
     Serial.println("Broker Address  : " + String(data.mqttBrokerIpAddress));
@@ -194,7 +208,7 @@ void Configuration::Run()
                 // Save that we are not configured or doing a reset
             case 0:
                 data.isConfigured = false;
-                saveConfigToEEPROM();
+                resetConfig();
                 state++;
                 break;
 
@@ -231,7 +245,6 @@ void Configuration::Run()
 
                 // Save user input data
             case 5:
-                saveConfigToEEPROM();
                 state = 99;
                 break;
 
@@ -242,7 +255,7 @@ void Configuration::Run()
                 digitalWrite(LED_BUILTIN, HIGH);
                 resetOrNotConfigured = false;
                 data.isConfigured = true;
-                saveConfigToEEPROM();
+                saveConfig();
                 isFinished = true;
                 state = 0;
                 break;
@@ -274,9 +287,9 @@ void Configuration::Run()
 };
 
 /**
- * Returns the current loaded or configured config
+ * Returns the current config data
  * 
- * @return The ConfiguredData 
+ * @return ConfiguredData 
  */
 ConfiguredData Configuration::getData()
 {
@@ -284,19 +297,9 @@ ConfiguredData Configuration::getData()
 };
 
 /**
- * Saves the configured data to the EEPROM
- */
-void Configuration::saveConfigToEEPROM()
-{
-    Serial.println("");
-    Serial.println("EEPROM commit / save action!");
-    Serial.println("");
-    EEPROM.put(configDataAddr, data);
-    EEPROM.commit();
-};
-
-/**
- * Handles webserver root
+ * Sets the current config data
+ * 
+ * @param ConfiguredData new data
  */
 void Configuration::setData(ConfiguredData data)
 {
@@ -304,7 +307,217 @@ void Configuration::setData(ConfiguredData data)
 };
 
 /**
- * Handles webserver root
+ * Saves the current config to a persist data storage
+ */
+void Configuration::saveConfig()
+{
+    Serial.println("Saving Config");
+    Serial.println("");
+
+    File file = LittleFS.open("/config.txt", "w");
+    if (!file)
+    {
+        Serial.println("Failed to open file for writing");
+        return;
+    }
+
+    // ==== wifiSSID ==== //
+    if (!file.println(data.wifiSSID))
+    {
+        Serial.println("wifiSSID failed to save");
+    }
+
+    // ==== wifiPassword ==== //
+    if (!file.println(data.wifiPassword))
+    {
+        Serial.println("wifiPassword failed to save");
+    }
+
+    // ==== mqttBrokerIpAddress ==== //
+    if (!file.println(data.mqttBrokerIpAddress))
+    {
+        Serial.println("mqttBrokerIpAddress failed to save");
+    }
+
+    // ==== mqttBrokerPort ==== //
+    if (!file.println(String(data.mqttBrokerPort)))
+    {
+        Serial.println("mqttBrokerPort failed to save");
+    }
+
+    // ==== mqttBrokerUsername ==== //
+    if (!file.println(data.mqttBrokerUsername))
+    {
+        Serial.println("mqttBrokerUsername failed to save");
+    }
+
+    // ==== mqttBrokerPassword ==== //
+    if (!file.println(data.mqttBrokerPassword))
+    {
+        Serial.println("mqttBrokerPassword failed to save");
+    }
+
+    // ==== mqttClientName ==== //
+    if (!file.println(data.mqttClientName))
+    {
+        Serial.println("mqttClientName failed to save");
+    }
+
+    // ==== isConfigured ==== //
+    if (!file.println(String(data.isConfigured)))
+    {
+        Serial.println("isConfigured failed to save");
+    }
+
+    delay(2000); // Make sure the CREATE and LASTWRITE times are different
+    file.close();
+};
+
+/**
+ * Loads the saved config from a persist data storage
+ */
+void Configuration::loadConfig()
+{
+    Serial.println("Loading Config");
+    Serial.println("");
+
+    File file = LittleFS.open("/config.txt", "r");
+    if (!file)
+    {
+        Serial.println("Failed to open file for reading");
+        return;
+    }
+
+    uint8_t state = 0;
+    String message = "";
+    char symbol = '\0';
+    while (file.available())
+    {
+        int x = file.read();
+
+        // Check for ascii symbol 13 => Carriage Return
+        if (x == 13)
+        {
+            x = file.read();
+            // Check for ascii symbol 10 => Line Feed
+            if (x == 10)
+            {
+                switch (state)
+                {
+                    // ==== wifiSSID ==== //
+                case 0:
+                    data.wifiSSID = message;
+                    state++;
+                    break;
+                    // ==== wifiPassword ==== //
+                case 1:
+                    data.wifiPassword = message;
+                    state++;
+                    break;
+                    // ==== mqttBrokerIpAddress ==== //
+                case 2:
+                    data.mqttBrokerIpAddress = message;
+                    state++;
+                    break;
+                    // ==== mqttBrokerPort ==== //
+                case 3:
+                    data.mqttBrokerPort = strtol(message.c_str(), NULL, 0);
+                    state++;
+                    break;
+                    // ==== mqttBrokerUsername ==== //
+                case 4:
+                    data.mqttBrokerUsername = message;
+                    state++;
+                    break;
+                    // ==== mqttBrokerPassword ==== //
+                case 5:
+                    data.mqttBrokerPassword = message;
+                    state++;
+                    break;
+                    // ==== mqttClientName ==== //
+                case 6:
+                    data.mqttClientName = message;
+                    state++;
+                    break;
+                    // ==== isConfigured ==== //
+                case 7:
+                    data.isConfigured = bool(message);
+                    break;
+                }
+                message = "";
+            }
+        }
+        else
+        {
+            if (x != 0)
+            {
+                symbol = char(x);
+                message += String(symbol);
+            }
+        }
+    }
+    file.close();
+};
+
+/**
+ * Lists all configs found on the persits data storage
+ */
+void Configuration::listConfigs()
+{
+    Serial.println("Listing configs:");
+
+    Dir root = LittleFS.openDir("/");
+
+    while (root.next())
+    {
+        File file = root.openFile("r");
+        Serial.print("  FILE: ");
+        Serial.print(root.fileName());
+        Serial.print("  SIZE: ");
+        Serial.println(file.size());
+        file.close();
+    }
+};
+
+/**
+ * Lists all configs found on the persits data storage
+ */
+void Configuration::createConfigIfMissing()
+{
+    Serial.println("Create config if missing");
+    if (LittleFS.exists("/config.txt"))
+    {
+        Serial.println("Config allready exists");
+        return;
+    }
+    else
+    {
+        Serial.println("Config does not exists!");
+        Serial.println("Creating new config");
+        LittleFS.format();
+        delay(2000);
+        File file = LittleFS.open("/config.txt", "w+");
+        delay(2000); // Make sure the CREATE and LASTWRITE times are different
+        file.close();
+    }
+};
+
+/**
+ * Resets the config file
+ */
+void Configuration::resetConfig()
+{
+    Serial.println("Reset config file");
+    if (LittleFS.exists("/config.txt"))
+    {
+        LittleFS.format();
+        delay(2000);
+        createConfigIfMissing();
+    }
+};
+
+/**
+ * Enables the finishing of the configuration after submit button is pressed
  */
 void Configuration::formSubmitFinished()
 {

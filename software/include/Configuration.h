@@ -6,7 +6,8 @@
 #include <WiFiClient.h>
 #include <ESP8266WebServer.h>
 #include "Structs.h"
-#include <EEPROM.h>
+#include <FS.h>
+#include <LittleFS.h>
 
 // Interface
 #include "../interface/IBaseClass.h"
@@ -44,7 +45,11 @@ public:
 
     // ## Functions ## //
 private:
-    void saveConfigToEEPROM();
+    void saveConfig();
+    void loadConfig();
+    void resetConfig();
+    void createConfigIfMissing();
+    void listConfigs();
 
 public:
     void setData(ConfiguredData data);
