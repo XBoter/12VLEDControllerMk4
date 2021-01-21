@@ -55,7 +55,7 @@ void Main::_loop()
             otaGit.Init();
             i2c.Init();
             network.Init();
-            powerMessurement.Init();
+            //powerMessurement.Init();
             ledDriver.Init();
             information.Init();
             pirReader.Init();
@@ -67,7 +67,7 @@ void Main::_loop()
             otaGit.Run();
             i2c.Run();
             network.Run();
-            powerMessurement.Run();
+            //powerMessurement.Run();
             ledDriver.Run();
             information.Run();
             pirReader.Run();
