@@ -10,40 +10,7 @@ void inputForm()
 {
     ConfiguredData data = mainController.configuration.getData();
 
-    String WEP_PAGE = "<!DOCTYPE html>";
-    WEP_PAGE += "<html>";
-    WEP_PAGE += "<head>";
-    WEP_PAGE += "<meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=2.0, user-scalable=no'>";
-    WEP_PAGE += "<style>";
-    WEP_PAGE += "body {background-color: #616161; width: 100vw; height: 100vh;}";
-    WEP_PAGE += "* {color: #ffffff; font-family: Arial, Helvetica, sans-serif; text-align: center; margin: auto; font-size: 20px;}";
-    WEP_PAGE += "#main {margin:0 auto;}";
-    WEP_PAGE += "input {color: #000000;}";
-    WEP_PAGE += "</style>";
-    WEP_PAGE += "</head>";
-    WEP_PAGE += "<body>";
-    WEP_PAGE += "<div id='main'>";
-    WEP_PAGE += "<h1 style='font-size: 30px; padding: 10px;'>LED Controller Configuration</h1>";
-    WEP_PAGE += "<form action='/final' method='post'>";
-    WEP_PAGE += "<label>WiFi SSID               :</label>";
-    WEP_PAGE += "<input type='text' name='wifiSSID'><br><br>";
-    WEP_PAGE += "<label>WiFi Password           :</label>";
-    WEP_PAGE += "<input type='text' name='wifiPassword'><br><br>";
-    WEP_PAGE += "<label>MQTT Broker IP Address  :</label>";
-    WEP_PAGE += "<input type='text' name='mqttBrokerIpAddress'><br><br>";
-    WEP_PAGE += "<label>MQTT Broker Port        :</label>";
-    WEP_PAGE += "<input type='number' name='mqttBrokerPort'><br><br>";
-    WEP_PAGE += "<label>MQTT Broker Username    :</label>";
-    WEP_PAGE += "<input type='text' name='mqttBrokerUsername'><br><br>";
-    WEP_PAGE += "<label>MQTT Broker Password    :</label>";
-    WEP_PAGE += "<input type='text' name='mqttBrokerPassword'><br><br>";
-    WEP_PAGE += "<label>MQTT Client Name        :</label>";
-    WEP_PAGE += "<input type='text' name='mqttClientName'><br><br>";
-    WEP_PAGE += "<input type='submit' value='Submit'>";
-    WEP_PAGE += "</form>";
-    WEP_PAGE += "</div>";
-    WEP_PAGE += "</body>";
-    WEP_PAGE += "</html>";
+    String WEP_PAGE = "<!DOCTYPE html><html><head> <meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=2.0, user-scalable=no'> <style> body { background-color: #616161; width: 100vw; height: 100vh; display: flex; justify-content: center; align-items: center; } form { display: flex; justify-content: center; align-items: center; flex-direction: column; } h1, label, input { color: #ffffff; font-family: Arial, Helvetica, sans-serif; font-size: 20px; } h1 { text-align: center; font-size: 35px; padding: 10px; color: #aeea00; } input { color: #000000; } #submitButton { border-width: 0; outline: none; border-radius: 2px; box-shadow: 0 1px 4px rgba(0, 0, 0, .6); margin-top: 10px; padding: 10px; width: 50%; background-color: #2ecc71; color: #ecf0f1; } td { padding: 5px; } </style></head><body> <div> <h1>LED Controller Configuration</h1> <form action='/final' method='post'> <table> <tr> <td><label>WiFi SSID</label></td> <td><input type='text' required name='wifiSSID'></td> </tr> <tr> <td><label>WiFi Password</label></td> <td><input type='text' required name='wifiPassword'></td> </tr> <tr> <td><label>MQTT Broker IP Address</label></td> <td><input type='text' required pattern=" ^ ([0 - 9] { 1, 3 }\.) { 3 }[0 - 9]{1, 3} $ " name='mqttBrokerIpAddress'> </td> </tr> <tr> <td><label>MQTT Broker Port</label></td> <td><input type='number' required min=" 1 " name='mqttBrokerPort'></td> </tr> <tr> <td><label>MQTT Broker Username</label></td> <td><input type='text' required name='mqttBrokerUsername'></td> </tr> <tr> <td><label>MQTT Broker Password</label></td> <td><input type='text' required name='mqttBrokerPassword'></td> </tr> <tr> <td><label>MQTT Client Name</label></td> <td><input type='text' required name='mqttClientName'></td> </tr> </table> <input id=" submitButton " type='submit' value='Submit'> </form> </div></body></html>";
 
     server.send(200, "text/html", WEP_PAGE);
 };
@@ -54,23 +21,7 @@ void inputForm()
 void inputFormFilled()
 {
 
-    String WEP_PAGE = "<!DOCTYPE html>";
-    WEP_PAGE += "<html>";
-    WEP_PAGE += "<head>";
-    WEP_PAGE += "<meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=2.0, user-scalable=no'>";
-    WEP_PAGE += "<style>";
-    WEP_PAGE += "body {background-color: #616161; width: 100vw; height: 100vh;}";
-    WEP_PAGE += "* {color: #ffffff; font-family: Arial, Helvetica, sans-serif; text-align: center; margin: auto; font-size: 20px;}";
-    WEP_PAGE += "#main {margin:0 auto;}";
-    WEP_PAGE += "input {color: #000000;}";
-    WEP_PAGE += "</style>";
-    WEP_PAGE += "</head>";
-    WEP_PAGE += "<body>";
-    WEP_PAGE += "<div id='main'>";
-    WEP_PAGE += "<h1 style='font-size: 30px; padding: 10px;'>Form Submitted!</h1>";
-    WEP_PAGE += "</div>";
-    WEP_PAGE += "</body>";
-    WEP_PAGE += "</html>";
+    String WEP_PAGE = "<!DOCTYPE html><html><head> <meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=2.0, user-scalable=no'> <style> body { background-color: #616161; width: 100vw; height: 100vh; display: flex; justify-content: center; align-items: center; } h1 { color: #ffffff; font-family: Arial, Helvetica, sans-serif; text-align: center; font-size: 35px; border-width: 0; outline: none; border-radius: 2px; box-shadow: 0 1px 4px rgba(0, 0, 0, .6); margin-top: 10px; padding: 10px; width: 50%; background-color: #2ecc71; color: #ecf0f1; } </style></head><body> <div> <h1>Configuration Submitted you can now close the Browser</h1> </div></body></html>";
 
     ConfiguredData data;
 
