@@ -29,9 +29,11 @@ public:
 private:
     unsigned long prevMillisReset = 0;
     unsigned long prevMillisResetBlink = 0;
+    unsigned long prevMillisAPShutdown = 0;
 
     unsigned long timeoutResetBlink = 300;
     unsigned long timeoutRest = 5000; // 5 sec
+    unsigned long timeoutAPShutdown = 2000; // 2 sec
 
     bool ledOn = false;
     bool resetOrNotConfigured = false;

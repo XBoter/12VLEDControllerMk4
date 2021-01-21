@@ -154,7 +154,6 @@ void Configuration::Run()
         if (resetOrNotConfigured)
         {
 
-            //Serial.println("State : " + String(state));
             // ================ CONFIGURATION PROCEDURE ================ //
             switch (state)
             {
@@ -196,9 +195,12 @@ void Configuration::Run()
                 server.handleClient();
                 break;
 
-                // Save user input data
+                // Wait before shuting down AP
             case 5:
-                state = 99;
+                if (curMillis - prevMillisAPShutdown >= timeoutAPShutdown)
+                {
+                    state = 99;
+                }
                 break;
 
                 // Reset everything and we are good to go
