@@ -193,6 +193,7 @@ void Configuration::Run()
                 // Wait for user configuration
             case 4:
                 server.handleClient();
+                prevMillisAPShutdown = curMillis;
                 break;
 
                 // Wait before shuting down AP

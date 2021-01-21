@@ -1,10 +1,6 @@
 #include "../include/Network.h"
 #include "../Main.h"
 
-//++++ Defines for MQTT Path Secrets +++//
-#define DEV_LED_CONTROLLER_MK4
-#include <secrets_mqtt_paths_mk2.h>
-
 /**
  * Empty constructor
  */
@@ -187,37 +183,64 @@ void Network::HandleMqtt()
                                    data.mqttBrokerUsername.c_str(),
                                    data.mqttBrokerPassword.c_str()))
             {
+                // ================ HomeAssistant ================ //
+                /*
+                    These Mqtt paths are for the paths given for the desired behavior when controlloing over homeassistant
+                */
                 // ==== Global ==== //
                 // Sun
-                mqttClient.subscribe(mqtt_sun_command);
+                mqttClient.subscribe("LEDController/Global/HomeAssistant/Sun/command");
 
                 // Master
-                mqttClient.subscribe(mqtt_master_present_command);
+                mqttClient.subscribe("LEDController/Global/HomeAssistant/MasterPresent/command");
 
-                // PC
-                mqttClient.subscribe(mqtt_pc_present_command);
-
-                // Motion
-                mqttClient.subscribe(mqtt_motion_detection_power_command);
-                mqttClient.subscribe(mqtt_motion_detection_rgb_command);
-                mqttClient.subscribe(mqtt_motion_detection_timeout_command);
-
-                // Alarm
-                mqttClient.subscribe(mqtt_alarm_json_command);
-
-                // Music
-                mqttClient.subscribe(mqtt_music_json_command);
+                // Effects
+                mqttClient.subscribe("LEDController/Global/HomeAssistant/Effect/command");
 
                 // ==== Specific ==== //
+                // Motion
+                mqttClient.subscribe(("LEDController/" + data.mqttClientName + "/HomeAssistant/MotionDetection/BrightnessTimeBasedEnabled/command").c_str());
+                mqttClient.subscribe(("LEDController/" + data.mqttClientName + "/HomeAssistant/MotionDetection/Enabled/command").c_str());
+                mqttClient.subscribe(("LEDController/" + data.mqttClientName + "/HomeAssistant/MotionDetection/RGB/command").c_str());
+                mqttClient.subscribe(("LEDController/" + data.mqttClientName + "/HomeAssistant/MotionDetection/RGB/Brightness/command").c_str());
+                mqttClient.subscribe(("LEDController/" + data.mqttClientName + "/HomeAssistant/MotionDetection/White/command").c_str());
+                mqttClient.subscribe(("LEDController/" + data.mqttClientName + "/HomeAssistant/MotionDetection/White/Brightness/command").c_str());
+                mqttClient.subscribe(("LEDController/" + data.mqttClientName + "/HomeAssistant/MotionDetection/Timeout/command").c_str());
+
                 // Strip 1
-                mqttClient.subscribe(mqtt_strip1_json_command);
+                mqttClient.subscribe(("LEDController/" + data.mqttClientName + "/HomeAssistant/Strip1/Power/command").c_str());
+                mqttClient.subscribe(("LEDController/" + data.mqttClientName + "/HomeAssistant/Strip1/RGB/command").c_str());
+                mqttClient.subscribe(("LEDController/" + data.mqttClientName + "/HomeAssistant/Strip1/RGB/Brightness/command").c_str());
+                mqttClient.subscribe(("LEDController/" + data.mqttClientName + "/HomeAssistant/Strip1/White/command").c_str());
+                mqttClient.subscribe(("LEDController/" + data.mqttClientName + "/HomeAssistant/Strip1/White/Brightness/command").c_str());
+                mqttClient.subscribe(("LEDController/" + data.mqttClientName + "/HomeAssistant/Strip1/Effect/command").c_str());
 
                 // Strip 2
-                mqttClient.subscribe(mqtt_strip2_json_command);
+                mqttClient.subscribe(("LEDController/" + data.mqttClientName + "/HomeAssistant/Strip2/Power/command").c_str());
+                mqttClient.subscribe(("LEDController/" + data.mqttClientName + "/HomeAssistant/Strip2/RGB/command").c_str());
+                mqttClient.subscribe(("LEDController/" + data.mqttClientName + "/HomeAssistant/Strip2/RGB/Brightness/command").c_str());
+                mqttClient.subscribe(("LEDController/" + data.mqttClientName + "/HomeAssistant/Strip2/White/command").c_str());
+                mqttClient.subscribe(("LEDController/" + data.mqttClientName + "/HomeAssistant/Strip2/White/Brightness/command").c_str());
+                mqttClient.subscribe(("LEDController/" + data.mqttClientName + "/HomeAssistant/Strip2/Effect/command").c_str());
 
-                // Publish mqtt update about current led data
-                MqttUpdateAfterDc(stNetworkLedStrip1Data, mqtt_strip1_json_state);
-                MqttUpdateAfterDc(stNetworkLedStrip2Data, mqtt_strip2_json_state);
+                // ==== Virtual ==== //
+                // PIR
+                mqttClient.subscribe(("LEDController/" + data.mqttClientName + "/HomeAssistant/Virtual/PIR/command").c_str());
+
+                // === Republish == //
+                //MqttUpdateAfterDc(stNetworkLedStrip1Data, mqtt_strip1_json_state);
+                //MqttUpdateAfterDc(stNetworkLedStrip2Data, mqtt_strip2_json_state);
+
+                // ================ Json ================ //
+                /*
+                    These Mqtt paths are for the paths given for the desired behavior when controlloing over custom json data
+                */
+                // ==== Global ==== //
+                mqttClient.subscribe("LEDController/Global/JSON/Sun/command");
+
+                // ==== Specific ==== //
+
+                // === Republish == //
 
                 mqttState = NetworkMQTTState::SuperviseMqttConnection;
             }
@@ -287,13 +310,15 @@ void Network::HandleNTP()
  */
 void Network::Heartbeat()
 {
+    ConfiguredData configuredData = mainController.configuration.getData();
+
     if (mqttConnected)
     {
         unsigned long CurMillis_HeartbeatTimeout = millis();
         if (CurMillis_HeartbeatTimeout - PrevMillis_HeartbeatTimeout >= TimeOut_HeartbeatTimeout)
         {
             PrevMillis_HeartbeatTimeout = CurMillis_HeartbeatTimeout;
-            mqttClient.publish(mqtt_heartbeat_state, "pulse");
+            mainController.network.mqttClient.publish(("LEDController/" + configuredData.mqttClientName + "/HomeAssistant/Heartbeat//state").c_str(), "pulse");
         }
     }
 };
@@ -318,7 +343,8 @@ void Network::ElectricalMeasurementUpdate(double currentPower,
     // Serialize json message and send
     char message[256];
     serializeJson(doc, message);
-    mqttClient.publish(mqtt_electrical_measurement_json_state, message);
+    // ToDO implement
+    //mqttClient.publish(mqtt_electrical_measurement_json_state, message);
 };
 
 /**
@@ -330,7 +356,8 @@ void Network::MotionDetectedUpdate(bool motion)
 {
     char message[8];
     message[0] = motion;
-    mqttClient.publish(mqtt_motion_detected_state, message);
+    // ToDO implement
+    //mqttClient.publish(mqtt_motion_detected_state, message);
 };
 
 /**
@@ -352,17 +379,18 @@ void Network::MqttUpdateAfterDc(NetworkLEDStripData networkLedStripData,
     {
         doc["state"] = "OFF";
     }
-    doc["brightness"] = networkLedStripData.ledStripData.brightnessValue;
+    doc["brightness"] = networkLedStripData.ledStripData.colorBrightnessValue;
     doc["color"]["r"] = networkLedStripData.ledStripData.redColorValue;
     doc["color"]["g"] = networkLedStripData.ledStripData.greenColorValue;
     doc["color"]["b"] = networkLedStripData.ledStripData.blueColorValue;
-    doc["white_value"] = networkLedStripData.ledStripData.cwColorValue;
+    doc["white_value"] = networkLedStripData.ledStripData.whiteTemperatureValue;
     doc["effect"] = SingleLEDEffectToString(networkLedStripData.effect);
 
     // Serialize json message and send
     char message[256];
     serializeJson(doc, message);
     mqttClient.publish(topic, message);
+    // ToDO fix / recode
 };
 
 /**
@@ -385,30 +413,6 @@ SingleLEDEffect StringToSingleLEDEffect(String effect)
     else if (effect == "Rainbow")
     {
         return SingleLEDEffect::Rainbow;
-    }
-    else if (effect == "RGB")
-    {
-        return SingleLEDEffect::RGB;
-    }
-    else if (effect == "CW")
-    {
-        return SingleLEDEffect::CW;
-    }
-    else if (effect == "WW")
-    {
-        return SingleLEDEffect::WW;
-    }
-    else if (effect == "RGBCW")
-    {
-        return SingleLEDEffect::RGBCW;
-    }
-    else if (effect == "RGBWW")
-    {
-        return SingleLEDEffect::RGBWW;
-    }
-    else if (effect == "CWWW")
-    {
-        return SingleLEDEffect::CWWW;
     }
     else // default
     {
@@ -438,30 +442,6 @@ String SingleLEDEffectToString(SingleLEDEffect effect)
 
     case SingleLEDEffect::Rainbow:
         return "Rainbow";
-        break;
-
-    case SingleLEDEffect::RGB:
-        return "RGB";
-        break;
-
-    case SingleLEDEffect::CW:
-        return "CW";
-        break;
-
-    case SingleLEDEffect::WW:
-        return "WW";
-        break;
-
-    case SingleLEDEffect::RGBCW:
-        return "RGBCW";
-        break;
-
-    case SingleLEDEffect::RGBWW:
-        return "RGBWW";
-        break;
-
-    case SingleLEDEffect::CWWW:
-        return "CWWW";
         break;
 
     default:
@@ -523,8 +503,16 @@ void mqttCallback(char *topic, byte *payload, unsigned int length)
     message[length] = '\0';
     memMessage[length] = '\0';
 
-    //######################################## mqtt_sun_command ########################################//
-    if (String(mqtt_sun_command).equals(topic))
+    ConfiguredData configuredData = mainController.configuration.getData();
+
+    // # ================================ HomeAssistant ================================ //
+    /*
+        Callback stuff for data received by home assistant endpoints
+    */
+
+    // ================ Global ================ //
+    // ======== Sun ======== //
+    if (String("LEDController/Global/HomeAssistant/Sun/command").equals(topic))
     {
         uint8_t data = atoi(message);
         if (data >= 0 && data <= 1)
@@ -532,9 +520,8 @@ void mqttCallback(char *topic, byte *payload, unsigned int length)
             mainController.network.parameter_sun = (bool)data;
         }
     }
-
-    //######################################## mqtt_master_present_command ########################################//
-    if (String(mqtt_master_present_command).equals(topic))
+    // ======== MasterPresent ======== //
+    if (String("LEDController/Global/HomeAssistant/MasterPresent/command").equals(topic))
     {
         String temp_message = strtok(message, "\0");
         if (temp_message.equals("home"))
@@ -546,252 +533,246 @@ void mqttCallback(char *topic, byte *payload, unsigned int length)
             mainController.network.parameter_master_present = false;
         }
     }
+    // ======== Effects ======== //
+    if (String("LEDController/Global/HomeAssistant/Effect/command").equals(topic))
+    {
+        // TODO implement
+    }
 
-    //######################################## mqtt_pc_present_command ########################################//
-    if (String(mqtt_pc_present_command).equals(topic))
+    // ================ Specific ================ //
+    // ======== Motion ======== //
+    if (String("LEDController/" + configuredData.mqttClientName + "/HomeAssistant/MotionDetection/BrightnessTimeBasedEnabled/command").equals(topic))
     {
         uint8_t data = atoi(message);
         if (data >= 0 && data <= 1)
         {
-            mainController.network.parameter_pc_present = (bool)data;
+            mainController.network.stNetworkMotionData.timeBasedBrightnessChangeEnabled = (bool)data;
+            mainController.network.mqttClient.publish(("LEDController/" + configuredData.mqttClientName + "/HomeAssistant/MotionDetection/BrightnessTimeBasedEnabled/state").c_str(), memMessage);
         }
     }
-
-    //######################################## mqtt_motion_detection_power_command ########################################//
-    if (String(mqtt_motion_detection_power_command).equals(topic))
+    if (String("LEDController/" + configuredData.mqttClientName + "/HomeAssistant/MotionDetection/Enabled/command").equals(topic))
     {
         uint8_t data = atoi(message);
         if (data >= 0 && data <= 1)
         {
-            mainController.network.stNetworkMotionData.power = (bool)data;
+            mainController.network.stNetworkMotionData.motionDetectionEnabled = (bool)data;
+            mainController.network.mqttClient.publish(("LEDController/" + configuredData.mqttClientName + "/HomeAssistant/MotionDetection/Enabled/state").c_str(), memMessage);
         }
     }
-
-    //######################################## mqtt_motion_detection_rgb_command ########################################//
-    if (String(mqtt_motion_detection_rgb_command).equals(topic))
-    {
-        uint8_t red = atoi(strtok(message, ","));
-        if (red >= 0 && red <= 255)
-        {
-            mainController.network.stNetworkMotionData.redColorValue = red;
-        }
-        uint8_t green = atoi(strtok(NULL, ","));
-        if (green >= 0 && green <= 255)
-        {
-            mainController.network.stNetworkMotionData.greenColorValue = green;
-        }
-        uint8_t blue = atoi(strtok(NULL, ","));
-        if (blue >= 0 && blue <= 255)
-        {
-            mainController.network.stNetworkMotionData.blueColorValue = blue;
-        }
-    }
-
-    //######################################## mqtt_motion_detection_timeout_command ########################################//
-    if (String(mqtt_motion_detection_timeout_command).equals(topic))
+    if (String("LEDController/" + configuredData.mqttClientName + "/HomeAssistant/MotionDetection/Timeout/command").equals(topic))
     {
         uint8_t data = atoi(message);
         if (data >= 0 && data <= 1000)
         {
             mainController.network.stNetworkMotionData.timeout = data;
+            mainController.network.mqttClient.publish(("LEDController/" + configuredData.mqttClientName + "/HomeAssistant/MotionDetection/Timeout/state").c_str(), memMessage);
         }
     }
-
-    //######################################## mqtt_alarm_json_command ########################################//
-    if (String(mqtt_alarm_json_command).equals(topic))
+    if (String("LEDController/" + configuredData.mqttClientName + "/HomeAssistant/MotionDetection/RGB/command").equals(topic))
     {
-        // Deserialize message
-        DeserializationError error = deserializeJson(mainController.network.doc, message);
-        if (error)
+        uint8_t red = atoi(strtok(message, ","));
+        uint8_t green = atoi(strtok(NULL, ","));
+        uint8_t blue = atoi(strtok(NULL, ","));
+        if ((red >= 0 && red <= 255) && (green >= 0 && green <= 255) && (blue >= 0 && blue <= 255))
         {
-            Serial.print("Deserialize JSON failed!");
-            Serial.println(error.c_str());
-            return;
-        }
-
-        // ======== Power ======== //
-        JsonVariant power = mainController.network.doc["power"];
-        if (!power.isNull())
-        {
-            mainController.network.stNetworkAlarmData.power = power.as<bool>();
-        }
-
-        // ======== mode ======== //
-        JsonVariant mode = mainController.network.doc["mode"];
-        if (!mode.isNull())
-        {
-            mainController.network.stNetworkAlarmData.mode = StringToAlarmMode(mode.as<String>());
+            mainController.network.stNetworkMotionData.redColorValue = red;
+            mainController.network.stNetworkMotionData.greenColorValue = green;
+            mainController.network.stNetworkMotionData.blueColorValue = blue;
+            mainController.network.mqttClient.publish(("LEDController/" + configuredData.mqttClientName + "/HomeAssistant/MotionDetection/RGB/state").c_str(), memMessage);
         }
     }
-
-    //######################################## mqtt_music_json_command ########################################//
-    if (String(mqtt_music_json_command).equals(topic))
+    if (String("LEDController/" + configuredData.mqttClientName + "/HomeAssistant/MotionDetection/RGB/Brightness/command").equals(topic))
     {
-        // Deserialize message
-        DeserializationError error = deserializeJson(mainController.network.doc, message);
-        if (error)
+        uint16_t data = atoi(message);
+        if (data >= 0 && data <= 4095)
         {
-            Serial.print("Deserialize JSON failed!");
-            Serial.println(error.c_str());
-            return;
-        }
-
-        // ======== Power ======== //
-        JsonVariant power = mainController.network.doc["power"];
-        if (!power.isNull())
-        {
-            mainController.network.stNetworkMusicData.power = power.as<bool>();
-        }
-    }
-
-    //######################################## mqtt_strip1_json_command ########################################//
-    if (String(mqtt_strip1_json_command).equals(topic))
-    {
-
-        // Deserialize message
-        DeserializationError error = deserializeJson(mainController.network.doc, message);
-        if (error)
-        {
-            Serial.print("Deserialize JSON failed!");
-            Serial.println(error.c_str());
-            return;
-        }
-
-        // ======== Power ======== //
-        JsonVariant state = mainController.network.doc["state"];
-        if (!state.isNull())
-        {
-            if (mainController.network.doc["state"] == "ON")
+            // Because home assistant rgb brightness slider is retarded and can only go to 1% and not to 0% we set the brightness to zero if below 50
+            if (data <= 50)
             {
-                mainController.network.stNetworkLedStrip1Data.power = true;
+                mainController.network.stNetworkMotionData.colorBrightnessValue = 0;
             }
             else
             {
-                mainController.network.stNetworkLedStrip1Data.power = false;
+                mainController.network.stNetworkMotionData.colorBrightnessValue = data;
             }
+            mainController.network.mqttClient.publish(("LEDController/" + configuredData.mqttClientName + "/HomeAssistant/MotionDetection/RGB/Brightness/state").c_str(), memMessage);
         }
-
-        // ======== Brightness ======== //
-        JsonVariant brightness = mainController.network.doc["brightness"];
-        if (!brightness.isNull())
+    }
+    if (String("LEDController/" + configuredData.mqttClientName + "/HomeAssistant/MotionDetection/White/command").equals(topic))
+    {
+        uint16_t data = atoi(message);
+        if (data >= 0 && data <= 500)
         {
-            mainController.network.stNetworkLedStrip1Data.ledStripData.brightnessValue = brightness.as<uint16_t>();
+            mainController.network.stNetworkMotionData.whiteTemperatureValue = data;
+            mainController.network.mqttClient.publish(("LEDController/" + configuredData.mqttClientName + "/HomeAssistant/MotionDetection/White/state").c_str(), memMessage);
         }
-
-        // ======== White Value ======== //
-        JsonVariant white_value = mainController.network.doc["white_value"];
-        if (!white_value.isNull())
+    }
+    if (String("LEDController/" + configuredData.mqttClientName + "/HomeAssistant/MotionDetection/White/Brightness/command").equals(topic))
+    {
+        uint16_t data = atoi(message);
+        if (data >= 0 && data <= 4095)
         {
-            mainController.network.stNetworkLedStrip1Data.ledStripData.cwColorValue = white_value.as<uint8_t>();
+            mainController.network.stNetworkMotionData.whiteBrightnessValue = data;
+            mainController.network.mqttClient.publish(("LEDController/" + configuredData.mqttClientName + "/HomeAssistant/MotionDetection/White/Brightness/state").c_str(), memMessage);
         }
-
-        // ======== Color ======== //
-        JsonVariant color = mainController.network.doc["color"];
-        if (!color.isNull())
-        {
-            // ==== Red ==== //
-            JsonVariant r = mainController.network.doc["color"]["r"];
-            if (!r.isNull())
-            {
-                mainController.network.stNetworkLedStrip1Data.ledStripData.redColorValue = r.as<uint8_t>();
-            }
-            // ==== Green ==== //
-            JsonVariant g = mainController.network.doc["color"]["g"];
-            if (!g.isNull())
-            {
-                mainController.network.stNetworkLedStrip1Data.ledStripData.greenColorValue = g.as<uint8_t>();
-            }
-            // ==== Blue ==== //
-            JsonVariant b = mainController.network.doc["color"]["b"];
-            if (!b.isNull())
-            {
-                mainController.network.stNetworkLedStrip1Data.ledStripData.blueColorValue = b.as<uint8_t>();
-            }
-        }
-
-        // ======== Effect ======== //
-        JsonVariant effect = mainController.network.doc["effect"];
-        if (!effect.isNull())
-        {
-            mainController.network.stNetworkLedStrip1Data.effect = StringToSingleLEDEffect(effect.as<String>());
-        }
-
-        // Send message back to mqtt state topic
-        mainController.network.mqttClient.publish(mqtt_strip1_json_state, memMessage);
     }
 
-    //######################################## mqtt_strip2_json_command ########################################//
-    if (String(mqtt_strip2_json_command).equals(topic))
+    // ======== Strip 1 ======== //
+    if (String("LEDController/" + configuredData.mqttClientName + "/HomeAssistant/Strip1/Power/command").equals(topic))
     {
-        // Deserialize message
-        DeserializationError error = deserializeJson(mainController.network.doc, message);
-        if (error)
+        uint8_t data = atoi(message);
+        if (data >= 0 && data <= 1)
         {
-            Serial.print("Deserialize JSON failed!");
-            Serial.println(error.c_str());
-            return;
+            mainController.network.stNetworkLedStrip1Data.power = (bool)data;
+            mainController.network.mqttClient.publish(("LEDController/" + configuredData.mqttClientName + "/HomeAssistant/Strip1/Power/state").c_str(), memMessage);
         }
-
-        // ======== Power ======== //
-        JsonVariant state = mainController.network.doc["state"];
-        if (!state.isNull())
+    }
+    if (String("LEDController/" + configuredData.mqttClientName + "/HomeAssistant/Strip1/RGB/command").equals(topic))
+    {
+        uint8_t red = atoi(strtok(message, ","));
+        uint8_t green = atoi(strtok(NULL, ","));
+        uint8_t blue = atoi(strtok(NULL, ","));
+        if ((red >= 0 && red <= 255) && (green >= 0 && green <= 255) && (blue >= 0 && blue <= 255))
         {
-            if (mainController.network.doc["state"] == "ON")
+            mainController.network.stNetworkLedStrip1Data.ledStripData.redColorValue = red;
+            mainController.network.stNetworkLedStrip1Data.ledStripData.greenColorValue = green;
+            mainController.network.stNetworkLedStrip1Data.ledStripData.blueColorValue = blue;
+            mainController.network.mqttClient.publish(("LEDController/" + configuredData.mqttClientName + "/HomeAssistant/Strip1/RGB/state").c_str(), memMessage);
+        }
+    }
+    if (String("LEDController/" + configuredData.mqttClientName + "/HomeAssistant/Strip1/RGB/Brightness/command").equals(topic))
+    {
+        uint16_t data = atoi(message);
+        if (data >= 0 && data <= 4095)
+        {
+            // Because home assistant rgb brightness slider is retarded and can only go to 1% and not to 0% we set the brightness to zero if below 50
+            if (data <= 50)
             {
-                mainController.network.stNetworkLedStrip2Data.power = true;
+                mainController.network.stNetworkLedStrip1Data.ledStripData.colorBrightnessValue = 0;
             }
             else
             {
-                mainController.network.stNetworkLedStrip2Data.power = false;
+                mainController.network.stNetworkLedStrip1Data.ledStripData.colorBrightnessValue = data;
             }
+            mainController.network.mqttClient.publish(("LEDController/" + configuredData.mqttClientName + "/HomeAssistant/Strip1/RGB/Brightness/state").c_str(), memMessage);
         }
-
-        // ======== Brightness ======== //
-        JsonVariant brightness = mainController.network.doc["brightness"];
-        if (!brightness.isNull())
-        {
-            mainController.network.stNetworkLedStrip2Data.ledStripData.brightnessValue = brightness.as<uint16_t>();
-        }
-
-        // ======== White Value ======== //
-        JsonVariant white_value = mainController.network.doc["white_value"];
-        if (!white_value.isNull())
-        {
-            mainController.network.stNetworkLedStrip2Data.ledStripData.cwColorValue = white_value.as<uint8_t>();
-        }
-
-        // ======== Color ======== //
-        JsonVariant color = mainController.network.doc["color"];
-        if (!color.isNull())
-        {
-            // ==== Red ==== //
-            JsonVariant r = mainController.network.doc["color"]["r"];
-            if (!r.isNull())
-            {
-                mainController.network.stNetworkLedStrip2Data.ledStripData.redColorValue = r.as<uint8_t>();
-            }
-            // ==== Green ==== //
-            JsonVariant g = mainController.network.doc["color"]["g"];
-            if (!g.isNull())
-            {
-                mainController.network.stNetworkLedStrip2Data.ledStripData.greenColorValue = g.as<uint8_t>();
-            }
-            // ==== Blue ==== //
-            JsonVariant b = mainController.network.doc["color"]["b"];
-            if (!b.isNull())
-            {
-                mainController.network.stNetworkLedStrip2Data.ledStripData.blueColorValue = b.as<uint8_t>();
-            }
-        }
-
-        // ======== Effect ======== //
-        JsonVariant effect = mainController.network.doc["effect"];
-        if (!effect.isNull())
-        {
-            mainController.network.stNetworkLedStrip2Data.effect = StringToSingleLEDEffect(effect.as<String>());
-        }
-
-        // Send message back to mqtt state topic
-        mainController.network.mqttClient.publish(mqtt_strip2_json_state, memMessage);
     }
+    if (String("LEDController/" + configuredData.mqttClientName + "/HomeAssistant/Strip1/White/command").equals(topic))
+    {
+        uint16_t data = atoi(message);
+        if (data >= 0 && data <= 500)
+        {
+            mainController.network.stNetworkLedStrip1Data.ledStripData.whiteTemperatureValue = data;
+            mainController.network.mqttClient.publish(("LEDController/" + configuredData.mqttClientName + "/HomeAssistant/Strip1/White/state").c_str(), memMessage);
+        }
+    }
+    if (String("LEDController/" + configuredData.mqttClientName + "/HomeAssistant/Strip1/White/Brightness/command").equals(topic))
+    {
+        uint16_t data = atoi(message);
+        if (data >= 0 && data <= 4095)
+        {
+            mainController.network.stNetworkLedStrip1Data.ledStripData.whiteBrightnessValue = data;
+            mainController.network.mqttClient.publish(("LEDController/" + configuredData.mqttClientName + "/HomeAssistant/Strip1/White/Brightness/state").c_str(), memMessage);
+        }
+    }
+    if (String("LEDController/" + configuredData.mqttClientName + "/HomeAssistant/Strip1/Effect/command").equals(topic))
+    {
+        mainController.network.stNetworkLedStrip1Data.effect = StringToSingleLEDEffect(message);
+
+        mainController.network.mqttClient.publish(("LEDController/" + configuredData.mqttClientName + "/HomeAssistant/Strip1/Effect/state").c_str(), memMessage);
+    }
+
+    // ======== Strip 2 ======== //
+    if (String("LEDController/" + configuredData.mqttClientName + "/HomeAssistant/Strip2/Power/command").equals(topic))
+    {
+        uint8_t data = atoi(message);
+        if (data >= 0 && data <= 2)
+        {
+            mainController.network.stNetworkLedStrip2Data.power = (bool)data;
+            mainController.network.mqttClient.publish(("LEDController/" + configuredData.mqttClientName + "/HomeAssistant/Strip2/Power/state").c_str(), memMessage);
+        }
+    }
+    if (String("LEDController/" + configuredData.mqttClientName + "/HomeAssistant/Strip2/RGB/command").equals(topic))
+    {
+        uint8_t red = atoi(strtok(message, ","));
+        uint8_t green = atoi(strtok(NULL, ","));
+        uint8_t blue = atoi(strtok(NULL, ","));
+        if ((red >= 0 && red <= 255) && (green >= 0 && green <= 255) && (blue >= 0 && blue <= 255))
+        {
+            mainController.network.stNetworkLedStrip2Data.ledStripData.redColorValue = red;
+            mainController.network.stNetworkLedStrip2Data.ledStripData.greenColorValue = green;
+            mainController.network.stNetworkLedStrip2Data.ledStripData.blueColorValue = blue;
+            mainController.network.mqttClient.publish(("LEDController/" + configuredData.mqttClientName + "/HomeAssistant/Strip2/RGB/state").c_str(), memMessage);
+        }
+    }
+    if (String("LEDController/" + configuredData.mqttClientName + "/HomeAssistant/Strip2/RGB/Brightness/command").equals(topic))
+    {
+        uint16_t data = atoi(message);
+        if (data >= 0 && data <= 4095)
+        {
+            // Because home assistant rgb brightness slider is retarded and can only go to 1% and not to 0% we set the brightness to zero if below 50
+            if (data <= 50)
+            {
+                mainController.network.stNetworkLedStrip2Data.ledStripData.colorBrightnessValue = 0;
+            }
+            else
+            {
+                mainController.network.stNetworkLedStrip2Data.ledStripData.colorBrightnessValue = data;
+            }
+            mainController.network.mqttClient.publish(("LEDController/" + configuredData.mqttClientName + "/HomeAssistant/Strip2/RGB/Brightness/state").c_str(), memMessage);
+        }
+    }
+    if (String("LEDController/" + configuredData.mqttClientName + "/HomeAssistant/Strip2/White/command").equals(topic))
+    {
+        uint16_t data = atoi(message);
+        if (data >= 0 && data <= 500)
+        {
+            mainController.network.stNetworkLedStrip2Data.ledStripData.whiteTemperatureValue = data;
+            mainController.network.mqttClient.publish(("LEDController/" + configuredData.mqttClientName + "/HomeAssistant/Strip2/White/state").c_str(), memMessage);
+        }
+    }
+    if (String("LEDController/" + configuredData.mqttClientName + "/HomeAssistant/Strip2/White/Brightness/command").equals(topic))
+    {
+        uint16_t data = atoi(message);
+        if (data >= 0 && data <= 4095)
+        {
+            mainController.network.stNetworkLedStrip2Data.ledStripData.whiteBrightnessValue = data;
+            mainController.network.mqttClient.publish(("LEDController/" + configuredData.mqttClientName + "/HomeAssistant/Strip2/White/Brightness/state").c_str(), memMessage);
+        }
+    }
+    if (String("LEDController/" + configuredData.mqttClientName + "/HomeAssistant/Strip2/Effect/command").equals(topic))
+    {
+        mainController.network.stNetworkLedStrip2Data.effect = StringToSingleLEDEffect(message);
+
+        mainController.network.mqttClient.publish(("LEDController/" + configuredData.mqttClientName + "/HomeAssistant/Strip2/Effect/state").c_str(), memMessage);
+    }
+
+    // ================ Virtual ================ //
+    // ======== PIR ======== //
+    if (String("LEDController/" + configuredData.mqttClientName + "/HomeAssistant/Virtual/PIR/command").equals(topic))
+    {
+        // TODO Implement
+    }
+
+    // # ================================ JSON ================================ //
+    /*
+        Callback stuff for data received by json endpoints
+    */
+
+    // ================ Global ================ //
+    // ======== Sun ======== //
+
+    // ======== MasterPresent ======== //
+
+    // ======== Effects ======== //
+
+    // ================ Specific ================ //
+    // ======== Motion ======== //
+
+    // ======== Strip 1 ======== //
+
+    // ======== Strip 2 ======== //
+
+    // ================ Virtual ================ //
+    // ======== PIR ======== //
 }

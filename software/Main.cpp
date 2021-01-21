@@ -43,6 +43,13 @@ void Main::_setup()
  */
 void Main::_loop()
 {
+    //  Messure loop time
+    /*
+    unsigned long curMicros = micros();
+    Serial.println("Loop time : " + String(curMicros - PrevMicros_Loop));
+    PrevMicros_Loop = curMicros;
+    */
+
     // Run configuration before all other components
     configuration.Run();
 

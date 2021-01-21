@@ -47,7 +47,7 @@ private:
     // Timeout
     const unsigned long TimeOut_WiFiTimeout = 5000;      // 5 sec
     const unsigned long TimeOut_MQTTTimeout = 5000;      // 5 sec
-    const unsigned long TimeOut_NTPTimeout = 400;        // 0. sec
+    const unsigned long TimeOut_NTPTimeout = 60000;      // 60 sec 
     const unsigned long TimeOut_HeartbeatTimeout = 5000; // 5 sec
 
     bool wifiOneTimePrint = true;

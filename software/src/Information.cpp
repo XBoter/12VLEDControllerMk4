@@ -1,5 +1,7 @@
 #include "../include/Information.h"
 
+// ToDo Update function descriptions
+
 Information::Information(Network *network, PirReader *pirReader)
 {
     this->network = network;
@@ -49,10 +51,10 @@ void Information::Run()
         || this->network->stNetworkTimeData.minute != memNetwork.stNetworkTimeData.minute
         || this->network->stNetworkTimeData.second != memNetwork.stNetworkTimeData.second)
     {
-        //FormatPrintTime("Time", 
-        //                String(this->network->stNetworkTimeData.hour), 
-        //                String(this->network->stNetworkTimeData.minute),
-        //                String(this->network->stNetworkTimeData.second));   
+        FormatPrintTime("Time", 
+                        String(this->network->stNetworkTimeData.hour), 
+                        String(this->network->stNetworkTimeData.minute),
+                        String(this->network->stNetworkTimeData.second));   
 
         memNetwork.stNetworkTimeData.hour      = this->network->stNetworkTimeData.hour;
         memNetwork.stNetworkTimeData.minute    = this->network->stNetworkTimeData.minute;
@@ -67,35 +69,40 @@ void Information::Run()
 
         memNetwork.parameter_master_present = this->network->parameter_master_present;
     }
-
-    // -- PC
-    if(this->network->parameter_pc_present != memNetwork.parameter_pc_present)
-    {
-        FormatPrintSingle(  "PC", 
-                            BoolToString(this->network->parameter_pc_present));  
-
-        memNetwork.parameter_pc_present = this->network->parameter_pc_present;
-    }
     
     // -- Motion Parameter
-    if( this->network->stNetworkMotionData.power                != memNetwork.stNetworkMotionData.power
-        || this->network->stNetworkMotionData.redColorValue     != memNetwork.stNetworkMotionData.redColorValue
-        || this->network->stNetworkMotionData.greenColorValue   != memNetwork.stNetworkMotionData.greenColorValue
-        || this->network->stNetworkMotionData.blueColorValue    != memNetwork.stNetworkMotionData.blueColorValue
-        || this->network->stNetworkMotionData.timeout           != memNetwork.stNetworkMotionData.timeout)
+    if( this->network->stNetworkMotionData.motionDetectionEnabled               != memNetwork.stNetworkMotionData.motionDetectionEnabled
+        || this->network->stNetworkMotionData.timeBasedBrightnessChangeEnabled  != memNetwork.stNetworkMotionData.timeBasedBrightnessChangeEnabled
+        || this->network->stNetworkMotionData.timeout                           != memNetwork.stNetworkMotionData.timeout
+        || this->network->stNetworkMotionData.redColorValue                     != memNetwork.stNetworkMotionData.redColorValue
+        || this->network->stNetworkMotionData.greenColorValue                   != memNetwork.stNetworkMotionData.greenColorValue
+        || this->network->stNetworkMotionData.blueColorValue                    != memNetwork.stNetworkMotionData.blueColorValue
+        || this->network->stNetworkMotionData.colorBrightnessValue              != memNetwork.stNetworkMotionData.colorBrightnessValue
+        || this->network->stNetworkMotionData.whiteTemperatureValue             != memNetwork.stNetworkMotionData.whiteTemperatureValue
+        || this->network->stNetworkMotionData.whiteBrightnessValue              != memNetwork.stNetworkMotionData.whiteBrightnessValue
+    )
     {
         FormatPrintMotion("Motion Parameter", 
-                          BoolToString(this->network->stNetworkMotionData.power),
+                          BoolToString(this->network->stNetworkMotionData.motionDetectionEnabled),
+                          BoolToString(this->network->stNetworkMotionData.timeBasedBrightnessChangeEnabled),
+                          String(this->network->stNetworkMotionData.timeout),
                           String(this->network->stNetworkMotionData.redColorValue),
                           String(this->network->stNetworkMotionData.greenColorValue),
                           String(this->network->stNetworkMotionData.blueColorValue),
-                          String(this->network->stNetworkMotionData.timeout)); 
+                          String(this->network->stNetworkMotionData.colorBrightnessValue),
+                          String(this->network->stNetworkMotionData.whiteTemperatureValue),
+                          String(this->network->stNetworkMotionData.whiteBrightnessValue)); 
 
-        memNetwork.stNetworkMotionData.power            = this->network->stNetworkMotionData.power;
-        memNetwork.stNetworkMotionData.redColorValue    = this->network->stNetworkMotionData.redColorValue;
-        memNetwork.stNetworkMotionData.greenColorValue  = this->network->stNetworkMotionData.greenColorValue;
-        memNetwork.stNetworkMotionData.blueColorValue   = this->network->stNetworkMotionData.blueColorValue;
-        memNetwork.stNetworkMotionData.timeout          = this->network->stNetworkMotionData.timeout;
+        memNetwork.stNetworkMotionData.motionDetectionEnabled           = this->network->stNetworkMotionData.motionDetectionEnabled;
+        memNetwork.stNetworkMotionData.timeBasedBrightnessChangeEnabled = this->network->stNetworkMotionData.timeBasedBrightnessChangeEnabled;
+        memNetwork.stNetworkMotionData.timeout                          = this->network->stNetworkMotionData.timeout;
+        memNetwork.stNetworkMotionData.redColorValue                    = this->network->stNetworkMotionData.redColorValue;
+        memNetwork.stNetworkMotionData.greenColorValue                  = this->network->stNetworkMotionData.greenColorValue;
+        memNetwork.stNetworkMotionData.blueColorValue                   = this->network->stNetworkMotionData.blueColorValue;
+        memNetwork.stNetworkMotionData.colorBrightnessValue             = this->network->stNetworkMotionData.colorBrightnessValue;
+        memNetwork.stNetworkMotionData.whiteTemperatureValue            = this->network->stNetworkMotionData.whiteTemperatureValue;
+        memNetwork.stNetworkMotionData.whiteBrightnessValue             = this->network->stNetworkMotionData.whiteBrightnessValue;
+        
     }
 
     // -- Alarm
@@ -130,88 +137,112 @@ void Information::Run()
 
     // -- LED Strip 1
     // Only High Level LED Strip Data
-    if( this->network->stNetworkLedStrip1Data.power                                 != memNetwork.stNetworkLedStrip1Data.power
-        || this->network->stNetworkLedStrip1Data.ledStripData.brightnessValue       != memNetwork.stNetworkLedStrip1Data.ledStripData.brightnessValue
-        || this->network->stNetworkLedStrip1Data.ledStripData.brightnessFadeTime    != memNetwork.stNetworkLedStrip1Data.ledStripData.brightnessFadeTime
-        || this->network->stNetworkLedStrip1Data.ledStripData.brightnessFadeCurve   != memNetwork.stNetworkLedStrip1Data.ledStripData.brightnessFadeCurve
-        || this->network->stNetworkLedStrip1Data.ledStripData.cwColorValue          != memNetwork.stNetworkLedStrip1Data.ledStripData.cwColorValue
-        || this->network->stNetworkLedStrip1Data.ledStripData.wwColorValue          != memNetwork.stNetworkLedStrip1Data.ledStripData.wwColorValue
-        || this->network->stNetworkLedStrip1Data.ledStripData.redColorValue         != memNetwork.stNetworkLedStrip1Data.ledStripData.redColorValue
-        || this->network->stNetworkLedStrip1Data.ledStripData.greenColorValue       != memNetwork.stNetworkLedStrip1Data.ledStripData.greenColorValue
-        || this->network->stNetworkLedStrip1Data.ledStripData.blueColorValue        != memNetwork.stNetworkLedStrip1Data.ledStripData.blueColorValue
-        || this->network->stNetworkLedStrip1Data.ledStripData.colorFadeTime         != memNetwork.stNetworkLedStrip1Data.ledStripData.colorFadeTime
-        || this->network->stNetworkLedStrip1Data.ledStripData.colorFadeCurve        != memNetwork.stNetworkLedStrip1Data.ledStripData.colorFadeCurve
-        || this->network->stNetworkLedStrip1Data.effect                             != memNetwork.stNetworkLedStrip1Data.effect)
+    if( this->network->stNetworkLedStrip1Data.power                                         != memNetwork.stNetworkLedStrip1Data.power
+        || this->network->stNetworkLedStrip1Data.ledStripData.redColorValue                 != memNetwork.stNetworkLedStrip1Data.ledStripData.redColorValue
+        || this->network->stNetworkLedStrip1Data.ledStripData.greenColorValue               != memNetwork.stNetworkLedStrip1Data.ledStripData.greenColorValue
+        || this->network->stNetworkLedStrip1Data.ledStripData.blueColorValue                != memNetwork.stNetworkLedStrip1Data.ledStripData.blueColorValue
+        || this->network->stNetworkLedStrip1Data.ledStripData.colorFadeTime                 != memNetwork.stNetworkLedStrip1Data.ledStripData.colorFadeTime
+        || this->network->stNetworkLedStrip1Data.ledStripData.colorFadeCurve                != memNetwork.stNetworkLedStrip1Data.ledStripData.colorFadeCurve
+        || this->network->stNetworkLedStrip1Data.ledStripData.colorBrightnessValue          != memNetwork.stNetworkLedStrip1Data.ledStripData.colorBrightnessValue
+        || this->network->stNetworkLedStrip1Data.ledStripData.colorBrightnessFadeTime       != memNetwork.stNetworkLedStrip1Data.ledStripData.colorBrightnessFadeTime
+        || this->network->stNetworkLedStrip1Data.ledStripData.colorBrightnessFadeCurve      != memNetwork.stNetworkLedStrip1Data.ledStripData.colorBrightnessFadeCurve
+        || this->network->stNetworkLedStrip1Data.ledStripData.whiteTemperatureValue         != memNetwork.stNetworkLedStrip1Data.ledStripData.whiteTemperatureValue
+        || this->network->stNetworkLedStrip1Data.ledStripData.whiteTemperatureFadeTime      != memNetwork.stNetworkLedStrip1Data.ledStripData.whiteTemperatureFadeTime
+        || this->network->stNetworkLedStrip1Data.ledStripData.whiteTemperatureFadeCurve     != memNetwork.stNetworkLedStrip1Data.ledStripData.whiteTemperatureFadeCurve
+        || this->network->stNetworkLedStrip1Data.ledStripData.whiteBrightnessValue          != memNetwork.stNetworkLedStrip1Data.ledStripData.whiteBrightnessValue
+        || this->network->stNetworkLedStrip1Data.ledStripData.whiteBrightnessFadeTime       != memNetwork.stNetworkLedStrip1Data.ledStripData.whiteBrightnessFadeTime
+        || this->network->stNetworkLedStrip1Data.ledStripData.whiteBrightnessFadeCurve      != memNetwork.stNetworkLedStrip1Data.ledStripData.whiteBrightnessFadeCurve
+        || this->network->stNetworkLedStrip1Data.effect                                     != memNetwork.stNetworkLedStrip1Data.effect)
     {
         FormatPrintLEDStrip("LED Strip 1", 
                             BoolToString(this->network->stNetworkLedStrip1Data.power),
-                            String(this->network->stNetworkLedStrip1Data.ledStripData.brightnessValue),
-                            String(this->network->stNetworkLedStrip1Data.ledStripData.brightnessFadeTime),
-                            FadeCurveToString(this->network->stNetworkLedStrip1Data.ledStripData.brightnessFadeCurve),
-                            String(this->network->stNetworkLedStrip1Data.ledStripData.cwColorValue),
-                            String(this->network->stNetworkLedStrip1Data.ledStripData.wwColorValue),
                             String(this->network->stNetworkLedStrip1Data.ledStripData.redColorValue),
                             String(this->network->stNetworkLedStrip1Data.ledStripData.greenColorValue),
                             String(this->network->stNetworkLedStrip1Data.ledStripData.blueColorValue),
                             String(this->network->stNetworkLedStrip1Data.ledStripData.colorFadeTime),
                             FadeCurveToString(this->network->stNetworkLedStrip1Data.ledStripData.colorFadeCurve),
+                            String(this->network->stNetworkLedStrip1Data.ledStripData.colorBrightnessValue),
+                            String(this->network->stNetworkLedStrip1Data.ledStripData.colorBrightnessFadeTime),
+                            FadeCurveToString(this->network->stNetworkLedStrip1Data.ledStripData.colorBrightnessFadeCurve),
+                            String(this->network->stNetworkLedStrip1Data.ledStripData.whiteTemperatureValue),
+                            String(this->network->stNetworkLedStrip1Data.ledStripData.whiteTemperatureFadeTime),
+                            FadeCurveToString(this->network->stNetworkLedStrip1Data.ledStripData.whiteTemperatureFadeCurve),
+                            String(this->network->stNetworkLedStrip1Data.ledStripData.whiteBrightnessValue),
+                            String(this->network->stNetworkLedStrip1Data.ledStripData.whiteBrightnessFadeTime),
+                            FadeCurveToString(this->network->stNetworkLedStrip1Data.ledStripData.whiteBrightnessFadeCurve),
                             SingleLEDEffectToString(this->network->stNetworkLedStrip1Data.effect)); 
 
-        memNetwork.stNetworkLedStrip1Data.power                             = this->network->stNetworkLedStrip1Data.power;
-        memNetwork.stNetworkLedStrip1Data.ledStripData.brightnessValue      = this->network->stNetworkLedStrip1Data.ledStripData.brightnessValue;
-        memNetwork.stNetworkLedStrip1Data.ledStripData.brightnessFadeTime   = this->network->stNetworkLedStrip1Data.ledStripData.brightnessFadeTime;
-        memNetwork.stNetworkLedStrip1Data.ledStripData.brightnessFadeCurve  = this->network->stNetworkLedStrip1Data.ledStripData.brightnessFadeCurve;
-        memNetwork.stNetworkLedStrip1Data.ledStripData.cwColorValue         = this->network->stNetworkLedStrip1Data.ledStripData.cwColorValue;
-        memNetwork.stNetworkLedStrip1Data.ledStripData.wwColorValue         = this->network->stNetworkLedStrip1Data.ledStripData.wwColorValue;
-        memNetwork.stNetworkLedStrip1Data.ledStripData.redColorValue        = this->network->stNetworkLedStrip1Data.ledStripData.redColorValue;
-        memNetwork.stNetworkLedStrip1Data.ledStripData.greenColorValue      = this->network->stNetworkLedStrip1Data.ledStripData.greenColorValue;
-        memNetwork.stNetworkLedStrip1Data.ledStripData.blueColorValue       = this->network->stNetworkLedStrip1Data.ledStripData.blueColorValue;
-        memNetwork.stNetworkLedStrip1Data.ledStripData.colorFadeTime        = this->network->stNetworkLedStrip1Data.ledStripData.colorFadeTime;
-        memNetwork.stNetworkLedStrip1Data.ledStripData.colorFadeCurve       = this->network->stNetworkLedStrip1Data.ledStripData.colorFadeCurve;
-        memNetwork.stNetworkLedStrip1Data.effect                            = this->network->stNetworkLedStrip1Data.effect;
+        memNetwork.stNetworkLedStrip1Data.power                                     = this->network->stNetworkLedStrip1Data.power;
+        memNetwork.stNetworkLedStrip1Data.ledStripData.redColorValue                = this->network->stNetworkLedStrip1Data.ledStripData.redColorValue;
+        memNetwork.stNetworkLedStrip1Data.ledStripData.greenColorValue              = this->network->stNetworkLedStrip1Data.ledStripData.greenColorValue;
+        memNetwork.stNetworkLedStrip1Data.ledStripData.blueColorValue               = this->network->stNetworkLedStrip1Data.ledStripData.blueColorValue;
+        memNetwork.stNetworkLedStrip1Data.ledStripData.colorFadeTime                = this->network->stNetworkLedStrip1Data.ledStripData.colorFadeTime;
+        memNetwork.stNetworkLedStrip1Data.ledStripData.colorFadeCurve               = this->network->stNetworkLedStrip1Data.ledStripData.colorFadeCurve;
+        memNetwork.stNetworkLedStrip1Data.ledStripData.colorBrightnessValue         = this->network->stNetworkLedStrip1Data.ledStripData.colorBrightnessValue;
+        memNetwork.stNetworkLedStrip1Data.ledStripData.colorBrightnessFadeTime      = this->network->stNetworkLedStrip1Data.ledStripData.colorBrightnessFadeTime;
+        memNetwork.stNetworkLedStrip1Data.ledStripData.colorBrightnessFadeCurve     = this->network->stNetworkLedStrip1Data.ledStripData.colorBrightnessFadeCurve;
+        memNetwork.stNetworkLedStrip1Data.ledStripData.whiteTemperatureValue        = this->network->stNetworkLedStrip1Data.ledStripData.whiteTemperatureValue;
+        memNetwork.stNetworkLedStrip1Data.ledStripData.whiteTemperatureFadeTime     = this->network->stNetworkLedStrip1Data.ledStripData.whiteTemperatureFadeTime;
+        memNetwork.stNetworkLedStrip1Data.ledStripData.whiteTemperatureFadeCurve    = this->network->stNetworkLedStrip1Data.ledStripData.whiteTemperatureFadeCurve;
+        memNetwork.stNetworkLedStrip1Data.ledStripData.whiteBrightnessValue         = this->network->stNetworkLedStrip1Data.ledStripData.whiteBrightnessValue;
+        memNetwork.stNetworkLedStrip1Data.ledStripData.whiteBrightnessFadeTime      = this->network->stNetworkLedStrip1Data.ledStripData.whiteBrightnessFadeTime;
+        memNetwork.stNetworkLedStrip1Data.ledStripData.whiteBrightnessFadeCurve     = this->network->stNetworkLedStrip1Data.ledStripData.whiteBrightnessFadeCurve;
+        memNetwork.stNetworkLedStrip1Data.effect                                    = this->network->stNetworkLedStrip1Data.effect;
     }
 
     // -- LED Strip 2
     // Only High Level LED Strip Data
-    if( this->network->stNetworkLedStrip2Data.power                                 != memNetwork.stNetworkLedStrip2Data.power
-        || this->network->stNetworkLedStrip2Data.ledStripData.brightnessValue       != memNetwork.stNetworkLedStrip2Data.ledStripData.brightnessValue
-        || this->network->stNetworkLedStrip2Data.ledStripData.brightnessFadeTime    != memNetwork.stNetworkLedStrip2Data.ledStripData.brightnessFadeTime
-        || this->network->stNetworkLedStrip2Data.ledStripData.brightnessFadeCurve   != memNetwork.stNetworkLedStrip2Data.ledStripData.brightnessFadeCurve
-        || this->network->stNetworkLedStrip2Data.ledStripData.cwColorValue          != memNetwork.stNetworkLedStrip2Data.ledStripData.cwColorValue
-        || this->network->stNetworkLedStrip2Data.ledStripData.wwColorValue          != memNetwork.stNetworkLedStrip2Data.ledStripData.wwColorValue
-        || this->network->stNetworkLedStrip2Data.ledStripData.redColorValue         != memNetwork.stNetworkLedStrip2Data.ledStripData.redColorValue
-        || this->network->stNetworkLedStrip2Data.ledStripData.greenColorValue       != memNetwork.stNetworkLedStrip2Data.ledStripData.greenColorValue
-        || this->network->stNetworkLedStrip2Data.ledStripData.blueColorValue        != memNetwork.stNetworkLedStrip2Data.ledStripData.blueColorValue
-        || this->network->stNetworkLedStrip2Data.ledStripData.colorFadeTime         != memNetwork.stNetworkLedStrip2Data.ledStripData.colorFadeTime
-        || this->network->stNetworkLedStrip2Data.ledStripData.colorFadeCurve        != memNetwork.stNetworkLedStrip2Data.ledStripData.colorFadeCurve
-        || this->network->stNetworkLedStrip2Data.effect                             != memNetwork.stNetworkLedStrip2Data.effect)
+    if( this->network->stNetworkLedStrip2Data.power                                         != memNetwork.stNetworkLedStrip2Data.power
+        || this->network->stNetworkLedStrip2Data.ledStripData.redColorValue                 != memNetwork.stNetworkLedStrip2Data.ledStripData.redColorValue
+        || this->network->stNetworkLedStrip2Data.ledStripData.greenColorValue               != memNetwork.stNetworkLedStrip2Data.ledStripData.greenColorValue
+        || this->network->stNetworkLedStrip2Data.ledStripData.blueColorValue                != memNetwork.stNetworkLedStrip2Data.ledStripData.blueColorValue
+        || this->network->stNetworkLedStrip2Data.ledStripData.colorFadeTime                 != memNetwork.stNetworkLedStrip2Data.ledStripData.colorFadeTime
+        || this->network->stNetworkLedStrip2Data.ledStripData.colorFadeCurve                != memNetwork.stNetworkLedStrip2Data.ledStripData.colorFadeCurve
+        || this->network->stNetworkLedStrip2Data.ledStripData.colorBrightnessValue          != memNetwork.stNetworkLedStrip2Data.ledStripData.colorBrightnessValue
+        || this->network->stNetworkLedStrip2Data.ledStripData.colorBrightnessFadeTime       != memNetwork.stNetworkLedStrip2Data.ledStripData.colorBrightnessFadeTime
+        || this->network->stNetworkLedStrip2Data.ledStripData.colorBrightnessFadeCurve      != memNetwork.stNetworkLedStrip2Data.ledStripData.colorBrightnessFadeCurve
+        || this->network->stNetworkLedStrip2Data.ledStripData.whiteTemperatureValue         != memNetwork.stNetworkLedStrip2Data.ledStripData.whiteTemperatureValue
+        || this->network->stNetworkLedStrip2Data.ledStripData.whiteTemperatureFadeTime      != memNetwork.stNetworkLedStrip2Data.ledStripData.whiteTemperatureFadeTime
+        || this->network->stNetworkLedStrip2Data.ledStripData.whiteTemperatureFadeCurve     != memNetwork.stNetworkLedStrip2Data.ledStripData.whiteTemperatureFadeCurve
+        || this->network->stNetworkLedStrip2Data.ledStripData.whiteBrightnessValue          != memNetwork.stNetworkLedStrip2Data.ledStripData.whiteBrightnessValue
+        || this->network->stNetworkLedStrip2Data.ledStripData.whiteBrightnessFadeTime       != memNetwork.stNetworkLedStrip2Data.ledStripData.whiteBrightnessFadeTime
+        || this->network->stNetworkLedStrip2Data.ledStripData.whiteBrightnessFadeCurve      != memNetwork.stNetworkLedStrip2Data.ledStripData.whiteBrightnessFadeCurve
+        || this->network->stNetworkLedStrip2Data.effect                                     != memNetwork.stNetworkLedStrip2Data.effect)
     {
         FormatPrintLEDStrip("LED Strip 2", 
                             BoolToString(this->network->stNetworkLedStrip2Data.power),
-                            String(this->network->stNetworkLedStrip2Data.ledStripData.brightnessValue),
-                            String(this->network->stNetworkLedStrip2Data.ledStripData.brightnessFadeTime),
-                            FadeCurveToString(this->network->stNetworkLedStrip2Data.ledStripData.brightnessFadeCurve),
-                            String(this->network->stNetworkLedStrip2Data.ledStripData.cwColorValue),
-                            String(this->network->stNetworkLedStrip2Data.ledStripData.wwColorValue),
                             String(this->network->stNetworkLedStrip2Data.ledStripData.redColorValue),
                             String(this->network->stNetworkLedStrip2Data.ledStripData.greenColorValue),
                             String(this->network->stNetworkLedStrip2Data.ledStripData.blueColorValue),
                             String(this->network->stNetworkLedStrip2Data.ledStripData.colorFadeTime),
                             FadeCurveToString(this->network->stNetworkLedStrip2Data.ledStripData.colorFadeCurve),
+                            String(this->network->stNetworkLedStrip2Data.ledStripData.colorBrightnessValue),
+                            String(this->network->stNetworkLedStrip2Data.ledStripData.colorBrightnessFadeTime),
+                            FadeCurveToString(this->network->stNetworkLedStrip2Data.ledStripData.colorBrightnessFadeCurve),
+                            String(this->network->stNetworkLedStrip2Data.ledStripData.whiteTemperatureValue),
+                            String(this->network->stNetworkLedStrip2Data.ledStripData.whiteTemperatureFadeTime),
+                            FadeCurveToString(this->network->stNetworkLedStrip2Data.ledStripData.whiteTemperatureFadeCurve),
+                            String(this->network->stNetworkLedStrip2Data.ledStripData.whiteBrightnessValue),
+                            String(this->network->stNetworkLedStrip2Data.ledStripData.whiteBrightnessFadeTime),
+                            FadeCurveToString(this->network->stNetworkLedStrip2Data.ledStripData.whiteBrightnessFadeCurve),
                             SingleLEDEffectToString(this->network->stNetworkLedStrip2Data.effect)); 
 
-        memNetwork.stNetworkLedStrip2Data.power                             = this->network->stNetworkLedStrip2Data.power;
-        memNetwork.stNetworkLedStrip2Data.ledStripData.brightnessValue      = this->network->stNetworkLedStrip2Data.ledStripData.brightnessValue;
-        memNetwork.stNetworkLedStrip2Data.ledStripData.brightnessFadeTime   = this->network->stNetworkLedStrip2Data.ledStripData.brightnessFadeTime;
-        memNetwork.stNetworkLedStrip2Data.ledStripData.brightnessFadeCurve  = this->network->stNetworkLedStrip2Data.ledStripData.brightnessFadeCurve;
-        memNetwork.stNetworkLedStrip2Data.ledStripData.cwColorValue         = this->network->stNetworkLedStrip2Data.ledStripData.cwColorValue;
-        memNetwork.stNetworkLedStrip2Data.ledStripData.wwColorValue         = this->network->stNetworkLedStrip2Data.ledStripData.wwColorValue;
-        memNetwork.stNetworkLedStrip2Data.ledStripData.redColorValue        = this->network->stNetworkLedStrip2Data.ledStripData.redColorValue;
-        memNetwork.stNetworkLedStrip2Data.ledStripData.greenColorValue      = this->network->stNetworkLedStrip2Data.ledStripData.greenColorValue;
-        memNetwork.stNetworkLedStrip2Data.ledStripData.blueColorValue       = this->network->stNetworkLedStrip2Data.ledStripData.blueColorValue;
-        memNetwork.stNetworkLedStrip2Data.ledStripData.colorFadeTime        = this->network->stNetworkLedStrip2Data.ledStripData.colorFadeTime;
-        memNetwork.stNetworkLedStrip2Data.ledStripData.colorFadeCurve       = this->network->stNetworkLedStrip2Data.ledStripData.colorFadeCurve;
-        memNetwork.stNetworkLedStrip2Data.effect                            = this->network->stNetworkLedStrip2Data.effect;
+        memNetwork.stNetworkLedStrip2Data.power                                     = this->network->stNetworkLedStrip2Data.power;
+        memNetwork.stNetworkLedStrip2Data.ledStripData.redColorValue                = this->network->stNetworkLedStrip2Data.ledStripData.redColorValue;
+        memNetwork.stNetworkLedStrip2Data.ledStripData.greenColorValue              = this->network->stNetworkLedStrip2Data.ledStripData.greenColorValue;
+        memNetwork.stNetworkLedStrip2Data.ledStripData.blueColorValue               = this->network->stNetworkLedStrip2Data.ledStripData.blueColorValue;
+        memNetwork.stNetworkLedStrip2Data.ledStripData.colorFadeTime                = this->network->stNetworkLedStrip2Data.ledStripData.colorFadeTime;
+        memNetwork.stNetworkLedStrip2Data.ledStripData.colorFadeCurve               = this->network->stNetworkLedStrip2Data.ledStripData.colorFadeCurve;
+        memNetwork.stNetworkLedStrip2Data.ledStripData.colorBrightnessValue         = this->network->stNetworkLedStrip2Data.ledStripData.colorBrightnessValue;
+        memNetwork.stNetworkLedStrip2Data.ledStripData.colorBrightnessFadeTime      = this->network->stNetworkLedStrip2Data.ledStripData.colorBrightnessFadeTime;
+        memNetwork.stNetworkLedStrip2Data.ledStripData.colorBrightnessFadeCurve     = this->network->stNetworkLedStrip2Data.ledStripData.colorBrightnessFadeCurve;
+        memNetwork.stNetworkLedStrip2Data.ledStripData.whiteTemperatureValue        = this->network->stNetworkLedStrip2Data.ledStripData.whiteTemperatureValue;
+        memNetwork.stNetworkLedStrip2Data.ledStripData.whiteTemperatureFadeTime     = this->network->stNetworkLedStrip2Data.ledStripData.whiteTemperatureFadeTime;
+        memNetwork.stNetworkLedStrip2Data.ledStripData.whiteTemperatureFadeCurve    = this->network->stNetworkLedStrip2Data.ledStripData.whiteTemperatureFadeCurve;
+        memNetwork.stNetworkLedStrip2Data.ledStripData.whiteBrightnessValue         = this->network->stNetworkLedStrip2Data.ledStripData.whiteBrightnessValue;
+        memNetwork.stNetworkLedStrip2Data.ledStripData.whiteBrightnessFadeTime      = this->network->stNetworkLedStrip2Data.ledStripData.whiteBrightnessFadeTime;
+        memNetwork.stNetworkLedStrip2Data.ledStripData.whiteBrightnessFadeCurve     = this->network->stNetworkLedStrip2Data.ledStripData.whiteBrightnessFadeCurve;
+        memNetwork.stNetworkLedStrip2Data.effect                                    = this->network->stNetworkLedStrip2Data.effect;
     }
     
 
@@ -236,8 +267,8 @@ void Information::Run()
 /**
  * Prints a single parameter/component formatted message to serial
  * 
- * @parameter name      The name of the parameter or component
- * @parameter value     The value of the given parameter or component
+ * @param name      The name of the parameter or component
+ * @param value     The value of the given parameter or component
  **/
 void Information::FormatPrintSingle(String name, 
                                     String value)
@@ -259,10 +290,10 @@ void Information::FormatPrintSingle(String name,
 /**
  * Prints a time formatted message to serial
  * 
- * @parameter name      The name of the parameter or component
- * @parameter hour      The value of the current hour
- * @parameter minute    The value of the current minute
- * @parameter second    The value of the current second
+ * @param name      The name of the parameter or component
+ * @param hour      The value of the current hour
+ * @param minute    The value of the current minute
+ * @param second    The value of the current second
  **/
 void Information::FormatPrintTime(  String name, 
                                     String hour, 
@@ -288,34 +319,38 @@ void Information::FormatPrintTime(  String name,
 /**
  * Prints a HighLevelLEDStripData formatted message to serial
  * 
- * @parameter name                  The name of the parameter or component
- * @parameter power                 The current power value of the LED strip
- * @parameter brightness            The current brightness value of the LED strip
- * @parameter brightnessFadeTime    The current brightness fade time of the LED strip
- * @parameter brightnessFadeCurve   The current brightness fade curve of the LED strip
- * @parameter cw                    The current cold white value of the LED strip
- * @parameter ww                    The current warm white value of the LED strip
- * @parameter red                   The current red value of the LED strip
- * @parameter green                 The current green value of the LED strip
- * @parameter blue                  The current blue value of the LED strip
- * @parameter colorFadeTime         The current color fade time of the LED strip
- * @parameter colorFadeCurve        The current color fade curve of the LED strip
- * @parameter effect                The current effect value of the LED strip
+ * @param name                  The name of the parameter or component
+ * @param power                 The current power value of the LED strip
+ * @param brightness            The current brightness value of the LED strip
+ * @param brightnessFadeTime    The current brightness fade time of the LED strip
+ * @param brightnessFadeCurve   The current brightness fade curve of the LED strip
+ * @param cw                    The current cold white value of the LED strip
+ * @param ww                    The current warm white value of the LED strip
+ * @param red                   The current red value of the LED strip
+ * @param green                 The current green value of the LED strip
+ * @param blue                  The current blue value of the LED strip
+ * @param colorFadeTime         The current color fade time of the LED strip
+ * @param colorFadeCurve        The current color fade curve of the LED strip
+ * @param effect                The current effect value of the LED strip
  **/
 void Information::FormatPrintLEDStrip(String name,
                                       String power,
-                                      String brightness,
-                                      String brightnessFadeTime,
-                                      String brightnessFadeCurve,
-                                      String cw,
-                                      String ww,
                                       String red,
                                       String green,
                                       String blue,
                                       String colorFadeTime,
                                       String colorFadeCurve,
+                                      String colorBrightness,
+                                      String colorBrightnessFadeTime,
+                                      String colorBrightnessFadeCurve,
+                                      String whiteTemperature,
+                                      String whiteTemperatureFadeTime,
+                                      String whiteTemperatureFadeCurve,
+                                      String whiteBrightness,
+                                      String whiteBrightnessFadeTime,
+                                      String whiteBrightnessFadeCurve,
                                       String effect)
-{   
+{         
     TopSpacerPrint();
 
     // Paramter name
@@ -323,40 +358,52 @@ void Information::FormatPrintLEDStrip(String name,
     Serial.println("Paramter/Component/Mode '" + name + "' changed");
     
     InsertPrint();
-    Serial.println("Power                  : " + power);
+    Serial.println("Power                           : " + power);
 
     InsertPrint();
-    Serial.println("Brightness Value       : " + brightness);
+    Serial.println("Red Color Value                 : " + red);
 
     InsertPrint();
-    Serial.println("Brightness Fade Time   : " + brightnessFadeTime + " milliseconds");
+    Serial.println("Green Color Value               : " + green);
 
     InsertPrint();
-    Serial.println("Brightness Fade Curve  : " + brightnessFadeCurve);
+    Serial.println("Blue Color Value                : " + blue);
 
     InsertPrint();
-    Serial.println("Cold White Color Value : " + cw);
+    Serial.println("Color Fade Time                 : " + colorFadeTime + " milliseconds");
 
     InsertPrint();
-    Serial.println("Warm White Color Value : " + ww);
+    Serial.println("Color Fade Curve                : " + colorFadeCurve);
 
     InsertPrint();
-    Serial.println("Red Color Value        : " + red);
+    Serial.println("Color Brightness Value          : " + colorBrightness);
 
     InsertPrint();
-    Serial.println("Green Color Value      : " + green);
+    Serial.println("Color Brightness Fade Time      : " + colorBrightnessFadeTime + " milliseconds");
 
     InsertPrint();
-    Serial.println("Blue Color Value       : " + blue);
+    Serial.println("Color Brightness Fade Curve     : " + colorBrightnessFadeCurve);
 
     InsertPrint();
-    Serial.println("Color Fade Time        : " + colorFadeTime + " milliseconds");
+    Serial.println("White Temperature Value         : " + whiteTemperature);
 
     InsertPrint();
-    Serial.println("Color Fade Curve       : " + colorFadeCurve);
+    Serial.println("White Temperature Fade Time     : " + whiteTemperatureFadeTime + " milliseconds");
 
     InsertPrint();
-    Serial.println("Effect                 : " + effect);
+    Serial.println("White Temperature Fade Curve    : " + whiteTemperatureFadeCurve);
+
+    InsertPrint();
+    Serial.println("White Brightness Value          : " + whiteBrightness);
+
+    InsertPrint();
+    Serial.println("White Brightness Fade Time      : " + whiteBrightnessFadeTime + " milliseconds");
+
+    InsertPrint();
+    Serial.println("White Brightness Fade Curve     : " + whiteBrightnessFadeCurve);
+
+    InsertPrint();
+    Serial.println("Effect                          : " + effect);
 
     BottomSpacerPrint();
 };
@@ -365,19 +412,23 @@ void Information::FormatPrintLEDStrip(String name,
 /**
  * Prints a motion formatted message to serial
  * 
- * @parameter name          The name of the parameter or component
- * @parameter motionPower   The current motion power value
- * @parameter red           The current motion color red value
- * @parameter green         The current motion color green value
- * @parameter blue          The current motion color blue value
- * @parameter timeout       The current motion timeout
+ * @param name          The name of the parameter or component
+ * @param motionPower   The current motion power value
+ * @param red           The current motion color red value
+ * @param green         The current motion color green value
+ * @param blue          The current motion color blue value
+ * @param timeout       The current motion timeout
  **/
-void Information::FormatPrintMotion(    String name, 
-                                        String motionPower, 
-                                        String red,
-                                        String green,
-                                        String blue,
-                                        String timeout)
+void Information::FormatPrintMotion(String name,
+                                    String motionDetectionEnabled,
+                                    String timeBasedBrightnessChangeEnabled,
+                                    String timeout,
+                                    String red,
+                                    String green,
+                                    String blue,
+                                    String colorBrightness,
+                                    String whiteTemperature,
+                                    String whiteBrightness)
 {   
     TopSpacerPrint();
 
@@ -385,25 +436,41 @@ void Information::FormatPrintMotion(    String name,
     InsertPrint();
     Serial.println("Paramter/Component/Mode '" + name + "' changed");
     
-    // Power
+    // Motion Detection Enabled
     InsertPrint();
-    Serial.println("Power      : " + motionPower);
+    Serial.println("Motion Detection Enabled             : " + motionDetectionEnabled);
 
-    // Red
+    // Time Based Brightness Change Enabled
     InsertPrint();
-    Serial.println("Red        : " + red);
-
-    // Green
-    InsertPrint();
-    Serial.println("Green      : " + green);
-
-    // Blue
-    InsertPrint();
-    Serial.println("Blue       : " + blue);
+    Serial.println("Time Based Brightness Change Enabled : " + timeBasedBrightnessChangeEnabled);
 
     // Timeout
     InsertPrint();
-    Serial.println("Timeout    : " + timeout);
+    Serial.println("Timeout                              : " + timeout);
+
+    // Red
+    InsertPrint();
+    Serial.println("Red                                  : " + red);
+
+    // Green
+    InsertPrint();
+    Serial.println("Green                                : " + green);
+
+    // Blue
+    InsertPrint();
+    Serial.println("Blue                                 : " + blue);
+
+    // Color Brightness
+    InsertPrint();
+    Serial.println("Color Brightness                     : " + colorBrightness);
+
+    // White Temperature
+    InsertPrint();
+    Serial.println("White Temperature                    : " + whiteTemperature);
+
+    // White Brightness
+    InsertPrint();
+    Serial.println("White Brightness                     : " + whiteBrightness);
 
     BottomSpacerPrint();
 };
@@ -412,9 +479,9 @@ void Information::FormatPrintMotion(    String name,
 /**
  * Prints a alarm formatted message to serial
  * 
- * @parameter name      The name of the parameter or component
- * @parameter power     The current alarm power value
- * @parameter mode      The current mode value
+ * @param name      The name of the parameter or component
+ * @param power     The current alarm power value
+ * @param mode      The current mode value
  **/
 void Information::FormatPrintAlarm(String name,
                                    String power,
@@ -441,8 +508,8 @@ void Information::FormatPrintAlarm(String name,
 /**
  * Prints a music formatted message to serial
  * 
- * @parameter name      The name of the parameter or component
- * @parameter power     The current music power value
+ * @param name      The name of the parameter or component
+ * @param power     The current music power value
  **/
 void Information::FormatPrintMusic(String name,
                                    String power)
@@ -556,7 +623,7 @@ void Information::BottomSpacerPrint()
 /**
  * Converts a given bool value to the corresponding string message
  * 
- * @parameter b     The bool value to convert
+ * @param b     The bool value to convert
  * 
  * @return The value of the bool as string
  **/
@@ -576,7 +643,7 @@ String Information::BoolToString(bool b)
 /**
  * Converts a SingleLEDEffect to a String
  * 
- * @parameter effect    The SingleLEDEffect to convert to string
+ * @param effect    The SingleLEDEffect to convert to string
  * 
  * @return effect The corresponding string effect to the given SingleLEDEffect
  **/
@@ -597,30 +664,6 @@ String Information::SingleLEDEffectToString(SingleLEDEffect effect)
             return "Rainbow";
             break;
 
-        case SingleLEDEffect::RGB:
-            return "RGB";
-            break;
-
-        case SingleLEDEffect::CW:
-            return "CW";
-            break;
-
-        case SingleLEDEffect::WW:
-            return "WW";
-            break;
-
-        case SingleLEDEffect::RGBCW:
-            return "RGBCW";
-            break;
-
-        case SingleLEDEffect::RGBWW:
-            return "RGBWW";
-            break;       
-
-        case SingleLEDEffect::CWWW:
-            return "CWWW";
-            break;      
-
         default:
             return "None";
             break;
@@ -631,7 +674,7 @@ String Information::SingleLEDEffectToString(SingleLEDEffect effect)
 /**
  * Converts a MultiLEDEffect to a String
  * 
- * @parameter effect    The MultiLEDEffect to convert to string
+ * @param effect    The MultiLEDEffect to convert to string
  * 
  * @return effect The corresponding string effect to the given MultiLEDEffect
  **/
@@ -674,7 +717,7 @@ String Information::MultiLEDEffectToString(MultiLEDEffect effect)
 /**
  * Converts a FadeCurve to a String
  * 
- * @parameter curve    The FadeCurve to convert to string
+ * @param curve    The FadeCurve to convert to string
  * 
  * @return curve    The corresponding string curve to the given FadeCurve
  **/
@@ -714,7 +757,7 @@ String Information::FadeCurveToString(FadeCurve curve)
 /**
  * Converts a AlarmMode to a String
  * 
- * @parameter mode    The AlarmMode to convert to string
+ * @param mode    The AlarmMode to convert to string
  * 
  * @return mode    The corresponding string mode to the given AlarmMode
  **/

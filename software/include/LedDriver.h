@@ -132,6 +132,9 @@ class LedDriver : public IBaseClass
         bool FadeToBlack(uint8_t stripID,
                          HighLevelLEDStripData commandHighLevelLEDStripData);
 
+        bool FadeToBlack(uint8_t stripID,
+                         LowLevelLEDStripData commandLowLevelLEDStripData);
+
         // -- Multi Strip
         bool FadeToBlack(NetworkLEDStripData commandNetworkLEDStripData);
 

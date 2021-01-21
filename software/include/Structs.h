@@ -17,11 +17,17 @@ struct NetworkTimeData
  */
 struct NetworkMotionData
 {
-    bool power = false;
+    bool motionDetectionEnabled = false;
+    bool timeBasedBrightnessChangeEnabled = false;
+    uint16_t timeout = 0;
+    // RGB
     uint8_t redColorValue = 0;
     uint8_t greenColorValue = 0;
     uint8_t blueColorValue = 0;
-    uint16_t timeout = 0;
+    uint16_t colorBrightnessValue = 0;
+    // White
+    uint16_t whiteTemperatureValue = 0;
+    uint16_t whiteBrightnessValue = 0;
 };
 
 /**
@@ -83,6 +89,7 @@ struct SingleLEDStripEffectData
 {
     SingleLEDEffect singleLEDEffect = SingleLEDEffect::None;
     uint8_t transitionState = 0;
+    uint8_t subTransitionState = 0;
     uint8_t counter = 0;
     unsigned long prevMillis = 0;
 };
@@ -98,19 +105,27 @@ struct SingleLEDStripEffectData
  */
 struct HighLevelLEDStripData
 {
-    // ---- COLOR
+    // ---- RGB
+    // -- Color
     uint8_t redColorValue = 0;
     uint8_t greenColorValue = 0;
     uint8_t blueColorValue = 0;
-    uint8_t cwColorValue = 0;
-    uint8_t wwColorValue = 0;
     uint16_t colorFadeTime = 0;
     FadeCurve colorFadeCurve = FadeCurve::None;
+    // -- Brightness
+    uint16_t colorBrightnessValue = 0;
+    uint16_t colorBrightnessFadeTime = 0;
+    FadeCurve colorBrightnessFadeCurve = FadeCurve::None;
 
-    // ---- BRIGHTNESS
-    uint16_t brightnessValue = 0;
-    uint16_t brightnessFadeTime = 0;
-    FadeCurve brightnessFadeCurve = FadeCurve::None;
+    // ---- White
+    // -- Color
+    uint16_t whiteTemperatureValue = 250;
+    uint16_t whiteTemperatureFadeTime = 0;
+    FadeCurve whiteTemperatureFadeCurve = FadeCurve::None;
+    // -- Brightness
+    uint16_t whiteBrightnessValue = 0;
+    uint16_t whiteBrightnessFadeTime = 0;
+    FadeCurve whiteBrightnessFadeCurve = FadeCurve::None;
 };
 
 /**

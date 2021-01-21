@@ -17,13 +17,7 @@ enum class SingleLEDEffect
 {
     None,
     TriplePulse,
-    Rainbow,
-    RGB,
-    CW,
-    WW,
-    RGBCW,
-    RGBWW,
-    CWWW, 
+    Rainbow
 };
 
 
