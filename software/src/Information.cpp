@@ -105,36 +105,6 @@ void Information::Run()
         
     }
 
-    // -- Alarm
-    if(this->network->stNetworkAlarmData.power     != memNetwork.stNetworkAlarmData.power
-        || this->network->stNetworkAlarmData.mode   != memNetwork.stNetworkAlarmData.mode)
-    {
-        FormatPrintAlarm("Alarm Mode",
-                         BoolToString(this->network->stNetworkAlarmData.power),
-                         AlarmModeToString(this->network->stNetworkAlarmData.mode));
-
-        memNetwork.stNetworkAlarmData.power = this->network->stNetworkAlarmData.power;
-        memNetwork.stNetworkAlarmData.mode  = this->network->stNetworkAlarmData.mode;
-    }
-
-    // -- Music
-    if(this->network->stNetworkMusicData.power != memNetwork.stNetworkMusicData.power)
-    {
-        FormatPrintMusic("Music Mode",
-                         BoolToString(this->network->stNetworkMusicData.power));
-
-        memNetwork.stNetworkMusicData.power = this->network->stNetworkMusicData.power;
-    }
-
-    // -- Master PC
-    if(this->network->parameter_pc_present != memNetwork.parameter_pc_present)
-    {
-        FormatPrintPcPresent("Master PC",
-                             BoolToString(this->network->parameter_pc_present));
-
-        memNetwork.parameter_pc_present = this->network->parameter_pc_present;
-    }
-
     // -- LED Strip 1
     // Only High Level LED Strip Data
     if( this->network->stNetworkLedStrip1Data.power                                         != memNetwork.stNetworkLedStrip1Data.power
@@ -247,18 +217,21 @@ void Information::Run()
     
 
     // -- Motion Detection
-    if( this->pirReader->motionDetected         != memPirReader.motionDetected
-        || this->pirReader->sensor1Triggered    != memPirReader.sensor1Triggered
-        || this->pirReader->sensor2Triggered    != memPirReader.sensor2Triggered)
+    if( this->pirReader->motionDetected             != memPirReader.motionDetected
+        || this->pirReader->sensor1Triggered        != memPirReader.sensor1Triggered
+        || this->pirReader->sensor2Triggered        != memPirReader.sensor2Triggered
+        || this->pirReader->virtualSensorTriggered  != memPirReader.virtualSensorTriggered)
     {
         FormatPrintMotionDetected(BoolToString(this->pirReader->motionDetected),
                                   BoolToString(this->pirReader->sensorTriggered),
                                   BoolToString(this->pirReader->sensor1Triggered),
-                                  BoolToString(this->pirReader->sensor2Triggered));
+                                  BoolToString(this->pirReader->sensor2Triggered),
+                                  BoolToString(this->pirReader->virtualSensorTriggered));
 
-        memPirReader.motionDetected     = this->pirReader->motionDetected ;
-        memPirReader.sensor1Triggered   = this->pirReader->sensor1Triggered;
-        memPirReader.sensor2Triggered   = this->pirReader->sensor2Triggered ;
+        memPirReader.motionDetected         = this->pirReader->motionDetected;
+        memPirReader.sensor1Triggered       = this->pirReader->sensor1Triggered;
+        memPirReader.sensor2Triggered       = this->pirReader->sensor2Triggered;
+        memPirReader.virtualSensorTriggered = this->pirReader->virtualSensorTriggered;
     }
 
 };
@@ -477,81 +450,6 @@ void Information::FormatPrintMotion(String name,
 
 
 /**
- * Prints a alarm formatted message to serial
- * 
- * @param name      The name of the parameter or component
- * @param power     The current alarm power value
- * @param mode      The current mode value
- **/
-void Information::FormatPrintAlarm(String name,
-                                   String power,
-                                   String mode)
-{
-    TopSpacerPrint();
-
-    // Paramter name
-    InsertPrint();
-    Serial.println("Paramter/Component/Mode '" + name + "' changed");
-    
-    // Power
-    InsertPrint();
-    Serial.println("Power      : " + power);
-
-    // Mode
-    InsertPrint();
-    Serial.println("Mode       : " + mode);
-
-    BottomSpacerPrint();
-};
-
-
-/**
- * Prints a music formatted message to serial
- * 
- * @param name      The name of the parameter or component
- * @param power     The current music power value
- **/
-void Information::FormatPrintMusic(String name,
-                                   String power)
-{
-    TopSpacerPrint();
-
-    // Paramter name
-    InsertPrint();
-    Serial.println("Paramter/Component/Mode '" + name + "' changed");
-    
-    // Power
-    InsertPrint();
-    Serial.println("Power      : " + power);
-
-    BottomSpacerPrint();
-};
-
-
-/**
- * Prints a pc present formatted message to serial
- * 
- * @param name      The name of the parameter or component
- * @param present   The current pc present value
- **/
-void Information::FormatPrintPcPresent(String name,
-                                       String present)
-{
-    TopSpacerPrint();
-
-    // Paramter name
-    InsertPrint();
-    Serial.println("Paramter/Component/Mode '" + name + "' changed");
-    
-    // Power
-    InsertPrint();
-    Serial.println("PC Present : " + present);
-
-    BottomSpacerPrint();
-};
-
-
-/**
  * Prints a motion Detected formatted message to serial
  * 
  * @param motionDetected    The current value of the motion
@@ -561,7 +459,8 @@ void Information::FormatPrintPcPresent(String name,
 void Information::FormatPrintMotionDetected(String motionDetected,
                                             String sensorTriggered,
                                             String sensor1Triggered,
-                                            String sensor2Triggered)
+                                            String sensor2Triggered,
+                                            String virtualSensorTriggered)
 {
     TopSpacerPrint();
 
@@ -571,19 +470,24 @@ void Information::FormatPrintMotionDetected(String motionDetected,
 
     // Motion Detected
     InsertPrint();
-    Serial.println("Motion Detected : " + motionDetected);
+    Serial.println("Motion Detected         : " + motionDetected);
 
     // Sensor 1 Triggered
     InsertPrint();
-    Serial.println("PIR Sensor      : " + sensorTriggered);
+    Serial.println("Combined PIR Sensor     : " + sensorTriggered);
 
     // Sensor 1 Triggered
     InsertPrint();
-    Serial.println("PIR Sensor 1    : " + sensor1Triggered);
+    Serial.println("Physical PIR Sensor 1   : " + sensor1Triggered);
 
     // Sensor 2 Triggered
     InsertPrint();
-    Serial.println("PIR Sensor 2    : " + sensor2Triggered);
+    Serial.println("Physical PIR Sensor 2   : " + sensor2Triggered);
+
+    // Virtual Sensor Triggered
+    InsertPrint();
+    Serial.println("Virtual PIR Sensor      : " + virtualSensorTriggered);
+
 
     BottomSpacerPrint();
 };
@@ -683,29 +587,21 @@ String Information::MultiLEDEffectToString(MultiLEDEffect effect)
     switch (effect)
     {
 
-        case MultiLEDEffect::NoMasterPresent:
-            return "NoMasterPresent";
-            break;
-    
         case MultiLEDEffect::Idle:
             return "Idle";
             break;
 
-        case MultiLEDEffect::Power:
-            return "Power";
+        case MultiLEDEffect::SingleLEDEffect:
+            return "SingleLEDEffect";
             break;
 
         case MultiLEDEffect::MotionDetected:
             return "MotionDetected";
             break;    
 
-        case MultiLEDEffect::Music:
-            return "Music";
-            break; 
-
         case MultiLEDEffect::Alarm:
             return "Alarm";
-            break; 
+            break;
 
         default:
             return "Idle";
@@ -748,42 +644,6 @@ String Information::FadeCurveToString(FadeCurve curve)
 
         default:
             return "None";
-            break;
-    }
-
-};
-
-
-/**
- * Converts a AlarmMode to a String
- * 
- * @param mode    The AlarmMode to convert to string
- * 
- * @return mode    The corresponding string mode to the given AlarmMode
- **/
-String Information::AlarmModeToString(AlarmMode mode)
-{
-
-    switch (mode)
-    {
-        case AlarmMode::Nothing:
-             return "Nothing";
-            break;
-
-        case AlarmMode::Warning:
-             return "Warning";
-            break;
-
-        case AlarmMode::Error:
-             return "Error";
-            break;
-
-        case AlarmMode::Critical:
-             return "Critical";
-            break;
-
-        default:
-            return "Nothing";
             break;
     }
 
