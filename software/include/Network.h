@@ -69,20 +69,17 @@ public:
     // Time
     NetworkTimeData stNetworkTimeData;
     // Master
-    bool parameter_master_present = true;
-    // PC
-    bool parameter_pc_present = false;
-    bool enable_pc_present = false;
+    bool parameter_master_present = false;
+    // Alarm
+    bool alarm = false;
     // Motion
     NetworkMotionData stNetworkMotionData;
-    // Music
-    NetworkMusicData stNetworkMusicData;
-    // Alarm
-    NetworkAlarmData stNetworkAlarmData;
     // LED Strip 1
     NetworkLEDStripData stNetworkLedStrip1Data;
     // LED Strip 2
     NetworkLEDStripData stNetworkLedStrip2Data;
+    // Virtual PIR Sensor
+    bool virtualPIRSensorTriggered = false;
 
     // ## Functions ## //
 private:

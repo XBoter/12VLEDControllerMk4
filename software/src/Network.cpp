@@ -34,9 +34,7 @@ bool Network::Init()
         wifiState = NetworkWiFiState::StartWifi;
         mqttState = NetworkMQTTState::StartMqtt;
 
-#ifdef ENABLE_PC_PRESENT_MOTION_DISABLE
-        enable_pc_present = true;
-#endif
+        virtualPIRSensorTriggered = false;
 
         Serial.println("Network initialized");
         init = true;
@@ -194,8 +192,8 @@ void Network::HandleMqtt()
                 // Master
                 mqttClient.subscribe("LEDController/Global/HomeAssistant/MasterPresent/command");
 
-                // Effects
-                mqttClient.subscribe("LEDController/Global/HomeAssistant/Effect/command");
+                // Alarm
+                mqttClient.subscribe("LEDController/Global/HomeAssistant/Effect/Alarm/command");
 
                 // ==== Specific ==== //
                 // Motion
@@ -225,11 +223,11 @@ void Network::HandleMqtt()
 
                 // ==== Virtual ==== //
                 // PIR
+                /*
+                    !!! Make sure that the retain flag is set to false for messages in this topic for this to work probably !!!
+                    !!! You may need to clear all messages in the history of this topic with retain flag set to true !!!
+                */
                 mqttClient.subscribe(("LEDController/" + data.mqttClientName + "/HomeAssistant/Virtual/PIR/command").c_str());
-
-                // === Republish == //
-                //MqttUpdateAfterDc(stNetworkLedStrip1Data, mqtt_strip1_json_state);
-                //MqttUpdateAfterDc(stNetworkLedStrip2Data, mqtt_strip2_json_state);
 
                 // ================ Json ================ //
                 /*
@@ -241,6 +239,8 @@ void Network::HandleMqtt()
                 // ==== Specific ==== //
 
                 // === Republish == //
+                //MqttUpdateAfterDc(stNetworkLedStrip1Data, mqtt_strip1_json_state);
+                //MqttUpdateAfterDc(stNetworkLedStrip2Data, mqtt_strip2_json_state);
 
                 mqttState = NetworkMQTTState::SuperviseMqttConnection;
             }
@@ -318,7 +318,7 @@ void Network::Heartbeat()
         if (CurMillis_HeartbeatTimeout - PrevMillis_HeartbeatTimeout >= TimeOut_HeartbeatTimeout)
         {
             PrevMillis_HeartbeatTimeout = CurMillis_HeartbeatTimeout;
-            mainController.network.mqttClient.publish(("LEDController/" + configuredData.mqttClientName + "/HomeAssistant/Heartbeat//state").c_str(), "pulse");
+            mainController.network.mqttClient.publish(("LEDController/" + configuredData.mqttClientName + "/HomeAssistant/Heartbeat/state").c_str(), "pulse");
         }
     }
 };
@@ -533,10 +533,14 @@ void mqttCallback(char *topic, byte *payload, unsigned int length)
             mainController.network.parameter_master_present = false;
         }
     }
-    // ======== Effects ======== //
-    if (String("LEDController/Global/HomeAssistant/Effect/command").equals(topic))
+    // ======== Alarm ======== //
+    if (String("LEDController/Global/HomeAssistant/Effect/Alarm/command").equals(topic))
     {
-        // TODO implement
+        uint8_t data = atoi(message);
+        if (data >= 0 && data <= 1)
+        {
+            mainController.network.alarm = (bool)data;
+        }
     }
 
     // ================ Specific ================ //
@@ -751,7 +755,12 @@ void mqttCallback(char *topic, byte *payload, unsigned int length)
     // ======== PIR ======== //
     if (String("LEDController/" + configuredData.mqttClientName + "/HomeAssistant/Virtual/PIR/command").equals(topic))
     {
-        // TODO Implement
+        Serial.println("!!!!!!! PIR TOPIC !!!!!!!!!");
+        uint8_t data = atoi(message);
+        if (data == 1)
+        {
+            mainController.network.virtualPIRSensorTriggered = true;
+        }
     }
 
     // # ================================ JSON ================================ //

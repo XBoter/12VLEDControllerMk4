@@ -1,7 +1,6 @@
 #include "../include/PirReader.h"
 #include "../Main.h"
 
-
 /**
  * Constructor for the PirReader class
  * 
@@ -16,7 +15,6 @@ PirReader::PirReader(uint8_t pinPirSensor1, uint8_t pinPirSensor2, Network *netw
     this->network = network;
 };
 
-
 /**
  * Does init stuff for the PirReader component
  * 
@@ -24,7 +22,7 @@ PirReader::PirReader(uint8_t pinPirSensor1, uint8_t pinPirSensor2, Network *netw
  */
 bool PirReader::Init()
 {
-    if(!init)
+    if (!init)
     {
         // PIR Sensor 1
         pinMode(pinPirSensor1, INPUT);
@@ -39,53 +37,68 @@ bool PirReader::Init()
     return init;
 };
 
-
 /**
  * Runs the PirReader component. 
  */
 void PirReader::Run()
 {
-    if(!init)
+    if (!init)
     {
         return;
     }
 
-    // Check Motion Sensor 1
-    if (digitalRead(pinPirSensor1) == HIGH) {
+    // Check Physical Motion Sensor 1
+    if (digitalRead(pinPirSensor1) == HIGH)
+    {
         sensor1Triggered = true;
-    } else {
+    }
+    else
+    {
         sensor1Triggered = false;
     }
 
-    // Check Motion Sensor 2
-    if (digitalRead(pinPirSensor2) == HIGH) {
+    // Check Physical Motion Sensor 2
+    if (digitalRead(pinPirSensor2) == HIGH)
+    {
         sensor2Triggered = true;
-    } else {
+    }
+    else
+    {
         sensor2Triggered = false;
     }
 
-    // Check if motion detected
-    if (sensor1Triggered || sensor2Triggered) {
+    // Check Virtual Motion Sensor
+    if (network->virtualPIRSensorTriggered)
+    {
+        virtualSensorTriggered = true;
+    }
+    else
+    {
+        virtualSensorTriggered = false;
+    }
+
+    // Check if motion detected by physical or virtual sensor
+    if (sensor1Triggered || sensor2Triggered || virtualSensorTriggered)
+    {
         sensorTriggered = true;
         motionDetected = true;
         prevMillisMotion = millis();
     }
-    if(!sensor1Triggered && !sensor2Triggered)
+    if (!sensor1Triggered && !sensor2Triggered && !virtualSensorTriggered)
     {
         sensorTriggered = false;
     }
- 
-    // Update motionDetected based on timeout 
-    if(millis() - prevMillisMotion >= (network->stNetworkMotionData.timeout * 1000))
+
+    // Update motionDetected based on timeout
+    if (millis() - prevMillisMotion >= (network->stNetworkMotionData.timeout * 1000))
     {
         motionDetected = false;
     }
 
     // Publish motion detected to mqtt
-    if(sensorTriggered != memSensorTriggered)
+    if (sensorTriggered != memSensorTriggered)
     {
         this->network->MotionDetectedUpdate(sensorTriggered);
         memSensorTriggered = sensorTriggered;
     }
-
 };
