@@ -3,11 +3,9 @@
 // LED Effects that use multiple connected LED strips
 enum class MultiLEDEffect
 {
-    NoMasterPresent, 
     Idle,
-    Power,
+    SingleLEDEffect,
     MotionDetected,
-    Music,
     Alarm,
 };
 

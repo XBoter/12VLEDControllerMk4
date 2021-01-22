@@ -30,22 +30,6 @@ struct NetworkMotionData
     uint16_t whiteBrightnessValue = 0;
 };
 
-/**
- * Holds the data for the multi LED music effect
- */
-struct NetworkMusicData
-{
-    bool power = false;
-};
-
-/**
- * Holds the data for the multi LED alarm effect
- */
-struct NetworkAlarmData
-{
-    bool power = false;
-    AlarmMode mode = AlarmMode::Nothing;
-};
 
 /**
  * Holds all register for one LED Color
