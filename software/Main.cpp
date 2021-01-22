@@ -78,6 +78,13 @@ void Main::_loop()
             ledDriver.Run();
             information.Run();
             pirReader.Run();
+
+            // Reset virtual pir sensor at end of current loop after all components got called
+            if(network.virtualPIRSensorTriggered)
+            {
+                network.virtualPIRSensorTriggered = false;
+            }
+
             break;
         }
     }
