@@ -755,7 +755,6 @@ void mqttCallback(char *topic, byte *payload, unsigned int length)
     // ======== PIR ======== //
     if (String("LEDController/" + configuredData.mqttClientName + "/HomeAssistant/Virtual/PIR/command").equals(topic))
     {
-        Serial.println("!!!!!!! PIR TOPIC !!!!!!!!!");
         uint8_t data = atoi(message);
         if (data == 1)
         {
