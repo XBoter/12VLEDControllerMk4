@@ -82,10 +82,11 @@ private:
     void TopSpacerPrint();
     void BottomSpacerPrint();
     void InsertPrint();
+
+public:
+    // Help functions
     String BoolToString(bool b);
     String SingleLEDEffectToString(SingleLEDEffect effect);
     String MultiLEDEffectToString(MultiLEDEffect effect);
     String FadeCurveToString(FadeCurve curve);
-
-public:
 };
