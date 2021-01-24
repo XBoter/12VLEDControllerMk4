@@ -46,7 +46,7 @@ private:
     NetworkLEDStripData networkLEDStrip1Data = {};
     NetworkLEDStripData networkLEDStrip2Data = {};
     unsigned long prevMillisReconnect = 0;
-    unsigned long timeoutReconnect = 2000;
+    unsigned long timeoutReconnect = 4000;
 
 
     // ---- LED Effect data

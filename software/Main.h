@@ -22,6 +22,7 @@
       ToDo     Change Shut Resistor to 0.02 Ohm for better reading 
       ToDo     Add NTP Summer/Winter time swap => For now only Winter Time 
       ToDo     Add PCA9685 reset after to many I2C errors => Fix in later version
+      ToDo     Add option to sync diffrent single strip led effects
 */
 
 //++++ Global Defines ++++//
