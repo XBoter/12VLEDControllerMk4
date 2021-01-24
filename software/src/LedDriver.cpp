@@ -267,7 +267,6 @@ void LedDriver::HandleSingleLEDStripEffects(uint8_t stripID,
         case 0:
             if (FadeToBlack(stripID))
             {
-                SetColor(stripID, commandNetworkLEDStripData);
                 effectData->prevMillis = millis();
                 effectData->transitionState = 10;
             }
@@ -703,10 +702,7 @@ LowLevelLEDStripData LedDriver::getInstantLowLevelFadeTimesAndCurves()
 HighLevelLEDStripData LedDriver::convertNetworkDataToHighLevelData(NetworkLEDStripData networkData,
                                                                    HighLevelLEDStripData highLevelFadeTimesAndCurves)
 {
-    HighLevelLEDStripData highLevelLEDStripData = {};
-
-    // Fade Times and Curves
-    highLevelLEDStripData = highLevelFadeTimesAndCurves;
+    HighLevelLEDStripData highLevelLEDStripData = highLevelFadeTimesAndCurves;
 
     // Color Data
     highLevelLEDStripData.redColorValue = networkData.ledStripData.redColorValue;
@@ -728,10 +724,7 @@ HighLevelLEDStripData LedDriver::convertNetworkDataToHighLevelData(NetworkLEDStr
 LowLevelLEDStripData LedDriver::convertHighLevelDataToLowLevelData(HighLevelLEDStripData highLevelLEDStripData,
                                                                    LowLevelLEDStripData lowLevelFadeTimesAndCurves)
 {
-    LowLevelLEDStripData lowLevelLEDStripData = {};
-
-    // Fade Times and Curves
-    lowLevelLEDStripData = lowLevelFadeTimesAndCurves = {};
+    LowLevelLEDStripData lowLevelLEDStripData = lowLevelFadeTimesAndCurves;
 
     // Color Data
     lowLevelLEDStripData.redColorValue = highLevelLEDStripData.redColorValue;
