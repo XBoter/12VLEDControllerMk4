@@ -111,7 +111,7 @@ void LedDriver::Run()
 void LedDriver::HandleMultiLEDStripEffects()
 {
 
-    HighLevelLEDStripData highLevelLEDStripData;
+    HighLevelLEDStripData highLevelLEDStripData = getHighLevelFadeTimesAndCurves();
 
     // Priority Logic for MultiLEDEffect
     if (network->alarm)
@@ -525,7 +525,7 @@ void LedDriver::createInitalTypes()
     // -- RED
     defaultLowLevelFadeTimesAndFadeCurves.redColorFadeTime = defaultHighLevelFadeTimesAndFadeCurves.colorFadeTime;
     defaultLowLevelFadeTimesAndFadeCurves.redColorFadeCurve = defaultHighLevelFadeTimesAndFadeCurves.colorFadeCurve;
-    defaultLowLevelFadeTimesAndFadeCurves.redBrightnessValue = defaultHighLevelFadeTimesAndFadeCurves.colorBrightnessFadeTime;
+    defaultLowLevelFadeTimesAndFadeCurves.redBrightnessFadeTime = defaultHighLevelFadeTimesAndFadeCurves.colorBrightnessFadeTime;
     defaultLowLevelFadeTimesAndFadeCurves.redBrightnessFadeCurve = defaultHighLevelFadeTimesAndFadeCurves.colorBrightnessFadeCurve;
     // -- GREEN
     defaultLowLevelFadeTimesAndFadeCurves.greenColorFadeTime = defaultHighLevelFadeTimesAndFadeCurves.colorFadeTime;
@@ -555,7 +555,7 @@ void LedDriver::createInitalTypes()
     // -- RED
     instantLowLevelFadeTimesAndCurves.redColorFadeTime = 0;
     instantLowLevelFadeTimesAndCurves.redColorFadeCurve = FadeCurve::None;
-    instantLowLevelFadeTimesAndCurves.redBrightnessValue = 0;
+    instantLowLevelFadeTimesAndCurves.redBrightnessFadeTime = 0;
     instantLowLevelFadeTimesAndCurves.redBrightnessFadeCurve = FadeCurve::None;
     // -- GREEN
     instantLowLevelFadeTimesAndCurves.greenColorFadeTime = 0;
@@ -887,7 +887,6 @@ bool LedDriver::FadeToColor(uint8_t stripID,
                                                                    percent,
                                                                    ptrCurrentLEDStripData->prevRedBrightnessValue,
                                                                    commandLowLevelLEDStripData.redBrightnessValue);
-
         if (ptrCurrentLEDStripData->redBrightnessValue == commandLowLevelLEDStripData.redBrightnessValue)
         {
             ptrCurrentLEDStripData->prevRedBrightnessValue = ptrCurrentLEDStripData->redBrightnessValue;
@@ -934,7 +933,6 @@ bool LedDriver::FadeToColor(uint8_t stripID,
                                                                      percent,
                                                                      ptrCurrentLEDStripData->prevGreenBrightnessValue,
                                                                      commandLowLevelLEDStripData.greenBrightnessValue);
-
         if (ptrCurrentLEDStripData->greenBrightnessValue == commandLowLevelLEDStripData.greenBrightnessValue)
         {
             ptrCurrentLEDStripData->prevGreenBrightnessValue = ptrCurrentLEDStripData->redBrightnessValue;
@@ -981,7 +979,6 @@ bool LedDriver::FadeToColor(uint8_t stripID,
                                                                     percent,
                                                                     ptrCurrentLEDStripData->prevBlueBrightnessValue,
                                                                     commandLowLevelLEDStripData.blueBrightnessValue);
-
         if (ptrCurrentLEDStripData->blueBrightnessValue == commandLowLevelLEDStripData.blueBrightnessValue)
         {
             ptrCurrentLEDStripData->prevBlueBrightnessValue = ptrCurrentLEDStripData->blueBrightnessValue;
@@ -1028,7 +1025,6 @@ bool LedDriver::FadeToColor(uint8_t stripID,
                                                                   percent,
                                                                   ptrCurrentLEDStripData->prevCwBrightnessValue,
                                                                   commandLowLevelLEDStripData.cwBrightnessValue);
-
         if (ptrCurrentLEDStripData->cwBrightnessValue == commandLowLevelLEDStripData.cwBrightnessValue)
         {
             ptrCurrentLEDStripData->prevCwBrightnessValue = ptrCurrentLEDStripData->cwBrightnessValue;
@@ -1075,7 +1071,6 @@ bool LedDriver::FadeToColor(uint8_t stripID,
                                                                   percent,
                                                                   ptrCurrentLEDStripData->prevWwBrightnessValue,
                                                                   commandLowLevelLEDStripData.wwBrightnessValue);
-
         if (ptrCurrentLEDStripData->wwBrightnessValue == commandLowLevelLEDStripData.wwBrightnessValue)
         {
             ptrCurrentLEDStripData->prevWwBrightnessValue = ptrCurrentLEDStripData->wwBrightnessValue;
