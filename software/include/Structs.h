@@ -63,6 +63,7 @@ struct MultiLEDStripEffectData
     uint8_t transitionState = 0;
     uint8_t subTransitionState = 0;
     uint8_t counter = 0;
+    bool fadeFinished = false;
     unsigned long prevMillis = 0;
 };
 
@@ -75,6 +76,7 @@ struct SingleLEDStripEffectData
     uint8_t transitionState = 0;
     uint8_t subTransitionState = 0;
     uint8_t counter = 0;
+    bool fadeFinished = false;
     unsigned long prevMillis = 0;
 };
 
