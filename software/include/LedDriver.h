@@ -42,37 +42,43 @@ private:
     unsigned long refreshRateCounter = 0;
 
     // ---- Network data
-    NetworkMotionData networkMotionData;
-    NetworkLEDStripData networkLEDStrip1Data;
-    NetworkLEDStripData networkLEDStrip2Data;
+    NetworkMotionData networkMotionData = {};
+    NetworkLEDStripData networkLEDStrip1Data = {};
+    NetworkLEDStripData networkLEDStrip2Data = {};
+    unsigned long prevMillisReconnect = 0;
+    unsigned long timeoutReconnect = 2000;
+
 
     // ---- LED Effect data
     // -- Multi
-    MultiLEDStripEffectData curMultiLEDStripEffectData;
+    MultiLEDStripEffectData multiLEDStripEffectData = {};
 
     // -- Single
-    SingleLEDStripEffectData singleLEDStrip1EffectData;
-    SingleLEDStripEffectData singleLEDStrip2EffectData;
+    SingleLEDStripEffectData singleLEDStrip1EffectData = {};
+    SingleLEDStripEffectData singleLEDStrip2EffectData = {};
 
     // ---- LED Strip command data
     // -- High Level
-    HighLevelLEDStripData highLevelLEDStrip1Data;
-    HighLevelLEDStripData highLevelLEDStrip2Data;
+    HighLevelLEDStripData highLevelLEDStrip1Data = {};
+    HighLevelLEDStripData highLevelLEDStrip2Data = {};
     // -- Low Level
-    LowLevelLEDStripData lowLevelLEDStrip1Data;
-    LowLevelLEDStripData lowLevelLEDStrip2Data;
+    LowLevelLEDStripData lowLevelLEDStrip1Data = {};
+    LowLevelLEDStripData lowLevelLEDStrip2Data = {};
 
     // ---- LED Strip data
     // -- Current
-    LEDStripData currentLEDStrip1Data; // Gets set to new value
-    LEDStripData currentLEDStrip2Data; // Gets set to new value
+    LEDStripData currentLEDStrip1Data = {};
+    LEDStripData currentLEDStrip2Data = {}; 
     // -- Previous
-    LEDStripData prevLEDStrip1Data;
-    LEDStripData prevLEDStrip2Data;
+    LEDStripData prevLEDStrip1Data = {};
+    LEDStripData prevLEDStrip2Data = {};
 
 public:
     // ## Functions ## //
 private:
+    // ---- Logic
+    void HandleMultiLEDStripControlLogic();
+
     // ---- Effects
     void HandleMultiLEDStripEffects();
 
@@ -81,24 +87,25 @@ private:
 
     uint16_t getTimeBasedBrightness();
 
-    void ResetSingleEffectData();
+    MultiLEDStripEffectData *getMultiLEDStripEffectData();
+    MultiLEDEffect prevMultiLEDEffect = MultiLEDEffect::Idle;
 
     SingleLEDStripEffectData *getSingleLEDStripEffectData(uint8_t stripID);
 
     // ---- Data Types and defaults
     // -- Default types for FadeTimes and FadeCurves
-    HighLevelLEDStripData defaultHighLevelFadeTimesAndFadeCurves;
-    LowLevelLEDStripData defaultLowLevelFadeTimesAndFadeCurves;
+    HighLevelLEDStripData defaultHighLevelFadeTimesAndFadeCurves = {};
+    LowLevelLEDStripData defaultLowLevelFadeTimesAndFadeCurves = {};
     void createInitalTypes(); // Gets called on init
     // -- FadeTimes and FadeCurves
     // Currents
-    HighLevelLEDStripData currentHighLevelFadeTimesAndFadeCurves;
-    LowLevelLEDStripData currentLowLevelFadeTimesAndFadeCurves;
+    HighLevelLEDStripData currentHighLevelFadeTimesAndFadeCurves = {};
+    LowLevelLEDStripData currentLowLevelFadeTimesAndFadeCurves = {};
     HighLevelLEDStripData getHighLevelFadeTimesAndCurves();
     LowLevelLEDStripData getLowLevelFadeTimesAndCurves();
     // Instant
-    HighLevelLEDStripData instantHighLevelFadeTimesAndCurves;
-    LowLevelLEDStripData instantLowLevelFadeTimesAndCurves;
+    HighLevelLEDStripData instantHighLevelFadeTimesAndCurves = {};
+    LowLevelLEDStripData instantLowLevelFadeTimesAndCurves = {};
     HighLevelLEDStripData getInstantHighLevelFadeTimesAndCurves();
     LowLevelLEDStripData getInstantLowLevelFadeTimesAndCurves();
     // -- Conversions and combine
