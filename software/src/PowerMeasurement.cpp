@@ -1,6 +1,5 @@
 #include "../include/PowerMeasurement.h"
 
-
 /**
  * Constructor for the PowerMeasurement class
  * 
@@ -8,8 +7,8 @@
  * @parameter *i2c          Pointer to the used instance of the I2C class
  * @parameter *network      Pointer to the used instace of the Network class
  */
-PowerMeasurement::PowerMeasurement(uint8_t i2cAddress, 
-                                   I2C *i2c, 
+PowerMeasurement::PowerMeasurement(uint8_t i2cAddress,
+                                   I2C *i2c,
                                    Network *network,
                                    double shuntResistorOhm)
 {
@@ -18,7 +17,6 @@ PowerMeasurement::PowerMeasurement(uint8_t i2cAddress,
     this->network = network;
     this->shuntResistorOhm = shuntResistorOhm;
 }
-
 
 /**
  * Does init stuff for the PowerMeasurement component
@@ -30,7 +28,7 @@ bool PowerMeasurement::Init()
     if (!init)
     {
         i2c->Init();
-        
+
         /*
             Calculations INA219
             Datasheet: https://datasheet.lcsc.com/szlcsc/1810181516_Texas-Instruments-INA219AIDR_C138706.pdf
@@ -83,7 +81,7 @@ bool PowerMeasurement::Init()
             PMax = IMaxBeforeOverflow * VBusMax => 3.014564A * 16V = 48.23W
 
         */
-       
+
         // ==== Config Register Structure ==== //
         // Bit 15 Reset         : 0
         // Bit 14 -             : 0
@@ -116,7 +114,6 @@ bool PowerMeasurement::Init()
         Serial.print("Calibration Register : ");
         Print2ByteValue(i2c->read16(i2cAddress, CALIBRATION));
 
-
         Serial.println("Power Measurement Unit initialized");
         init = true;
     }
@@ -124,17 +121,16 @@ bool PowerMeasurement::Init()
     return init;
 };
 
-
 /**
  * Runs the PowerMeasurement component. 
  */
 void PowerMeasurement::Run()
 {
-    if(!init)
+    if (!init)
     {
         return;
     }
-    
+
     unsigned long CurMillis_PowerMessurmentUpdateRate = millis();
     if (CurMillis_PowerMessurmentUpdateRate - PrevMillis_PowerMessurmentUpdateRate >= TimeOut_PowerMessurmentUpdateRate)
     {
@@ -149,8 +145,8 @@ void PowerMeasurement::Run()
             uint16_t BusVoltageRegister = i2c->read16(i2cAddress, BUS_VOLTAGE);
             uint16_t BusVoltageRegisterShift = (BusVoltageRegister >> 3) * 4;
 
-            // Calc VShunt and VBus 
-            double VShunt = ShuntVoltageRegister * 0.01; // Convert to mV
+            // Calc VShunt and VBus
+            double VShunt = ShuntVoltageRegister * 0.01;   // Convert to mV
             double VBus = BusVoltageRegisterShift * 0.001; // Convert to V
 
             //Serial.print("mVShunt ");
@@ -158,16 +154,16 @@ void PowerMeasurement::Run()
             //Serial.print(" | VBus ");
             //Serial.print(VBus);
 
-            // Calc Current 
+            // Calc Current
             //double CurrentBitMultiplier = 0.092;  // 0.092mA/Bit
-            double CurrentBitMultiplier = 0.015;  // 0.015mA/Bit => LSB Calc based on max current of 0.5A
+            double CurrentBitMultiplier = 0.015; // 0.015mA/Bit => LSB Calc based on max current of 0.5A
 
             double current = (double)ShuntVoltageRegister * CurrentBitMultiplier * 10.0; // Value is in mA
             //Serial.print(" | mABus ");
             //Serial.print(current);
-     
+
             // Calc Power
-            double power = current *  (VBus / 1000);
+            double power = current * (VBus / 1000);
             //Serial.print(" | WPower ");
             //Serial.print(power);
 
@@ -181,13 +177,10 @@ void PowerMeasurement::Run()
             valueCurrent_mA = 0.0;
         }
 
-        // Publish update to mqtt
-        this->network->ElectricalMeasurementUpdate( valuePower_mW,
-                                                    valueBus_V,
-                                                    valueCurrent_mA);
+        // Publish measured data
+        this->network->PublishElectricalMeasurement();
     }
 }
-
 
 /**
  * Prints all used register values from the INA219
@@ -199,7 +192,7 @@ void PowerMeasurement::PrintAllRegister()
     {
         if (i < 16)
         {
-          Serial.print("0");
+            Serial.print("0");
         }
         uint16_t reg_data = i2c->read16(i2cAddress, i);
         Serial.print(i, HEX);
@@ -209,7 +202,6 @@ void PowerMeasurement::PrintAllRegister()
     Serial.println("# ========================== #");
     Serial.println("");
 };
-
 
 /**
  * Prints a 2 byte value with leading zeros 
@@ -221,12 +213,12 @@ void PowerMeasurement::Print2ByteValue(uint16_t data)
     // Print high byte
     for (int i = 7; i >= 0; i--)
     {
-      Serial.print(bitRead(highByte(data), i));
+        Serial.print(bitRead(highByte(data), i));
     }
     // Print low byte
     for (int i = 7; i >= 0; i--)
     {
-      Serial.print(bitRead(lowByte(data), i));
+        Serial.print(bitRead(lowByte(data), i));
     }
     Serial.println("");
 };

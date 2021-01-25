@@ -13,45 +13,45 @@
 class PowerMeasurement : public IBaseClass
 {
     // ## Constructor ## //
-    public:
-         PowerMeasurement(uint8_t i2cAddress, 
-                          I2C *i2c, 
-                          Network *network,
-                          double shuntResistorOhm);
+public:
+    PowerMeasurement(uint8_t i2cAddress,
+                     I2C *i2c,
+                     Network *network,
+                     double shuntResistorOhm);
 
     // ## Interface ## //
-    private:
-    public:
-        virtual bool Init();
-        virtual void Run();
+private:
+public:
+    virtual bool Init();
+    virtual void Run();
 
     // ## Data ## //
-    private:
-        uint8_t i2cAddress;
-        I2C *i2c;
-        Network *network;
+private:
+    uint8_t i2cAddress;
+    I2C *i2c;
+    Network *network;
 
-        double shuntResistorOhm = 0.02;  // Ohm
-        int calibrationValue = 0;
-        double maxExpectedCurrentA = 4.0;   // Ampere 
-        double currentLSB = 0.0;
-        double powerLSB = 0;
-        
-        // Timer
-        unsigned long PrevMillis_PowerMessurmentUpdateRate = 0;
-        const unsigned long TimeOut_PowerMessurmentUpdateRate = 1000; // 1 sec
-        // Values
-        double valueShunt_mV = 0.0;
-        double valueBus_V = 0.0;
-        double valuePower_mW = 0.0;
-        double valueCurrent_mA = 0.0;
+    double shuntResistorOhm = 0.02; // Ohm
+    int calibrationValue = 0;
+    double maxExpectedCurrentA = 4.0; // Ampere
+    double currentLSB = 0.0;
+    double powerLSB = 0;
 
-    public:
+    // Timer
+    unsigned long PrevMillis_PowerMessurmentUpdateRate = 0;
+    const unsigned long TimeOut_PowerMessurmentUpdateRate = 1000; // 1 sec
+
+public:
+    // Values
+    double valueShunt_mV = 0.0;
+    double valueBus_V = 0.0;
+    double valuePower_mW = 0.0;
+    double valueCurrent_mA = 0.0;
 
     // ## Functions ## //
-    private:
-        void PrintAllRegister();
-        void Print2ByteValue(uint16_t data);
-    public:
+private:
+    void PrintAllRegister();
+    void Print2ByteValue(uint16_t data);
 
+public:
 };
