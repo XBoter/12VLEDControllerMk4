@@ -526,15 +526,15 @@ String Information::SingleLEDEffectToString(SingleLEDEffect effect)
  **/
 SingleLEDEffect Information::StringToSingleLEDEffect(String effect)
 {
-    if (effect.toLowerCase() == "none")
+    if (effect == "None")
     {
         return SingleLEDEffect::None;
     }
-    else if (effect.toLowerCase() == "triplepulse")
+    else if (effect== "TriplePulse")
     {
         return SingleLEDEffect::TriplePulse;
     }
-    else if (effect.toLowerCase() == "rainbow")
+    else if (effect == "Rainbow")
     {
         return SingleLEDEffect::Rainbow;
     }
