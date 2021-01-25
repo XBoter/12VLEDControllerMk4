@@ -25,7 +25,6 @@ public:
     // ## Data ## //
 private:
     Network *network;
-    bool memSensorTriggered = false;
     unsigned long prevMillisMotion = 0;
 
 public:
