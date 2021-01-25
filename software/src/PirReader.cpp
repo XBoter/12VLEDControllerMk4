@@ -94,11 +94,4 @@ void PirReader::Run()
     {
         motionDetected = false;
     }
-
-    // Publish motion detected to mqtt
-    if (sensorTriggered != memSensorTriggered)
-    {
-        this->network->MotionDetectedUpdate(sensorTriggered);
-        memSensorTriggered = sensorTriggered;
-    }
-};
+}
