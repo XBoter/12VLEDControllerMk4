@@ -87,6 +87,7 @@ public:
     // Help functions
     String BoolToString(bool b);
     String SingleLEDEffectToString(SingleLEDEffect effect);
+    SingleLEDEffect StringToSingleLEDEffect(String effect);
     String MultiLEDEffectToString(MultiLEDEffect effect);
     String FadeCurveToString(FadeCurve curve);
 };
