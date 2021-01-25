@@ -38,6 +38,10 @@ private:
     const long utcOffsetInSeconds = 3600; // UTC +1 (Germany) => 1 * 60 * 60 => 3600
     NTPClient timeClient = NTPClient(ntpUDP, "europe.pool.ntp.org", utcOffsetInSeconds);
 
+    // Network Info
+    String ipAddress = "";
+    String macAddress = "";
+
     // Prev Millis
     unsigned long PrevMillis_WiFiTimeout = 0;
     unsigned long PrevMillis_MQTTTimeout = 0;
@@ -47,7 +51,7 @@ private:
     // Timeout
     const unsigned long TimeOut_WiFiTimeout = 5000;      // 5 sec
     const unsigned long TimeOut_MQTTTimeout = 5000;      // 5 sec
-    const unsigned long TimeOut_NTPTimeout = 60000;      // 60 sec 
+    const unsigned long TimeOut_NTPTimeout = 60000;      // 60 sec
     const unsigned long TimeOut_HeartbeatTimeout = 5000; // 5 sec
 
     bool wifiOneTimePrint = true;
@@ -81,6 +85,21 @@ public:
     // Virtual PIR Sensor
     bool virtualPIRSensorTriggered = false;
 
+    // ==== Republish / Publish functions
+    unsigned long prevMillisPublishMotionDetected = 0;
+    unsigned long prevMillisPublishLEDStripData = 0;
+    unsigned long prevMillisPublishElectricalMeasurement = 0;
+    unsigned long prevMillisPublishHeartbeat = 0;
+    unsigned long prevMillisPublishMotionLEDStripData = 0;
+    unsigned long prevMillisPublishNetwork = 0;
+
+    uint32_t timeoutPublishMotionDetected = 10000;        // 10 Seconds
+    uint32_t timeoutPublishLEDStripData = 300000;         // 5 Minutes
+    uint32_t timeoutPublishElectricalMeasurement = 30000; // 30 Seconds
+    uint32_t timeoutPublishHeartbeat = 5000;              // 5 Seconds
+    uint32_t timeoutPublishMotionLEDStripData = 300000;   // 5 Minutes
+    uint32_t timeoutPublishNetwork = 600000;              // 10 Minutes
+
     // ## Functions ## //
 private:
     // Network handles
@@ -88,13 +107,32 @@ private:
     void HandleMqtt();
     void HandleNTP();
 
-    void Heartbeat();
-    void MqttUpdateAfterDc(NetworkLEDStripData networkLedStripData,
-                           const char *topic);
+    // ==== Republish / Publish functions
+    // == Handle
+    void HandleRepublish();
+
+    // == Homeassistant
+    void PublishHomeassistantMotionDetected();
+    void PublishHomeassistantLEDStripData();
+    void PublishHomeassistantElectricalMeasurement();
+    void PublishHomeassistantHeartbeat();
+    void PublishHomeassistantMotionLEDStripData();
+    void PublishHomeassistantNetwork();
+
+    // == Json
+    void PublishJsonMotionDetected();
+    void PublishJsonLEDStripData();
+    void PublishJsonElectricalMeasurement();
+    void PublishJsonHeartbeat();
+    void PublishJsonMotionLEDStripData();
+    void PublishJsonNetwork();
 
 public:
-    void ElectricalMeasurementUpdate(double currentPower,
-                                     double busVoltage,
-                                     double busCurrent);
-    void MotionDetectedUpdate(bool motion);
+    // ==== Republish / Publish functions
+    void PublishMotionDetected();
+    void PublishLEDStripData();
+    void PublishElectricalMeasurement();
+    void PublishHeartbeat();
+    void PublishMotionLEDStripData();
+    void PublishNetwork();
 };

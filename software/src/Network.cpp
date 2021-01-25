@@ -1,17 +1,14 @@
 #include "../include/Network.h"
 #include "../Main.h"
 
+void mqttCallback(char *topic, byte *payload, unsigned int length);
+
 /**
  * Empty constructor
  */
 Network::Network(){
 
 };
-
-// For compiler
-void mqttCallback(char *topic, byte *payload, unsigned int length);
-SingleLEDEffect StringToSingleLEDEffect(String effect);
-String SingleLEDEffectToString(SingleLEDEffect effect);
 
 /**
  * Does init stuff for the Network component
@@ -68,11 +65,13 @@ void Network::Run()
         {
             Serial.println("\n-- Wifi Connected --");
             Serial.print("  IP Address  : ");
-            Serial.println(WiFi.localIP());
+            ipAddress = WiFi.localIP().toString().c_str();
+            Serial.println(ipAddress);
             Serial.print("  Subnetmask  : ");
             Serial.println(WiFi.subnetMask());
             Serial.print("  MAC Address : ");
-            Serial.println(WiFi.macAddress());
+            macAddress = WiFi.macAddress();
+            Serial.println(macAddress);
             Serial.print("  Gateway     : ");
             Serial.println(WiFi.gatewayIP());
         }
@@ -106,8 +105,8 @@ void Network::Run()
     // -- NTP
     HandleNTP();
 
-    // -- Heartbeat
-    Heartbeat();
+    // -- Republish
+    HandleRepublish();
 };
 
 /**
@@ -235,12 +234,29 @@ void Network::HandleMqtt()
                 */
                 // ==== Global ==== //
                 mqttClient.subscribe("LEDController/Global/JSON/Sun/command");
+                mqttClient.subscribe("LEDController/Global/JSON/MasterPresent/command");
+                mqttClient.subscribe("LEDController/Global/JSON/Effect/Alarm/command");
 
                 // ==== Specific ==== //
+                // Motion
+                mqttClient.subscribe(("LEDController/" + data.mqttClientName + "/JSON/MotionDetection/command").c_str());
+
+                // Strip 1
+                mqttClient.subscribe(("LEDController/" + data.mqttClientName + "/JSON/Strip1/command").c_str());
+
+                // Strip 2
+                mqttClient.subscribe(("LEDController/" + data.mqttClientName + "/JSON/Strip2/command").c_str());
+
+                // PIR
+                mqttClient.subscribe(("LEDController/" + data.mqttClientName + "/JSON/Virtual/PIR/command").c_str());
 
                 // === Republish == //
-                //MqttUpdateAfterDc(stNetworkLedStrip1Data, mqtt_strip1_json_state);
-                //MqttUpdateAfterDc(stNetworkLedStrip2Data, mqtt_strip2_json_state);
+                PublishLEDStripData();
+                PublishMotionLEDStripData();
+                PublishMotionDetected();
+                PublishNetwork();
+                PublishHeartbeat();
+                PublishElectricalMeasurement();
 
                 mqttState = NetworkMQTTState::SuperviseMqttConnection;
             }
@@ -302,182 +318,6 @@ void Network::HandleNTP()
             stNetworkTimeData.minute = timeClient.getMinutes();
             stNetworkTimeData.second = timeClient.getSeconds();
         }
-    }
-};
-
-/**
- * Publishes a heartbeat update to the defined mqtt path every few milliseconds if mqtt is available
- */
-void Network::Heartbeat()
-{
-    ConfiguredData configuredData = mainController.configuration.getData();
-
-    if (mqttConnected)
-    {
-        unsigned long CurMillis_HeartbeatTimeout = millis();
-        if (CurMillis_HeartbeatTimeout - PrevMillis_HeartbeatTimeout >= TimeOut_HeartbeatTimeout)
-        {
-            PrevMillis_HeartbeatTimeout = CurMillis_HeartbeatTimeout;
-            mainController.network.mqttClient.publish(("LEDController/" + configuredData.mqttClientName + "/HomeAssistant/Heartbeat/state").c_str(), "pulse");
-        }
-    }
-};
-
-/**
- * Publishes a electrical measurement update in json format
- * 
- * @parameter currentPower  The value of the power in mW to send
- * @parameter busVoltage    The value of the bus voltage in V to send
- * @parameter busCurrent    The value of the bus current in mA
- **/
-void Network::ElectricalMeasurementUpdate(double currentPower,
-                                          double busVoltage,
-                                          double busCurrent)
-{
-    // Create json message
-    StaticJsonDocument<256> doc;
-    doc["currentPower"] = currentPower;
-    doc["busVoltage"] = busVoltage;
-    doc["busCurrent"] = busCurrent;
-
-    // Serialize json message and send
-    char message[256];
-    serializeJson(doc, message);
-    // ToDO implement
-    //mqttClient.publish(mqtt_electrical_measurement_json_state, message);
-};
-
-/**
- * Publishes a motion detection update to the defined mqtt path
- * 
- * @parameter motion    The value of the current detected motion
- **/
-void Network::MotionDetectedUpdate(bool motion)
-{
-    char message[8];
-    message[0] = motion;
-    // ToDO implement
-    //mqttClient.publish(mqtt_motion_detected_state, message);
-};
-
-/**
- * Updates the current ledStripData to a mqtt topic in json format
- * 
- * @parameter ledStripData  LEDStripData struct to send
- * @parameter topic         Mqtt topic to send the data to
- **/
-void Network::MqttUpdateAfterDc(NetworkLEDStripData networkLedStripData,
-                                const char *topic)
-{
-    // Create json message
-    StaticJsonDocument<256> doc;
-    if (networkLedStripData.power)
-    {
-        doc["state"] = "ON";
-    }
-    else
-    {
-        doc["state"] = "OFF";
-    }
-    doc["brightness"] = networkLedStripData.ledStripData.colorBrightnessValue;
-    doc["color"]["r"] = networkLedStripData.ledStripData.redColorValue;
-    doc["color"]["g"] = networkLedStripData.ledStripData.greenColorValue;
-    doc["color"]["b"] = networkLedStripData.ledStripData.blueColorValue;
-    doc["white_value"] = networkLedStripData.ledStripData.whiteTemperatureValue;
-    doc["effect"] = SingleLEDEffectToString(networkLedStripData.effect);
-
-    // Serialize json message and send
-    char message[256];
-    serializeJson(doc, message);
-    mqttClient.publish(topic, message);
-    // ToDO fix / recode
-};
-
-/**
- * Converts a string to a LEDEffect
- * 
- * @parameter effect    The name of effect as string
- * 
- * @return effect The corresponding LEDEffect to the given string effect
- **/
-SingleLEDEffect StringToSingleLEDEffect(String effect)
-{
-    if (effect == "None")
-    {
-        return SingleLEDEffect::None;
-    }
-    else if (effect == "TriplePulse")
-    {
-        return SingleLEDEffect::TriplePulse;
-    }
-    else if (effect == "Rainbow")
-    {
-        return SingleLEDEffect::Rainbow;
-    }
-    else // default
-    {
-        return SingleLEDEffect::None;
-    }
-};
-
-/**
- * Converts a LEDEffect to a String
- * 
- * @parameter effect    The LEDEffect to convert to string
- * 
- * @return effect The corresponding string effect to the given LEDEffect
- **/
-String SingleLEDEffectToString(SingleLEDEffect effect)
-{
-    switch (effect)
-    {
-
-    case SingleLEDEffect::None:
-        return "None";
-        break;
-
-    case SingleLEDEffect::TriplePulse:
-        return "TriplePulse";
-        break;
-
-    case SingleLEDEffect::Rainbow:
-        return "Rainbow";
-        break;
-
-    default:
-        return "None";
-        break;
-    }
-};
-
-/**
- * Converts a string to a AlarmMode
- * 
- * @parameter mode    The name of mode as string
- * 
- * @return mode The corresponding AlarmMode to the given string mode
- **/
-AlarmMode StringToAlarmMode(String mode)
-{
-    if (mode == "Nothing")
-    {
-        return AlarmMode::Nothing;
-    }
-    else if (mode == "Warning")
-    {
-        return AlarmMode::Warning;
-    }
-    else if (mode == "Error")
-    {
-        return AlarmMode::Error;
-    }
-    else if (mode == "Critical")
-    {
-        return AlarmMode::Critical;
-    }
-    else // default
-    {
-        return AlarmMode::Nothing;
     }
 };
 
@@ -681,7 +521,7 @@ void mqttCallback(char *topic, byte *payload, unsigned int length)
     }
     if (String("LEDController/" + configuredData.mqttClientName + "/HomeAssistant/Strip1/Effect/command").equals(topic))
     {
-        mainController.network.stNetworkLedStrip1Data.effect = StringToSingleLEDEffect(message);
+        mainController.network.stNetworkLedStrip1Data.effect = mainController.information.StringToSingleLEDEffect(message);
 
         mainController.network.mqttClient.publish(("LEDController/" + configuredData.mqttClientName + "/HomeAssistant/Strip1/Effect/state").c_str(), memMessage);
     }
@@ -746,7 +586,7 @@ void mqttCallback(char *topic, byte *payload, unsigned int length)
     }
     if (String("LEDController/" + configuredData.mqttClientName + "/HomeAssistant/Strip2/Effect/command").equals(topic))
     {
-        mainController.network.stNetworkLedStrip2Data.effect = StringToSingleLEDEffect(message);
+        mainController.network.stNetworkLedStrip2Data.effect = mainController.information.StringToSingleLEDEffect(message);
 
         mainController.network.mqttClient.publish(("LEDController/" + configuredData.mqttClientName + "/HomeAssistant/Strip2/Effect/state").c_str(), memMessage);
     }
@@ -769,18 +609,290 @@ void mqttCallback(char *topic, byte *payload, unsigned int length)
 
     // ================ Global ================ //
     // ======== Sun ======== //
-
+    if (String("LEDController/Global/JSON/Sun/command").equals(topic))
+    {
+    }
     // ======== MasterPresent ======== //
+    if (String("LEDController/Global/JSON/MasterPresent/command").equals(topic))
+    {
+    }
 
     // ======== Effects ======== //
+    // ======== Alarm ======== //
+    if (String("LEDController/Global/JSON/Effect/Alarm/command").equals(topic))
+    {
+    }
 
     // ================ Specific ================ //
     // ======== Motion ======== //
+    if (String("LEDController/" + configuredData.mqttClientName + "/JSON/MotionDetection/command").equals(topic))
+    {
+    }
 
     // ======== Strip 1 ======== //
+    if (String("LEDController/" + configuredData.mqttClientName + "/JSON/Strip1/command").equals(topic))
+    {
+    }
 
     // ======== Strip 2 ======== //
+    if (String("LEDController/" + configuredData.mqttClientName + "/JSON/Strip2/command").equals(topic))
+    {
+    }
 
     // ================ Virtual ================ //
     // ======== PIR ======== //
+    if (String("LEDController/" + configuredData.mqttClientName + "/JSON/Virtual/PIR/command").equals(topic))
+    {
+    }
+}
+
+void Network::HandleRepublish()
+{
+    // For now disabled
+    //return;
+
+    unsigned long curMillis = millis();
+
+    // == Motion Detection
+    if (curMillis - prevMillisPublishMotionDetected >= timeoutPublishMotionDetected)
+    {
+        PublishMotionDetected();
+    }
+
+    // == LED Strip Data
+    if (curMillis - prevMillisPublishLEDStripData >= timeoutPublishLEDStripData)
+    {
+        PublishLEDStripData();
+    }
+
+    // == Electrical Messurement
+    if (curMillis - prevMillisPublishElectricalMeasurement >= timeoutPublishElectricalMeasurement)
+    {
+        PublishElectricalMeasurement();
+    }
+
+    // == Heartbeat
+    if (curMillis - prevMillisPublishHeartbeat >= timeoutPublishHeartbeat)
+    {
+        PublishHeartbeat();
+    }
+
+    // == LED Strip Motion Data
+    if (curMillis - prevMillisPublishMotionLEDStripData >= timeoutPublishMotionLEDStripData)
+    {
+        PublishMotionLEDStripData();
+    }
+
+    // == Network
+    if (curMillis - prevMillisPublishNetwork >= timeoutPublishNetwork)
+    {
+        PublishNetwork();
+    }
+}
+
+void Network::PublishHomeassistantMotionDetected()
+{
+    String message = "";
+
+    // ==== Motion Detected
+    message = String(mainController.pirReader.motionDetected);
+    mqttClient.publish(("LEDController/" + data.mqttClientName + "/HomeAssistant/Motion/state").c_str(), message.c_str());
+    message = String(mainController.pirReader.sensorTriggered);
+    mqttClient.publish(("LEDController/" + data.mqttClientName + "/HomeAssistant/Motion/PIR/state").c_str(), message.c_str());
+    message = String(mainController.pirReader.sensor1Triggered);
+    mqttClient.publish(("LEDController/" + data.mqttClientName + "/HomeAssistant/Motion/PIR/Sensor1/state").c_str(), message.c_str());
+    message = String(mainController.pirReader.sensor2Triggered);
+    mqttClient.publish(("LEDController/" + data.mqttClientName + "/HomeAssistant/Motion/PIR/Sensor2/state").c_str(), message.c_str());
+    message = String(mainController.pirReader.virtualSensorTriggered);
+    mqttClient.publish(("LEDController/" + data.mqttClientName + "/HomeAssistant/Motion/PIR/VirtualSensor/state").c_str(), message.c_str());
+}
+
+void Network::PublishHomeassistantLEDStripData()
+{
+    String message = "";
+
+    // ==== Strip 1
+    message = String(stNetworkLedStrip1Data.power);
+    mqttClient.publish(("LEDController/" + data.mqttClientName + "/HomeAssistant/Strip1/Power/state").c_str(), message.c_str());
+    message = String(stNetworkLedStrip1Data.ledStripData.redColorValue + String(",") + stNetworkLedStrip1Data.ledStripData.greenColorValue + String(",") + stNetworkLedStrip1Data.ledStripData.blueColorValue);
+    mqttClient.publish(("LEDController/" + data.mqttClientName + "/HomeAssistant/Strip1/RGB/state").c_str(), message.c_str());
+    message = String(stNetworkLedStrip1Data.ledStripData.colorBrightnessValue);
+    mqttClient.publish(("LEDController/" + data.mqttClientName + "/HomeAssistant/Strip1/RGB/Brightness/state").c_str(), message.c_str());
+    message = String(stNetworkLedStrip1Data.ledStripData.whiteTemperatureValue);
+    mqttClient.publish(("LEDController/" + data.mqttClientName + "/HomeAssistant/Strip1/White/state").c_str(), message.c_str());
+    message = String(stNetworkLedStrip1Data.ledStripData.whiteBrightnessValue);
+    mqttClient.publish(("LEDController/" + data.mqttClientName + "/HomeAssistant/Strip1/White/Brightness/state").c_str(), message.c_str());
+    message = String(mainController.information.SingleLEDEffectToString(stNetworkLedStrip1Data.effect));
+    mqttClient.publish(("LEDController/" + data.mqttClientName + "/HomeAssistant/Strip1/Effect/state").c_str(), message.c_str());
+
+    // ==== Strip 2
+    message = String(stNetworkLedStrip2Data.power);
+    mqttClient.publish(("LEDController/" + data.mqttClientName + "/HomeAssistant/Strip2/Power/state").c_str(), message.c_str());
+    message = String(stNetworkLedStrip2Data.ledStripData.redColorValue + String(",") + stNetworkLedStrip2Data.ledStripData.greenColorValue + String(",") + stNetworkLedStrip2Data.ledStripData.blueColorValue);
+    mqttClient.publish(("LEDController/" + data.mqttClientName + "/HomeAssistant/Strip2/RGB/state").c_str(), message.c_str());
+    message = String(stNetworkLedStrip2Data.ledStripData.colorBrightnessValue);
+    mqttClient.publish(("LEDController/" + data.mqttClientName + "/HomeAssistant/Strip2/RGB/Brightness/state").c_str(), message.c_str());
+    message = String(stNetworkLedStrip2Data.ledStripData.whiteTemperatureValue);
+    mqttClient.publish(("LEDController/" + data.mqttClientName + "/HomeAssistant/Strip2/White/state").c_str(), message.c_str());
+    message = String(stNetworkLedStrip2Data.ledStripData.whiteBrightnessValue);
+    mqttClient.publish(("LEDController/" + data.mqttClientName + "/HomeAssistant/Strip2/White/Brightness/state").c_str(), message.c_str());
+    message = String(mainController.information.SingleLEDEffectToString(stNetworkLedStrip2Data.effect));
+    mqttClient.publish(("LEDController/" + data.mqttClientName + "/HomeAssistant/Strip2/Effect/state").c_str(), message.c_str());
+}
+
+void Network::PublishHomeassistantElectricalMeasurement()
+{
+    String message = "";
+
+    // ==== Electrical Measurement
+    message = String(mainController.powerMessurement.valuePower_mW);
+    mqttClient.publish(("LEDController/" + data.mqttClientName + "/HomeAssistant/ElectricalMesurement/CurrentPower/state").c_str(), message.c_str());
+    message = String(mainController.powerMessurement.valueBus_V);
+    mqttClient.publish(("LEDController/" + data.mqttClientName + "/HomeAssistant/ElectricalMesurement/BusVoltage/state").c_str(), message.c_str());
+    message = String(mainController.powerMessurement.valueCurrent_mA);
+    mqttClient.publish(("LEDController/" + data.mqttClientName + "/HomeAssistant/ElectricalMesurement/CurrentAmpere/state").c_str(), message.c_str());
+}
+
+void Network::PublishHomeassistantHeartbeat()
+{
+    String message = "pulse";
+
+    // ==== Heartbeat
+    mqttClient.publish(("LEDController/" + data.mqttClientName + "/HomeAssistant/Heartbeat/state").c_str(), message.c_str());
+}
+
+void Network::PublishHomeassistantMotionLEDStripData()
+{
+    String message = "";
+
+    // ==== Motion
+    message = String(stNetworkMotionData.motionDetectionEnabled);
+    mqttClient.publish(("LEDController/" + data.mqttClientName + "/HomeAssistant/MotionDetection/Enable/state").c_str(), message.c_str());
+    message = String(stNetworkMotionData.redColorValue + String(",") + stNetworkMotionData.greenColorValue + String(",") + stNetworkMotionData.blueColorValue);
+    mqttClient.publish(("LEDController/" + data.mqttClientName + "/HomeAssistant/MotionDetection/RGB/state").c_str(), message.c_str());
+    message = String(stNetworkMotionData.colorBrightnessValue);
+    mqttClient.publish(("LEDController/" + data.mqttClientName + "/HomeAssistant/MotionDetection/RGB/Brightness/state").c_str(), message.c_str());
+    message = String(stNetworkMotionData.whiteTemperatureValue);
+    mqttClient.publish(("LEDController/" + data.mqttClientName + "/HomeAssistant/MotionDetection/White/state").c_str(), message.c_str());
+    message = String(stNetworkMotionData.whiteBrightnessValue);
+    mqttClient.publish(("LEDController/" + data.mqttClientName + "/HomeAssistant/MotionDetection/White/Brightness/state").c_str(), message.c_str());
+}
+
+void Network::PublishHomeassistantNetwork()
+{
+    String message = "";
+
+    // ==== Network
+    message = ipAddress;
+    mqttClient.publish(("LEDController/" + data.mqttClientName + "/HomeAssistant/Network/IPAddress/state").c_str(), message.c_str());
+    message = macAddress;
+    mqttClient.publish(("LEDController/" + data.mqttClientName + "/HomeAssistant/Network/MACAddress/state").c_str(), message.c_str());
+}
+
+void Network::PublishJsonMotionDetected()
+{
+}
+
+void Network::PublishJsonLEDStripData()
+{
+}
+
+void Network::PublishJsonElectricalMeasurement()
+{
+}
+
+void Network::PublishJsonHeartbeat()
+{
+}
+
+void Network::PublishJsonMotionLEDStripData()
+{
+}
+
+void Network::PublishJsonNetwork()
+{
+}
+
+/**
+ * Publishes information about the current motion detected state
+ */
+void Network::PublishMotionDetected()
+{
+    prevMillisPublishMotionDetected = millis();
+
+    // == Home Assistant
+    PublishHomeassistantMotionDetected();
+
+    // == JSON
+    PublishJsonMotionDetected();
+}
+
+/**
+ * Publishes information about the led strips
+ */
+void Network::PublishLEDStripData()
+{
+    prevMillisPublishLEDStripData = millis();
+
+    // == Home Assistant
+    PublishHomeassistantLEDStripData();
+
+    // == JSON
+    PublishJsonLEDStripData();
+}
+
+/**
+ * Publishes the electrical measurement
+ */
+void Network::PublishElectricalMeasurement()
+{
+    prevMillisPublishElectricalMeasurement = millis();
+
+    // == Home Assistant
+    PublishHomeassistantElectricalMeasurement();
+
+    // == JSON
+    PublishJsonElectricalMeasurement();
+}
+
+/**
+ * Publishes a heartbeat
+ */
+void Network::PublishHeartbeat()
+{
+    prevMillisPublishHeartbeat = millis();
+
+    // == Home Assistant
+    PublishHomeassistantHeartbeat();
+
+    // == JSON
+    PublishJsonHeartbeat();
+}
+
+/**
+ * Publishes information about the motion led strip data
+ */
+void Network::PublishMotionLEDStripData()
+{
+    prevMillisPublishMotionLEDStripData = millis();
+
+    // == Home Assistant
+    PublishHomeassistantMotionLEDStripData();
+
+    // == JSON
+    PublishJsonMotionLEDStripData();
+}
+
+/**
+ * Publishes information about the network interface  
+ */
+void Network::PublishNetwork()
+{
+    prevMillisPublishNetwork = millis();
+
+    // == Home Assistant
+    PublishHomeassistantNetwork();
+
+    // == JSON
+    PublishJsonNetwork();
 }
