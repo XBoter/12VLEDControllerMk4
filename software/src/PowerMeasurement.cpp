@@ -149,25 +149,17 @@ void PowerMeasurement::Run()
             double VShunt = ShuntVoltageRegister * 0.01;   // Convert to mV
             double VBus = BusVoltageRegisterShift * 0.001; // Convert to V
 
-            //Serial.print("mVShunt ");
-            //Serial.print(VShunt);
-            //Serial.print(" | VBus ");
-            //Serial.print(VBus);
-
             // Calc Current
-            //double CurrentBitMultiplier = 0.092;  // 0.092mA/Bit
-            double CurrentBitMultiplier = 0.015; // 0.015mA/Bit => LSB Calc based on max current of 0.5A
-
+            double CurrentBitMultiplier = 0.015;                                         // 0.015mA/Bit => LSB Calc based on max current of 0.5A
             double current = (double)ShuntVoltageRegister * CurrentBitMultiplier * 10.0; // Value is in mA
-            //Serial.print(" | mABus ");
-            //Serial.print(current);
 
             // Calc Power
             double power = current * (VBus / 1000);
-            //Serial.print(" | WPower ");
-            //Serial.print(power);
 
-            //Serial.println("");
+            valueShunt_mV = VShunt;
+            valueBus_V = VBus;
+            valuePower_mW = power;
+            valueCurrent_mA = current;
         }
         else
         {
