@@ -47,11 +47,11 @@ struct LEDColorReg
  */
 struct LEDStripColorReg
 {
-    LEDColorReg RED_REG;
-    LEDColorReg GREEN_REG;
-    LEDColorReg BLUE_REG;
-    LEDColorReg CW_REG;
-    LEDColorReg WW_REG;
+    LEDColorReg RED_REG = {};
+    LEDColorReg GREEN_REG = {};
+    LEDColorReg BLUE_REG = {};
+    LEDColorReg CW_REG = {};
+    LEDColorReg WW_REG = {};
 };
 
 /**
