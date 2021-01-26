@@ -883,7 +883,6 @@ bool LedDriver::FadeToColor(uint8_t stripID,
 
     // Get current data of strip
     LEDStripData *ptrCurrentLEDStripData = getCurrentLEDStripData(stripID);
-    LEDStripData *ptrPreviousLEDStripData = getPreviousLEDStripData(stripID);
 
     // Check if FadeToColor got called last cycle
     if ((ptrCurrentLEDStripData->lastRefreshRateCount + 1) != refreshRateCounter)
