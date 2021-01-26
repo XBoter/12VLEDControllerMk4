@@ -329,13 +329,13 @@ void Network::HandleNTP()
  * @parameter *payload  A pointer to a byte array with data send over the mqtt topic
  * @parameter length    The length of the byte data array
  **/
-void mqttCallback(char *topic, byte *payload, uint16_t length)
+void mqttCallback(char *topic, byte *payload, unsigned int length)
 {
 
     //-- Get Message and add terminator
     char message[length + 1];    // Main data received
     char memMessage[length + 1]; // Mem of main data because main data gets changed after json deserialize
-    for (int i = 0; i < length; i++)
+    for (unsigned int i = 0; i < length; i++)
     {
         message[i] = (char)payload[i];
         memMessage[i] = (char)payload[i];
