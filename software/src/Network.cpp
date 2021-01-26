@@ -329,7 +329,7 @@ void Network::HandleNTP()
  * @parameter *payload  A pointer to a byte array with data send over the mqtt topic
  * @parameter length    The length of the byte data array
  **/
-void mqttCallback(char *topic, byte *payload, unsigned int length)
+void mqttCallback(char *topic, byte *payload, uint16_t length)
 {
 
     //-- Get Message and add terminator
@@ -354,7 +354,7 @@ void mqttCallback(char *topic, byte *payload, unsigned int length)
     // ======== Sun ======== //
     if (String("LEDController/Global/HomeAssistant/Sun/command").equals(topic))
     {
-        uint8_t data = atoi(message);
+        long int data = strtol(message, NULL, 10);
         if (data >= 0 && data <= 1)
         {
             mainController.network.parameter_sun = (bool)data;
@@ -376,7 +376,7 @@ void mqttCallback(char *topic, byte *payload, unsigned int length)
     // ======== Alarm ======== //
     if (String("LEDController/Global/HomeAssistant/Effect/Alarm/command").equals(topic))
     {
-        uint8_t data = atoi(message);
+        long int data = strtol(message, NULL, 10);
         if (data >= 0 && data <= 1)
         {
             mainController.network.alarm = (bool)data;
@@ -387,7 +387,7 @@ void mqttCallback(char *topic, byte *payload, unsigned int length)
     // ======== Motion ======== //
     if (String("LEDController/" + configuredData.mqttClientName + "/HomeAssistant/MotionDetection/BrightnessTimeBasedEnabled/command").equals(topic))
     {
-        uint8_t data = atoi(message);
+        long int data = strtol(message, NULL, 10);
         if (data >= 0 && data <= 1)
         {
             mainController.network.stNetworkMotionData.timeBasedBrightnessChangeEnabled = (bool)data;
@@ -396,7 +396,7 @@ void mqttCallback(char *topic, byte *payload, unsigned int length)
     }
     if (String("LEDController/" + configuredData.mqttClientName + "/HomeAssistant/MotionDetection/Enabled/command").equals(topic))
     {
-        uint8_t data = atoi(message);
+        long int data = strtol(message, NULL, 10);
         if (data >= 0 && data <= 1)
         {
             mainController.network.stNetworkMotionData.motionDetectionEnabled = (bool)data;
@@ -405,7 +405,7 @@ void mqttCallback(char *topic, byte *payload, unsigned int length)
     }
     if (String("LEDController/" + configuredData.mqttClientName + "/HomeAssistant/MotionDetection/Timeout/command").equals(topic))
     {
-        uint8_t data = atoi(message);
+        long int data = strtol(message, NULL, 10);
         if (data >= 0 && data <= 1000)
         {
             mainController.network.stNetworkMotionData.timeout = data;
@@ -414,9 +414,9 @@ void mqttCallback(char *topic, byte *payload, unsigned int length)
     }
     if (String("LEDController/" + configuredData.mqttClientName + "/HomeAssistant/MotionDetection/RGB/command").equals(topic))
     {
-        uint8_t red = atoi(strtok(message, ","));
-        uint8_t green = atoi(strtok(NULL, ","));
-        uint8_t blue = atoi(strtok(NULL, ","));
+        long int red = strtol(strtok(message, ","), NULL, 10);
+        long int green = strtol(strtok(NULL, ","), NULL, 10);
+        long int blue = strtol(strtok(NULL, ","), NULL, 10);
         if ((red >= 0 && red <= 255) && (green >= 0 && green <= 255) && (blue >= 0 && blue <= 255))
         {
             mainController.network.stNetworkMotionData.redColorValue = red;
@@ -427,7 +427,7 @@ void mqttCallback(char *topic, byte *payload, unsigned int length)
     }
     if (String("LEDController/" + configuredData.mqttClientName + "/HomeAssistant/MotionDetection/RGB/Brightness/command").equals(topic))
     {
-        uint16_t data = atoi(message);
+        long int data = strtol(message, NULL, 10);
         if (data >= 0 && data <= 4095)
         {
             // Because home assistant rgb brightness slider is retarded and can only go to 1% and not to 0% we set the brightness to zero if below 50
@@ -444,7 +444,7 @@ void mqttCallback(char *topic, byte *payload, unsigned int length)
     }
     if (String("LEDController/" + configuredData.mqttClientName + "/HomeAssistant/MotionDetection/White/command").equals(topic))
     {
-        uint16_t data = atoi(message);
+        long int data = strtol(message, NULL, 10);
         if (data >= 0 && data <= 500)
         {
             mainController.network.stNetworkMotionData.whiteTemperatureValue = data;
@@ -453,7 +453,7 @@ void mqttCallback(char *topic, byte *payload, unsigned int length)
     }
     if (String("LEDController/" + configuredData.mqttClientName + "/HomeAssistant/MotionDetection/White/Brightness/command").equals(topic))
     {
-        uint16_t data = atoi(message);
+        long int data = strtol(message, NULL, 10);
         if (data >= 0 && data <= 4095)
         {
             mainController.network.stNetworkMotionData.whiteBrightnessValue = data;
@@ -464,7 +464,7 @@ void mqttCallback(char *topic, byte *payload, unsigned int length)
     // ======== Strip 1 ======== //
     if (String("LEDController/" + configuredData.mqttClientName + "/HomeAssistant/Strip1/Power/command").equals(topic))
     {
-        uint8_t data = atoi(message);
+        long int data = strtol(message, NULL, 10);
         if (data >= 0 && data <= 1)
         {
             mainController.network.stNetworkLedStrip1Data.power = (bool)data;
@@ -473,9 +473,9 @@ void mqttCallback(char *topic, byte *payload, unsigned int length)
     }
     if (String("LEDController/" + configuredData.mqttClientName + "/HomeAssistant/Strip1/RGB/command").equals(topic))
     {
-        uint8_t red = atoi(strtok(message, ","));
-        uint8_t green = atoi(strtok(NULL, ","));
-        uint8_t blue = atoi(strtok(NULL, ","));
+        long int red = strtol(strtok(message, ","), NULL, 10);
+        long int green = strtol(strtok(NULL, ","), NULL, 10);
+        long int blue = strtol(strtok(NULL, ","), NULL, 10);
         if ((red >= 0 && red <= 255) && (green >= 0 && green <= 255) && (blue >= 0 && blue <= 255))
         {
             mainController.network.stNetworkLedStrip1Data.ledStripData.redColorValue = red;
@@ -486,7 +486,7 @@ void mqttCallback(char *topic, byte *payload, unsigned int length)
     }
     if (String("LEDController/" + configuredData.mqttClientName + "/HomeAssistant/Strip1/RGB/Brightness/command").equals(topic))
     {
-        uint16_t data = atoi(message);
+        long int data = strtol(message, NULL, 10);
         if (data >= 0 && data <= 4095)
         {
             // Because home assistant rgb brightness slider is retarded and can only go to 1% and not to 0% we set the brightness to zero if below 50
@@ -503,7 +503,7 @@ void mqttCallback(char *topic, byte *payload, unsigned int length)
     }
     if (String("LEDController/" + configuredData.mqttClientName + "/HomeAssistant/Strip1/White/command").equals(topic))
     {
-        uint16_t data = atoi(message);
+        long int data = strtol(message, NULL, 10);
         if (data >= 0 && data <= 500)
         {
             mainController.network.stNetworkLedStrip1Data.ledStripData.whiteTemperatureValue = data;
@@ -512,7 +512,7 @@ void mqttCallback(char *topic, byte *payload, unsigned int length)
     }
     if (String("LEDController/" + configuredData.mqttClientName + "/HomeAssistant/Strip1/White/Brightness/command").equals(topic))
     {
-        uint16_t data = atoi(message);
+        long int data = strtol(message, NULL, 10);
         if (data >= 0 && data <= 4095)
         {
             mainController.network.stNetworkLedStrip1Data.ledStripData.whiteBrightnessValue = data;
@@ -529,7 +529,7 @@ void mqttCallback(char *topic, byte *payload, unsigned int length)
     // ======== Strip 2 ======== //
     if (String("LEDController/" + configuredData.mqttClientName + "/HomeAssistant/Strip2/Power/command").equals(topic))
     {
-        uint8_t data = atoi(message);
+        long int data = strtol(message, NULL, 10);
         if (data >= 0 && data <= 2)
         {
             mainController.network.stNetworkLedStrip2Data.power = (bool)data;
@@ -538,9 +538,9 @@ void mqttCallback(char *topic, byte *payload, unsigned int length)
     }
     if (String("LEDController/" + configuredData.mqttClientName + "/HomeAssistant/Strip2/RGB/command").equals(topic))
     {
-        uint8_t red = atoi(strtok(message, ","));
-        uint8_t green = atoi(strtok(NULL, ","));
-        uint8_t blue = atoi(strtok(NULL, ","));
+        long int red = strtol(strtok(message, ","), NULL, 10);
+        long int green = strtol(strtok(NULL, ","), NULL, 10);
+        long int blue = strtol(strtok(NULL, ","), NULL, 10);
         if ((red >= 0 && red <= 255) && (green >= 0 && green <= 255) && (blue >= 0 && blue <= 255))
         {
             mainController.network.stNetworkLedStrip2Data.ledStripData.redColorValue = red;
@@ -551,7 +551,7 @@ void mqttCallback(char *topic, byte *payload, unsigned int length)
     }
     if (String("LEDController/" + configuredData.mqttClientName + "/HomeAssistant/Strip2/RGB/Brightness/command").equals(topic))
     {
-        uint16_t data = atoi(message);
+        long int data = strtol(message, NULL, 10);
         if (data >= 0 && data <= 4095)
         {
             // Because home assistant rgb brightness slider is retarded and can only go to 1% and not to 0% we set the brightness to zero if below 50
@@ -568,7 +568,7 @@ void mqttCallback(char *topic, byte *payload, unsigned int length)
     }
     if (String("LEDController/" + configuredData.mqttClientName + "/HomeAssistant/Strip2/White/command").equals(topic))
     {
-        uint16_t data = atoi(message);
+        long int data = strtol(message, NULL, 10);
         if (data >= 0 && data <= 500)
         {
             mainController.network.stNetworkLedStrip2Data.ledStripData.whiteTemperatureValue = data;
@@ -577,7 +577,7 @@ void mqttCallback(char *topic, byte *payload, unsigned int length)
     }
     if (String("LEDController/" + configuredData.mqttClientName + "/HomeAssistant/Strip2/White/Brightness/command").equals(topic))
     {
-        uint16_t data = atoi(message);
+        long int data = strtol(message, NULL, 10);
         if (data >= 0 && data <= 4095)
         {
             mainController.network.stNetworkLedStrip2Data.ledStripData.whiteBrightnessValue = data;
@@ -595,7 +595,7 @@ void mqttCallback(char *topic, byte *payload, unsigned int length)
     // ======== PIR ======== //
     if (String("LEDController/" + configuredData.mqttClientName + "/HomeAssistant/Virtual/PIR/command").equals(topic))
     {
-        uint8_t data = atoi(message);
+        long int data = strtol(message, NULL, 10);
         if (data == 1)
         {
             mainController.network.virtualPIRSensorTriggered = true;
