@@ -88,7 +88,7 @@ void LedDriver::Run()
         networkLEDStrip2Data = network->stNetworkLedStrip2Data;
 
         // Check if WiFi and MQTT is connected
-        if (mainController.network.wifiConnected && mainController.network.mqttConnected)
+        if (network->wifiConnected && network->mqttConnected)
         {
             // Wait a little to receive data from mqtt before showing led strip
             if (currentMillisRefreshRate - prevMillisReconnect >= timeoutReconnect)
