@@ -649,7 +649,7 @@ void mqttCallback(char *topic, byte *payload, unsigned int length)
 void Network::HandleRepublish()
 {
     // For now disabled
-    //return;
+    return;
 
     unsigned long curMillis = millis();
 
