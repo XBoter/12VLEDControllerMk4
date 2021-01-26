@@ -539,17 +539,19 @@ MultiLEDStripEffectData *LedDriver::getMultiLEDStripEffectData()
  */
 SingleLEDStripEffectData *LedDriver::getSingleLEDStripEffectData(uint8_t stripID)
 {
-
-    // LED Strip 1
-    if (stripID == 1)
+    switch (stripID)
     {
+    case 1:
         return &singleLEDStrip1EffectData;
-    }
+        break;
 
-    // LED Strip 2
-    if (stripID == 2)
-    {
+    case 2:
         return &singleLEDStrip2EffectData;
+        break;
+
+    default:
+        return &emptySingleLEDStripEffectData;
+        break;
     }
 };
 
@@ -1450,17 +1452,19 @@ uint16_t LedDriver::getCurveValue(FadeCurve curve,
  */
 LEDStripData *LedDriver::getCurrentLEDStripData(uint8_t stripID)
 {
-
-    // LED Strip 1
-    if (stripID == 1)
+    switch (stripID)
     {
+    case 1:
         return &currentLEDStrip1Data;
-    }
+        break;
 
-    // LED Strip 2
-    if (stripID == 2)
-    {
+    case 2:
         return &currentLEDStrip2Data;
+        break;
+
+    default:
+        return &emptyCurrentLEDStripData;
+        break;
     }
 };
 
@@ -1473,17 +1477,19 @@ LEDStripData *LedDriver::getCurrentLEDStripData(uint8_t stripID)
  */
 LEDStripData *LedDriver::getPreviousLEDStripData(uint8_t stripID)
 {
-
-    // LED Strip 1
-    if (stripID == 1)
+    switch (stripID)
     {
+    case 1:
         return &prevLEDStrip1Data;
-    }
+        break;
 
-    // LED Strip 2
-    if (stripID == 2)
-    {
+    case 2:
         return &prevLEDStrip2Data;
+        break;
+
+    default:
+        return &emptyPrevLEDStripData;
+        break;
     }
 };
 
@@ -1496,80 +1502,81 @@ LEDStripData *LedDriver::getPreviousLEDStripData(uint8_t stripID)
  */
 LEDStripColorReg LedDriver::getColorRegForLEDStrip(uint8_t stripID)
 {
-    // LED Strip 1
-    if (stripID == 1)
-    {
-        LEDStripColorReg STRIP;
+    LEDStripColorReg STRIP = {};
 
+    switch (stripID)
+    {
+    case 1:
         // CW
-        STRIP.CW_REG.ON_L = LED3_ON_L;   //= LED6_ON_L;
-        STRIP.CW_REG.ON_H = LED3_ON_H;   //= LED6_ON_H;
-        STRIP.CW_REG.OFF_L = LED3_OFF_L; //= LED6_OFF_L;
-        STRIP.CW_REG.OFF_H = LED3_OFF_H; //= LED6_OFF_H;
+        STRIP.CW_REG.ON_L = LED3_ON_L;
+        STRIP.CW_REG.ON_H = LED3_ON_H;
+        STRIP.CW_REG.OFF_L = LED3_OFF_L;
+        STRIP.CW_REG.OFF_H = LED3_OFF_H;
 
         // WW
-        STRIP.WW_REG.ON_L = LED7_ON_L;   //= LED7_ON_L;
-        STRIP.WW_REG.ON_H = LED7_ON_H;   //= LED7_ON_H;
-        STRIP.WW_REG.OFF_L = LED7_OFF_L; //= LED7_OFF_L;
-        STRIP.WW_REG.OFF_H = LED7_OFF_H; //= LED7_OFF_H;
+        STRIP.WW_REG.ON_L = LED7_ON_L;
+        STRIP.WW_REG.ON_H = LED7_ON_H;
+        STRIP.WW_REG.OFF_L = LED7_OFF_L;
+        STRIP.WW_REG.OFF_H = LED7_OFF_H;
 
         // RED
-        STRIP.RED_REG.ON_L = LED5_ON_L;   //= LED3_ON_L;
-        STRIP.RED_REG.ON_H = LED5_ON_H;   //= LED3_ON_H;
-        STRIP.RED_REG.OFF_L = LED5_OFF_L; //= LED3_OFF_L;
-        STRIP.RED_REG.OFF_H = LED5_OFF_H; //= LED3_OFF_H;
+        STRIP.RED_REG.ON_L = LED5_ON_L;
+        STRIP.RED_REG.ON_H = LED5_ON_H;
+        STRIP.RED_REG.OFF_L = LED5_OFF_L;
+        STRIP.RED_REG.OFF_H = LED5_OFF_H;
 
         // GREEN
-        STRIP.GREEN_REG.ON_L = LED6_ON_L;   //= LED4_ON_L;
-        STRIP.GREEN_REG.ON_H = LED6_ON_H;   //= LED4_ON_H;
-        STRIP.GREEN_REG.OFF_L = LED6_OFF_L; //= LED4_OFF_L;
-        STRIP.GREEN_REG.OFF_H = LED6_OFF_H; //= LED4_OFF_H;
+        STRIP.GREEN_REG.ON_L = LED6_ON_L;
+        STRIP.GREEN_REG.ON_H = LED6_ON_H;
+        STRIP.GREEN_REG.OFF_L = LED6_OFF_L;
+        STRIP.GREEN_REG.OFF_H = LED6_OFF_H;
 
         // BLUE
-        STRIP.BLUE_REG.ON_L = LED4_ON_L;   //= LED5_ON_L;
-        STRIP.BLUE_REG.ON_H = LED4_ON_H;   //= LED5_ON_H;
-        STRIP.BLUE_REG.OFF_L = LED4_OFF_L; //= LED5_OFF_L;
-        STRIP.BLUE_REG.OFF_H = LED4_OFF_H; //= LED5_OFF_H;
+        STRIP.BLUE_REG.ON_L = LED4_ON_L;
+        STRIP.BLUE_REG.ON_H = LED4_ON_H;
+        STRIP.BLUE_REG.OFF_L = LED4_OFF_L;
+        STRIP.BLUE_REG.OFF_H = LED4_OFF_H;
 
         return STRIP;
-    }
+        break;
 
-    // LED Strip 2
-    if (stripID == 2)
-    {
-        LEDStripColorReg STRIP;
-
+    case 2:
         // CW
-        STRIP.CW_REG.ON_L = LED8_ON_L;   //= LED1_ON_L;
-        STRIP.CW_REG.ON_H = LED8_ON_H;   //= LED1_ON_H;
-        STRIP.CW_REG.OFF_L = LED8_OFF_L; //= LED1_OFF_L;
-        STRIP.CW_REG.OFF_H = LED8_OFF_H; //= LED1_OFF_H;
+        STRIP.CW_REG.ON_L = LED8_ON_L;
+        STRIP.CW_REG.ON_H = LED8_ON_H;
+        STRIP.CW_REG.OFF_L = LED8_OFF_L;
+        STRIP.CW_REG.OFF_H = LED8_OFF_H;
 
         // WW
-        STRIP.WW_REG.ON_L = LED12_ON_L;   //= LED12_ON_L;
-        STRIP.WW_REG.ON_H = LED12_ON_H;   //= LED12_ON_H;
-        STRIP.WW_REG.OFF_L = LED12_OFF_L; //= LED12_OFF_L;
-        STRIP.WW_REG.OFF_H = LED12_OFF_H; //= LED12_OFF_H;
+        STRIP.WW_REG.ON_L = LED12_ON_L;
+        STRIP.WW_REG.ON_H = LED12_ON_H;
+        STRIP.WW_REG.OFF_L = LED12_OFF_L;
+        STRIP.WW_REG.OFF_H = LED12_OFF_H;
 
         // RED
-        STRIP.RED_REG.ON_L = LED10_ON_L;   //= LED8_ON_L;
-        STRIP.RED_REG.ON_H = LED10_ON_H;   //= LED8_ON_H;
-        STRIP.RED_REG.OFF_L = LED10_OFF_L; //= LED8_OFF_L;
-        STRIP.RED_REG.OFF_H = LED10_OFF_H; //= LED8_OFF_H;
+        STRIP.RED_REG.ON_L = LED10_ON_L;
+        STRIP.RED_REG.ON_H = LED10_ON_H;
+        STRIP.RED_REG.OFF_L = LED10_OFF_L;
+        STRIP.RED_REG.OFF_H = LED10_OFF_H;
 
         // GREEN
-        STRIP.GREEN_REG.ON_L = LED11_ON_L;   //= LED9_ON_L;
-        STRIP.GREEN_REG.ON_H = LED11_ON_H;   //= LED9_ON_H;
-        STRIP.GREEN_REG.OFF_L = LED11_OFF_L; //= LED9_OFF_L;
-        STRIP.GREEN_REG.OFF_H = LED11_OFF_H; //= LED9_OFF_H;
+        STRIP.GREEN_REG.ON_L = LED11_ON_L;
+        STRIP.GREEN_REG.ON_H = LED11_ON_H;
+        STRIP.GREEN_REG.OFF_L = LED11_OFF_L;
+        STRIP.GREEN_REG.OFF_H = LED11_OFF_H;
 
         // BLUE
-        STRIP.BLUE_REG.ON_L = LED9_ON_L;   //= LED10_ON_L;
-        STRIP.BLUE_REG.ON_H = LED9_ON_H;   //= LED10_ON_H;
-        STRIP.BLUE_REG.OFF_L = LED9_OFF_L; //= LED10_OFF_L;
-        STRIP.BLUE_REG.OFF_H = LED9_OFF_H; //= LED10_OFF_H;
+        STRIP.BLUE_REG.ON_L = LED9_ON_L;
+        STRIP.BLUE_REG.ON_H = LED9_ON_H;
+        STRIP.BLUE_REG.OFF_L = LED9_OFF_L;
+        STRIP.BLUE_REG.OFF_H = LED9_OFF_H;
 
         return STRIP;
+        break;
+
+    default:
+        return STRIP;
+        break;
     }
 };
 

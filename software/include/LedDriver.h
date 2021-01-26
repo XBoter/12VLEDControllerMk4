@@ -54,6 +54,7 @@ private:
     MultiLEDStripEffectData multiLEDStripEffectData = {};
 
     // -- Single
+    SingleLEDStripEffectData emptySingleLEDStripEffectData = {};
     SingleLEDStripEffectData singleLEDStrip1EffectData = {};
     SingleLEDStripEffectData singleLEDStrip2EffectData = {};
 
@@ -67,9 +68,11 @@ private:
 
     // ---- LED Strip data
     // -- Current
+    LEDStripData emptyCurrentLEDStripData = {};
     LEDStripData currentLEDStrip1Data = {};
     LEDStripData currentLEDStrip2Data = {}; 
     // -- Previous
+    LEDStripData emptyPrevLEDStripData = {};
     LEDStripData prevLEDStrip1Data = {};
     LEDStripData prevLEDStrip2Data = {};
 
