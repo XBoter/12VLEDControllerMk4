@@ -80,7 +80,7 @@ void Main::_loop()
             pirReader.Run();
 
             // Reset virtual pir sensor at end of current loop after all components got called
-            if(network.virtualPIRSensorTriggered)
+            if (network.virtualPIRSensorTriggered)
             {
                 network.virtualPIRSensorTriggered = false;
             }
@@ -90,6 +90,7 @@ void Main::_loop()
     }
     else
     {
+        otaGit.init = false;
         i2c.init = false;
         network.init = false;
         powerMessurement.init = false;

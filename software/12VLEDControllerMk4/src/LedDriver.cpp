@@ -159,6 +159,9 @@ void LedDriver::HandleMultiLEDStripControlLogic()
  */
 void LedDriver::HandleMultiLEDStripEffects()
 {
+    bool fadeToBlackStrip1Finished = false;
+    bool fadeToBlackStrip2Finished = false;
+
     // Get Effect data
     MultiLEDStripEffectData *effectData = getMultiLEDStripEffectData();
     HighLevelLEDStripData highLevelLEDStripData = getHighLevelFadeTimesAndCurves();
@@ -179,7 +182,9 @@ void LedDriver::HandleMultiLEDStripEffects()
 
         // Fade both strips to black
     case 0:
-        if (FadeToBlack(1) && FadeToBlack(2))
+        fadeToBlackStrip1Finished = FadeToBlack(1);
+        fadeToBlackStrip2Finished = FadeToBlack(2);
+        if (fadeToBlackStrip1Finished && fadeToBlackStrip2Finished)
         {
             effectData->prevMillis = millis();
             effectData->transitionState = 10;

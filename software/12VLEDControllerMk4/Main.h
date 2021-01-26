@@ -50,7 +50,7 @@ public:
    I2C i2c = I2C();
    Network network = Network();
    Configuration configuration = Configuration();
-   OTAGit otaGit = OTAGit();
+   OTAGit otaGit = OTAGit(&network);
    PowerMeasurement powerMessurement = PowerMeasurement(INA219AIDR_I2C_ADDRESS,
                                                         &i2c,
                                                         &network,
