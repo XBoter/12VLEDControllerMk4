@@ -99,20 +99,6 @@ bool Configuration::Init()
     listConfigs();
     loadConfig();
 
-    // DEBUG get current saved config data
-    /*
-    Serial.println("#==== LittleFS Content ====#");
-    Serial.println("WiFi Password   : " + String(data.wifiPassword));
-    Serial.println("WiFi SSID       : " + String(data.wifiSSID));
-    Serial.println("Broker Address  : " + String(data.mqttBrokerIpAddress));
-    Serial.println("Broker User     : " + String(data.mqttBrokerUsername));
-    Serial.println("Broker Password : " + String(data.mqttBrokerPassword));
-    Serial.println("Broker Port     : " + String(data.mqttBrokerPort));
-    Serial.println("Client Name     : " + String(data.mqttClientName));
-    Serial.println("Is Configured   : " + String(data.isConfigured));
-    Serial.println("");
-    */
-
     // Check if controller is already configured
     if (!data.isConfigured)
     {
