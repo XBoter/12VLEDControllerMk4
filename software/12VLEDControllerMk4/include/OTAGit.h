@@ -1,6 +1,5 @@
 #pragma once
 
-// Defines
 #define GHOTA_USER "XBoter"
 #define GHOTA_REPO "12VLEDControllerMk4"
 #define GHOTA_CURRENT_TAG "1.2.0"
@@ -12,8 +11,9 @@
 #include <LittleFS.h>
 #include "Network.h"
 #include "Structs.h"
-#include <ESP_OTA_GitHub.h>
 #include <CertStoreBearSSL.h>
+#include <ESP_OTA_GitHub.h>
+#include <LittleFS.h>
 
 // Interface
 #include "../interface/IBaseClass.h"
@@ -33,10 +33,8 @@ public:
 
     // ## Data ## //
 private:
-    Network *network;
     BearSSL::CertStore certStore;
-
-    bool foundCertificates = false;
+    Network *network;
 
 public:
     // ## Functions ## //

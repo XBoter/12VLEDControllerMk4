@@ -10,7 +10,6 @@ ESP8266WebServer server(80);
 void inputFormFilled();
 void inputForm();
 
-
 /**
  * Empty constructor
  */
@@ -49,6 +48,7 @@ bool Configuration::Init()
 
         // Create config.txt if missing
         createConfig();
+
         // List all found files
         listFiles();
         // Load config

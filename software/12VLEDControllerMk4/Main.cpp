@@ -59,7 +59,7 @@ void Main::_loop()
         {
         case 0:
             // Init all components
-            otaGit.Init();
+            //otaGit.Init();
             i2c.Init();
             network.Init();
             //powerMessurement.Init();
@@ -71,7 +71,7 @@ void Main::_loop()
 
         case 1:
             // Run all components
-            otaGit.Run();
+            //otaGit.Run();
             i2c.Run();
             network.Run();
             //powerMessurement.Run();
