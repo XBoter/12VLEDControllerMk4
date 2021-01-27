@@ -23,6 +23,7 @@
       ToDo     Add NTP Summer/Winter time swap => For now only Winter Time 
       ToDo     Add PCA9685 reset after to many I2C errors => Fix in later version
       ToDo     Add option to sync diffrent single strip led effects
+      ToDo     Optimize code (RAM Fragmentation, F String for print ln)
       ToDo     ESP OTA Github after reboot and after time period
 */
 
