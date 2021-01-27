@@ -74,7 +74,7 @@ void OTAGit::HandleUpgrade()
     //We do this locally so that the memory used is freed when the function exists.
     ESPOTAGitHub ESPOTAGitHub(&certStore, GHOTA_USER, GHOTA_REPO, GHOTA_CURRENT_TAG, GHOTA_BIN_FILE, GHOTA_ACCEPT_PRERELEASE);
 
-    Serial.println("")
+    Serial.println("");
     Serial.println("Checking for update...");
     if (ESPOTAGitHub.checkUpgrade())
     {

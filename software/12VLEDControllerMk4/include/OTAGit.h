@@ -3,8 +3,8 @@
 // Defines
 #define GHOTA_USER "XBoter"
 #define GHOTA_REPO "12VLEDControllerMk4"
-#define GHOTA_CURRENT_TAG "2.0.0"
-#define GHOTA_BIN_FILE "github_esp_ota_test.ino.esp8266.bin"
+#define GHOTA_CURRENT_TAG "1.2.0"
+#define GHOTA_BIN_FILE "12VLEDControllerMk4.ino.nodemcu.bin"
 #define GHOTA_ACCEPT_PRERELEASE 0
 
 // Includes
