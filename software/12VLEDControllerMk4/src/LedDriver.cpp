@@ -573,14 +573,14 @@ void LedDriver::createInitalTypes()
     // ================================ HIGH LEVEL ================================ //
     // ======== defaultHighLevelFadeTimesAndFadeCurves
     defaultHighLevelFadeTimesAndFadeCurves.colorFadeTime = 1000; // Milliseconds
-    defaultHighLevelFadeTimesAndFadeCurves.colorFadeCurve = FadeCurve::EaseInOut;
+    defaultHighLevelFadeTimesAndFadeCurves.colorFadeCurve = FadeCurve::Linear;
     defaultHighLevelFadeTimesAndFadeCurves.colorBrightnessFadeTime = 800; // Milliseconds
-    defaultHighLevelFadeTimesAndFadeCurves.colorBrightnessFadeCurve = FadeCurve::EaseInOut;
+    defaultHighLevelFadeTimesAndFadeCurves.colorBrightnessFadeCurve = FadeCurve::Linear;
 
     defaultHighLevelFadeTimesAndFadeCurves.whiteTemperatureFadeTime = 1000; // Milliseconds
-    defaultHighLevelFadeTimesAndFadeCurves.whiteTemperatureFadeCurve = FadeCurve::EaseInOut;
+    defaultHighLevelFadeTimesAndFadeCurves.whiteTemperatureFadeCurve = FadeCurve::Linear;
     defaultHighLevelFadeTimesAndFadeCurves.whiteBrightnessFadeTime = 600; // Milliseconds       // White channel led types needs longer to fade out so we short the fade time to match it with the rgb channel led types
-    defaultHighLevelFadeTimesAndFadeCurves.whiteBrightnessFadeCurve = FadeCurve::EaseInOut;
+    defaultHighLevelFadeTimesAndFadeCurves.whiteBrightnessFadeCurve = FadeCurve::Linear;
 
     // ======== instantHighLevelFadeTimesAndCurves
     instantHighLevelFadeTimesAndCurves.colorFadeTime = 0;
@@ -756,7 +756,7 @@ LowLevelLEDStripData LedDriver::convertHighLevelDataToLowLevelData(HighLevelLEDS
 
     if (highLevelLEDStripData.whiteTemperatureValue <= 250)
     {
-        lowLevelLEDStripData.wwColorValue = map(highLevelLEDStripData.whiteTemperatureValue, 0, 250, 0, 255);
+        lowLevelLEDStripData.wwColorValue = map(highLevelLEDStripData.whiteTemperatureValue, 1, 250, 0, 255);
     }
     else
     {
