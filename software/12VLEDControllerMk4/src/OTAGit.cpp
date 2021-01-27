@@ -19,13 +19,15 @@ bool OTAGit::Init()
     {
         if (network->wifiConnected)
         {
-            SPIFFS.begin();
-            int numCerts = certStore.initCertStore(SPIFFS, PSTR("/certs.idx"), PSTR("/certs.ar"));
+
+            // Search for certs on LittleFS
+            int numCerts = certStore.initCertStore(LittleFS, PSTR("/certs.idx"), PSTR("/certs.ar"));
             Serial.print(F("Number of CA certs read: "));
             Serial.println(numCerts);
             if (numCerts == 0)
             {
-                Serial.println(F("No certs found. Did you run certs-from-mozill.py and upload the SPIFFS directory before running?"));
+                // If no certs a found we cant upgrade 
+                Serial.println(F("No certs found. Did you upload the certs.ar file to the LittleFS directory before running?"));
             }
             else
             {
@@ -72,6 +74,7 @@ void OTAGit::HandleUpgrade()
     //We do this locally so that the memory used is freed when the function exists.
     ESPOTAGitHub ESPOTAGitHub(&certStore, GHOTA_USER, GHOTA_REPO, GHOTA_CURRENT_TAG, GHOTA_BIN_FILE, GHOTA_ACCEPT_PRERELEASE);
 
+    Serial.println("")
     Serial.println("Checking for update...");
     if (ESPOTAGitHub.checkUpgrade())
     {

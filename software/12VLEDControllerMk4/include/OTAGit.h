@@ -9,7 +9,7 @@
 
 // Includes
 #include <Arduino.h>
-#include <FS.h>
+#include <LittleFS.h>
 #include "Network.h"
 #include "Structs.h"
 #include <ESP_OTA_GitHub.h>
