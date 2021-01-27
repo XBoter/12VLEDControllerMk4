@@ -6,7 +6,6 @@
 #include <WiFiClient.h>
 #include <ESP8266WebServer.h>
 #include "Structs.h"
-#include <FS.h>
 #include <LittleFS.h>
 
 // Interface
@@ -32,7 +31,7 @@ private:
     unsigned long prevMillisAPShutdown = 0;
 
     unsigned long timeoutResetBlink = 300;
-    unsigned long timeoutRest = 5000; // 5 sec
+    unsigned long timeoutRest = 5000;       // 5 sec
     unsigned long timeoutAPShutdown = 2000; // 2 sec
 
     bool ledOn = false;
@@ -50,8 +49,8 @@ private:
     void saveConfig();
     void loadConfig();
     void resetConfig();
-    void createConfigIfMissing();
-    void listConfigs();
+    void createConfig();
+    void listFiles();
 
 public:
     void setData(ConfiguredData data);

@@ -6,59 +6,10 @@ ESP8266WebServer server(80);
 /*
     Gets called on access to url 192.168.4.1/
 */
-void inputForm()
-{
-    ConfiguredData data = mainController.configuration.getData();
 
-    String WEP_PAGE = "<!DOCTYPE html><html><head> <meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=2.0, user-scalable=no'> <style> body { background-color: #616161; width: 100vw; height: 100vh; display: flex; justify-content: center; align-items: center; } form { display: flex; justify-content: center; align-items: center; flex-direction: column; } h1, label, input { color: #ffffff; font-family: Arial, Helvetica, sans-serif; font-size: 20px; } h1 { text-align: center; font-size: 35px; padding: 10px; color: #aeea00; } input { color: #000000; } #submitButton { border-width: 0; outline: none; border-radius: 2px; box-shadow: 0 1px 4px rgba(0, 0, 0, .6); margin-top: 10px; padding: 10px; width: 50%; background-color: #2ecc71; color: #ecf0f1; } td { padding: 5px; } </style></head><body> <div> <h1>LED Controller Configuration</h1> <form action='/final' method='post'> <table> <tr> <td><label>WiFi SSID</label></td> <td><input type='text' required name='wifiSSID'></td> </tr> <tr> <td><label>WiFi Password</label></td> <td><input type='text' required name='wifiPassword'></td> </tr> <tr> <td><label>MQTT Broker IP Address</label></td> <td><input type='text' required pattern='^([0-9]{1,3}\\.){3}[0-9]{1,3}$' name='mqttBrokerIpAddress'> </td> </tr> <tr> <td><label>MQTT Broker Port</label></td> <td><input type='number' required min='1' name='mqttBrokerPort'></td> </tr> <tr> <td><label>MQTT Broker Username</label></td> <td><input type='text' required name='mqttBrokerUsername'></td> </tr> <tr> <td><label>MQTT Broker Password</label></td> <td><input type='text' required name='mqttBrokerPassword'></td> </tr> <tr> <td><label>MQTT Client Name</label></td> <td><input type='text' required name='mqttClientName'></td> </tr> </table> <input id='submitButton' type='submit' value='Submit'> </form> </div></body></html>";
+void inputFormFilled();
+void inputForm();
 
-    server.send(200, "text/html", WEP_PAGE);
-};
-
-/*
-    Gets called on access to url 192.168.4.1/final
-*/
-void inputFormFilled()
-{
-
-    String WEP_PAGE = "<!DOCTYPE html><html><head> <meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=2.0, user-scalable=no'> <style> body { background-color: #616161; width: 100vw; height: 100vh; display: flex; justify-content: center; align-items: center; } h1 { color: #ffffff; font-family: Arial, Helvetica, sans-serif; text-align: center; font-size: 35px; border-width: 0; outline: none; border-radius: 2px; box-shadow: 0 1px 4px rgba(0, 0, 0, .6); margin-top: 10px; padding: 10px; width: 50%; background-color: #2ecc71; color: #ecf0f1; } </style></head><body> <div> <h1>Configuration Submitted you can now close the Browser</h1> </div></body></html>";
-
-    ConfiguredData data;
-
-    if (server.hasArg("wifiSSID"))
-    {
-        data.wifiSSID = server.arg("wifiSSID");
-    }
-    if (server.hasArg("wifiPassword"))
-    {
-        data.wifiPassword = server.arg("wifiPassword");
-    }
-    if (server.hasArg("mqttBrokerIpAddress"))
-    {
-        data.mqttBrokerIpAddress = server.arg("mqttBrokerIpAddress");
-    }
-    if (server.hasArg("mqttBrokerUsername"))
-    {
-        data.mqttBrokerUsername = server.arg("mqttBrokerUsername");
-    }
-    if (server.hasArg("mqttBrokerPassword"))
-    {
-        data.mqttBrokerPassword = server.arg("mqttBrokerPassword");
-    }
-    if (server.hasArg("mqttBrokerPort"))
-    {
-        data.mqttBrokerPort = strtol(server.arg("mqttBrokerPort").c_str(), NULL, 0);
-    }
-    if (server.hasArg("mqttClientName"))
-    {
-        data.mqttClientName = server.arg("mqttClientName");
-    }
-    data.isConfigured = false;
-
-    mainController.configuration.setData(data);
-    server.send(200, "text/html", WEP_PAGE);
-    mainController.configuration.formSubmitFinished();
-};
 
 /**
  * Empty constructor
@@ -74,43 +25,50 @@ Configuration::Configuration(){
  */
 bool Configuration::Init()
 {
-
-    // Configure Flash button on the nodemcu as reset putton
-    pinMode(0, INPUT_PULLUP);
-
-    // Enable blink led
-    digitalWrite(LED_BUILTIN, HIGH);
-    pinMode(LED_BUILTIN, OUTPUT);
-
-    Serial.println("Mount LittleFS");
-    if (!LittleFS.begin())
+    if (!init)
     {
-        Serial.println("LittleFS mount Failed!");
-        return false;
-    }
-    else
-    {
-        Serial.println("LittleFS mount OK!");
-        Serial.println("");
+        // Configure Flash button on the nodemcu as reset putton
+        pinMode(0, INPUT_PULLUP);
+
+        // Enable blink led
+        digitalWrite(LED_BUILTIN, HIGH);
+        pinMode(LED_BUILTIN, OUTPUT);
+
+        // Start LittleFS
+        Serial.println("Mount LittleFS");
+        if (!LittleFS.begin())
+        {
+            Serial.println("LittleFS mount Failed!");
+            return init;
+        }
+        else
+        {
+            Serial.println("LittleFS mount OK!");
+            Serial.println("");
+        }
+
+        // Create config.txt if missing
+        createConfig();
+        // List all found files
+        listFiles();
+        // Load config
+        loadConfig();
+
+        // Check if controller is already configured
+        if (!data.isConfigured)
+        {
+            resetOrNotConfigured = true;
+        }
+        else
+        {
+            // All okay we can procedure with the rest
+            isFinished = true;
+        }
+
+        init = true;
     }
 
-    // Initial LittleFS steps
-    createConfigIfMissing();
-    listConfigs();
-    loadConfig();
-
-    // Check if controller is already configured
-    if (!data.isConfigured)
-    {
-        resetOrNotConfigured = true;
-    }
-    else
-    {
-        // All okay we can procedure with the rest
-        isFinished = true;
-    }
-
-    return true;
+    return init;
 };
 
 /**
@@ -118,6 +76,10 @@ bool Configuration::Init()
  */
 void Configuration::Run()
 {
+    if (!init)
+    {
+        return;
+    }
 
     unsigned long curMillis = millis();
     // Check if button is pressed longer then 10 sec
@@ -226,6 +188,60 @@ void Configuration::Run()
             prevMillisResetBlink = curMillis;
         }
     }
+};
+
+void inputForm()
+{
+    ConfiguredData data = mainController.configuration.getData();
+
+    String WEP_PAGE = "<!DOCTYPE html><html><head> <meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=2.0, user-scalable=no'> <style> body { background-color: #616161; width: 100vw; height: 100vh; display: flex; justify-content: center; align-items: center; } form { display: flex; justify-content: center; align-items: center; flex-direction: column; } h1, label, input { color: #ffffff; font-family: Arial, Helvetica, sans-serif; font-size: 20px; } h1 { text-align: center; font-size: 35px; padding: 10px; color: #aeea00; } input { color: #000000; } #submitButton { border-width: 0; outline: none; border-radius: 2px; box-shadow: 0 1px 4px rgba(0, 0, 0, .6); margin-top: 10px; padding: 10px; width: 50%; background-color: #2ecc71; color: #ecf0f1; } td { padding: 5px; } </style></head><body> <div> <h1>LED Controller Configuration</h1> <form action='/final' method='post'> <table> <tr> <td><label>WiFi SSID</label></td> <td><input type='text' required name='wifiSSID'></td> </tr> <tr> <td><label>WiFi Password</label></td> <td><input type='text' required name='wifiPassword'></td> </tr> <tr> <td><label>MQTT Broker IP Address</label></td> <td><input type='text' required pattern='^([0-9]{1,3}\\.){3}[0-9]{1,3}$' name='mqttBrokerIpAddress'> </td> </tr> <tr> <td><label>MQTT Broker Port</label></td> <td><input type='number' required min='1' name='mqttBrokerPort'></td> </tr> <tr> <td><label>MQTT Broker Username</label></td> <td><input type='text' required name='mqttBrokerUsername'></td> </tr> <tr> <td><label>MQTT Broker Password</label></td> <td><input type='text' required name='mqttBrokerPassword'></td> </tr> <tr> <td><label>MQTT Client Name</label></td> <td><input type='text' required name='mqttClientName'></td> </tr> </table> <input id='submitButton' type='submit' value='Submit'> </form> </div></body></html>";
+
+    server.send(200, "text/html", WEP_PAGE);
+};
+
+/*
+    Gets called on access to url 192.168.4.1/final
+*/
+void inputFormFilled()
+{
+
+    String WEP_PAGE = "<!DOCTYPE html><html><head> <meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=2.0, user-scalable=no'> <style> body { background-color: #616161; width: 100vw; height: 100vh; display: flex; justify-content: center; align-items: center; } h1 { color: #ffffff; font-family: Arial, Helvetica, sans-serif; text-align: center; font-size: 35px; border-width: 0; outline: none; border-radius: 2px; box-shadow: 0 1px 4px rgba(0, 0, 0, .6); margin-top: 10px; padding: 10px; width: 50%; background-color: #2ecc71; color: #ecf0f1; } </style></head><body> <div> <h1>Configuration Submitted you can now close the Browser</h1> </div></body></html>";
+
+    ConfiguredData data;
+
+    if (server.hasArg("wifiSSID"))
+    {
+        data.wifiSSID = server.arg("wifiSSID");
+    }
+    if (server.hasArg("wifiPassword"))
+    {
+        data.wifiPassword = server.arg("wifiPassword");
+    }
+    if (server.hasArg("mqttBrokerIpAddress"))
+    {
+        data.mqttBrokerIpAddress = server.arg("mqttBrokerIpAddress");
+    }
+    if (server.hasArg("mqttBrokerUsername"))
+    {
+        data.mqttBrokerUsername = server.arg("mqttBrokerUsername");
+    }
+    if (server.hasArg("mqttBrokerPassword"))
+    {
+        data.mqttBrokerPassword = server.arg("mqttBrokerPassword");
+    }
+    if (server.hasArg("mqttBrokerPort"))
+    {
+        data.mqttBrokerPort = strtol(server.arg("mqttBrokerPort").c_str(), NULL, 0);
+    }
+    if (server.hasArg("mqttClientName"))
+    {
+        data.mqttClientName = server.arg("mqttClientName");
+    }
+    data.isConfigured = false;
+
+    mainController.configuration.setData(data);
+    server.send(200, "text/html", WEP_PAGE);
+    mainController.configuration.formSubmitFinished();
 };
 
 /**
@@ -404,9 +420,9 @@ void Configuration::loadConfig()
 /**
  * Lists all configs found on the persits data storage
  */
-void Configuration::listConfigs()
+void Configuration::listFiles()
 {
-    Serial.println("Listing configs:");
+    Serial.println("Found files in root dir:");
 
     Dir root = LittleFS.openDir("/");
 
@@ -424,23 +440,18 @@ void Configuration::listConfigs()
 /**
  * Lists all configs found on the persits data storage
  */
-void Configuration::createConfigIfMissing()
+void Configuration::createConfig()
 {
-    Serial.println("Create config if missing");
-    if (LittleFS.exists("/config.txt"))
+    Serial.println("Create config.txt file if missing");
+    if (!LittleFS.exists("/config.txt"))
     {
-        Serial.println("Config allready exists");
-        return;
+        Serial.println("Creating new config.txt file");
+        File file = LittleFS.open("/config.txt", "w+");
+        file.close();
     }
     else
     {
-        Serial.println("Config does not exists!");
-        Serial.println("Creating new config");
-        LittleFS.format();
-        delay(2000);
-        File file = LittleFS.open("/config.txt", "w+");
-        delay(2000); // Make sure the CREATE and LASTWRITE times are different
-        file.close();
+        Serial.println("Found existing config.txt file");
     }
 };
 
@@ -449,12 +460,11 @@ void Configuration::createConfigIfMissing()
  */
 void Configuration::resetConfig()
 {
-    Serial.println("Reset config file");
+    Serial.println("Reset config.txt file");
     if (LittleFS.exists("/config.txt"))
     {
-        LittleFS.format();
-        delay(2000);
-        createConfigIfMissing();
+        File file = LittleFS.open("/config.txt", "w");
+        file.close();
     }
 };
 
