@@ -8,7 +8,6 @@
 #include "Structs.h"
 #include <LittleFS.h>
 
-
 // Interface
 #include "../interface/IBaseClass.h"
 
@@ -39,10 +38,10 @@ private:
     bool resetOrNotConfigured = false;
     uint state = 0;
 
-    ConfiguredData data;
     uint configDataAddr = 0;
 
 public:
+    ConfiguredData data;
     bool isFinished = false;
 
     // ## Functions ## //

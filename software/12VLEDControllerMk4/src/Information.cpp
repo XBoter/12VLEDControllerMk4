@@ -17,7 +17,7 @@ bool Information::Init()
 {
     if (!init)
     {
-        Serial.println("Information initialized");
+        Serial.println(F("Information initialized"));
         init = true;
     }
 
@@ -202,11 +202,14 @@ void Information::FormatPrintSingle(String name,
 
     // Paramter name
     InsertPrint();
-    Serial.println("Paramter/Component/Mode '" + name + "' changed");
+    Serial.print(F("Paramter/Component/Mode '"));
+    Serial.print(name);
+    Serial.println(F("' changed"));
 
     // Parameter value
     InsertPrint();
-    Serial.println("Value : " + value);
+    Serial.print(F("Value : "));
+    Serial.println(value);
 
     BottomSpacerPrint();
 };
@@ -228,13 +231,18 @@ void Information::FormatPrintTime(String name,
 
     // Paramter name
     InsertPrint();
-    Serial.println("Paramter/Component/Mode '" + name + "' changed");
+    Serial.print(F("Paramter/Component/Mode '"));
+    Serial.print(name);
+    Serial.println(F("' changed"));
 
     // Parameter value
     InsertPrint();
-    Serial.println("Hour    : " + hour);
-    Serial.println("Minute  : " + minute);
-    Serial.println("Second  : " + second);
+    Serial.print(F("Hour    : "));
+    Serial.println(hour);
+    Serial.print(F("Minute  : "));
+    Serial.println(minute);
+    Serial.print(F("Second  : "));
+    Serial.println(second);
 
     BottomSpacerPrint();
 };
@@ -278,55 +286,77 @@ void Information::FormatPrintLEDStrip(String name,
 
     // Paramter name
     InsertPrint();
-    Serial.println("Paramter/Component/Mode '" + name + "' changed");
+    Serial.print(F("Paramter/Component/Mode '"));
+    Serial.print(name);
+    Serial.println(F("' changed"));
 
     InsertPrint();
-    Serial.println("Power                           : " + power);
+    Serial.print(F("Power                           : "));
+    Serial.println(power);
 
     InsertPrint();
-    Serial.println("Red Color Value                 : " + red);
+    Serial.print(F("Red Color Value                 : "));
+    Serial.println(red);
 
     InsertPrint();
-    Serial.println("Green Color Value               : " + green);
+    Serial.print(F("Green Color Value               : "));
+    Serial.println(green);
 
     InsertPrint();
-    Serial.println("Blue Color Value                : " + blue);
+    Serial.print(F("Blue Color Value                : "));
+    Serial.println(blue);
 
     InsertPrint();
-    Serial.println("Color Fade Time                 : " + colorFadeTime + " milliseconds");
+    Serial.print(F("Color Fade Time                 : "));
+    Serial.print(colorFadeTime);
+    Serial.println(F("milliseconds"));
 
     InsertPrint();
-    Serial.println("Color Fade Curve                : " + colorFadeCurve);
+    Serial.print(F("Color Fade Curve                : "));
+    Serial.println(colorFadeCurve);
 
     InsertPrint();
-    Serial.println("Color Brightness Value          : " + colorBrightness);
+    Serial.print(F("Color Brightness Value          : "));
+    Serial.println(colorBrightness);
 
     InsertPrint();
-    Serial.println("Color Brightness Fade Time      : " + colorBrightnessFadeTime + " milliseconds");
+    Serial.print(F("Color Brightness Fade Time      : "));
+    Serial.print(colorBrightnessFadeTime);
+    Serial.println(F("milliseconds"));
 
     InsertPrint();
-    Serial.println("Color Brightness Fade Curve     : " + colorBrightnessFadeCurve);
+    Serial.print(F("Color Brightness Fade Curve     : "));
+    Serial.println(colorBrightnessFadeCurve);
 
     InsertPrint();
-    Serial.println("White Temperature Value         : " + whiteTemperature);
+    Serial.print(F("White Temperature Value         : "));
+    Serial.println(whiteTemperature);
 
     InsertPrint();
-    Serial.println("White Temperature Fade Time     : " + whiteTemperatureFadeTime + " milliseconds");
+    Serial.print(F("White Temperature Fade Time     : "));
+    Serial.print(whiteTemperatureFadeTime);
+    Serial.println(F("milliseconds"));
 
     InsertPrint();
-    Serial.println("White Temperature Fade Curve    : " + whiteTemperatureFadeCurve);
+    Serial.print(F("White Temperature Fade Curve    : "));
+    Serial.println(whiteTemperatureFadeCurve);
 
     InsertPrint();
-    Serial.println("White Brightness Value          : " + whiteBrightness);
+    Serial.print(F("White Brightness Value          : "));
+    Serial.println(whiteBrightness);
 
     InsertPrint();
-    Serial.println("White Brightness Fade Time      : " + whiteBrightnessFadeTime + " milliseconds");
+    Serial.print(F("White Brightness Fade Time      : "));
+    Serial.print(whiteBrightnessFadeTime);
+    Serial.println(F("milliseconds"));
 
     InsertPrint();
-    Serial.println("White Brightness Fade Curve     : " + whiteBrightnessFadeCurve);
+    Serial.print(F("White Brightness Fade Curve     : "));
+    Serial.println(whiteBrightnessFadeCurve);
 
     InsertPrint();
-    Serial.println("Effect                          : " + effect);
+    Serial.print(F("Effect                          : "));
+    Serial.println(effect);
 
     BottomSpacerPrint();
 };
@@ -356,43 +386,54 @@ void Information::FormatPrintMotion(String name,
 
     // Paramter name
     InsertPrint();
-    Serial.println("Paramter/Component/Mode '" + name + "' changed");
+    Serial.print(F("Paramter/Component/Mode '"));
+    Serial.print(name);
+    Serial.println(F("' changed"));
 
     // Motion Detection Enabled
     InsertPrint();
-    Serial.println("Motion Detection Enabled             : " + motionDetectionEnabled);
+    Serial.print(F("Motion Detection Enabled             : "));
+    Serial.println(motionDetectionEnabled);
 
     // Time Based Brightness Change Enabled
     InsertPrint();
-    Serial.println("Time Based Brightness Change Enabled : " + timeBasedBrightnessChangeEnabled);
+    Serial.print(F("Time Based Brightness Change Enabled : "));
+    Serial.println(timeBasedBrightnessChangeEnabled);
 
     // Timeout
     InsertPrint();
-    Serial.println("Timeout                              : " + timeout);
+    Serial.print(F("Timeout                              : "));
+    Serial.println(timeout);
 
     // Red
     InsertPrint();
-    Serial.println("Red                                  : " + red);
+    Serial.print(F("Red                                  : "));
+    Serial.println(red);
 
     // Green
     InsertPrint();
-    Serial.println("Green                                : " + green);
+    Serial.print(F("Green                                : "));
+    Serial.println(green);
 
     // Blue
     InsertPrint();
-    Serial.println("Blue                                 : " + blue);
+    Serial.print(F("Blue                                 : "));
+    Serial.println(blue);
 
     // Color Brightness
     InsertPrint();
-    Serial.println("Color Brightness                     : " + colorBrightness);
+    Serial.print(F("Color Brightness                     : "));
+    Serial.println(colorBrightness);
 
     // White Temperature
     InsertPrint();
-    Serial.println("White Temperature                    : " + whiteTemperature);
+    Serial.print(F("White Temperature                    : "));
+    Serial.println(whiteTemperature);
 
     // White Brightness
     InsertPrint();
-    Serial.println("White Brightness                     : " + whiteBrightness);
+    Serial.print(F("White Brightness                     : "));
+    Serial.println(whiteBrightness);
 
     BottomSpacerPrint();
 };
@@ -414,27 +455,32 @@ void Information::FormatPrintMotionDetected(String motionDetected,
 
     // Motion Detection change
     InsertPrint();
-    Serial.println("! Motion Detection Change !");
+    Serial.println(F("! Motion Detection Change !"));
 
     // Motion Detected
     InsertPrint();
-    Serial.println("Motion Detected         : " + motionDetected);
+    Serial.print(F("Motion Detected         : "));
+    Serial.println(motionDetected);
 
     // Sensor 1 Triggered
     InsertPrint();
-    Serial.println("Combined PIR Sensor     : " + sensorTriggered);
+    Serial.print(F("Combined PIR Sensor     : "));
+    Serial.println(sensorTriggered);
 
     // Sensor 1 Triggered
     InsertPrint();
-    Serial.println("Physical PIR Sensor 1   : " + sensor1Triggered);
+    Serial.print(F("Physical PIR Sensor 1   : "));
+    Serial.println(sensor1Triggered);
 
     // Sensor 2 Triggered
     InsertPrint();
-    Serial.println("Physical PIR Sensor 2   : " + sensor2Triggered);
+    Serial.print(F("Physical PIR Sensor 2   : "));
+    Serial.println(sensor2Triggered);
 
     // Virtual Sensor Triggered
     InsertPrint();
-    Serial.println("Virtual PIR Sensor      : " + virtualSensorTriggered);
+    Serial.print(F("Virtual PIR Sensor      : "));
+    Serial.println(virtualSensorTriggered);
 
     BottomSpacerPrint();
 };
@@ -444,14 +490,14 @@ void Information::FormatPrintMotionDetected(String motionDetected,
  **/
 void Information::TopSpacerPrint()
 {
-    Serial.println("");
-    Serial.print("# ");
+    Serial.println(F(""));
+    Serial.print(" # ");
     for (uint8_t i = 0; i < spacerLength; i++)
     {
         Serial.print(symbol);
     }
     Serial.print(" #");
-    Serial.println("");
+    Serial.println(F(""));
 };
 
 /**
@@ -459,13 +505,13 @@ void Information::TopSpacerPrint()
  **/
 void Information::BottomSpacerPrint()
 {
-    Serial.print("# ");
+    Serial.print(" # ");
     for (uint8_t i = 0; i < spacerLength; i++)
     {
         Serial.print(symbol);
     }
     Serial.print(" #");
-    Serial.println("");
+    Serial.println(F(""));
 };
 
 /**
@@ -530,7 +576,7 @@ SingleLEDEffect Information::StringToSingleLEDEffect(String effect)
     {
         return SingleLEDEffect::None;
     }
-    else if (effect== "TriplePulse")
+    else if (effect == "TriplePulse")
     {
         return SingleLEDEffect::TriplePulse;
     }

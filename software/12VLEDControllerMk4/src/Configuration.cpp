@@ -269,62 +269,62 @@ void Configuration::setData(ConfiguredData data)
  */
 void Configuration::saveConfig()
 {
-    Serial.println("Saving Config");
-    Serial.println("");
+    Serial.println(F("Saving Config"));
+    Serial.println(F(""));
 
     File file = LittleFS.open("/config.txt", "w");
     if (!file)
     {
-        Serial.println("Failed to open file for writing");
+        Serial.println(F("Failed to open file for writing"));
         return;
     }
 
     // ==== wifiSSID ==== //
     if (!file.println(data.wifiSSID))
     {
-        Serial.println("wifiSSID failed to save");
+        Serial.println(F("wifiSSID failed to save"));
     }
 
     // ==== wifiPassword ==== //
     if (!file.println(data.wifiPassword))
     {
-        Serial.println("wifiPassword failed to save");
+        Serial.println(F("wifiPassword failed to save"));
     }
 
     // ==== mqttBrokerIpAddress ==== //
     if (!file.println(data.mqttBrokerIpAddress))
     {
-        Serial.println("mqttBrokerIpAddress failed to save");
+        Serial.println(F("mqttBrokerIpAddress failed to save"));
     }
 
     // ==== mqttBrokerPort ==== //
     if (!file.println(String(data.mqttBrokerPort)))
     {
-        Serial.println("mqttBrokerPort failed to save");
+        Serial.println(F("mqttBrokerPort failed to save"));
     }
 
     // ==== mqttBrokerUsername ==== //
     if (!file.println(data.mqttBrokerUsername))
     {
-        Serial.println("mqttBrokerUsername failed to save");
+        Serial.println(F("mqttBrokerUsername failed to save"));
     }
 
     // ==== mqttBrokerPassword ==== //
     if (!file.println(data.mqttBrokerPassword))
     {
-        Serial.println("mqttBrokerPassword failed to save");
+        Serial.println(F("mqttBrokerPassword failed to save"));
     }
 
     // ==== mqttClientName ==== //
     if (!file.println(data.mqttClientName))
     {
-        Serial.println("mqttClientName failed to save");
+        Serial.println(F("mqttClientName failed to save"));
     }
 
     // ==== isConfigured ==== //
     if (!file.println(String(data.isConfigured)))
     {
-        Serial.println("isConfigured failed to save");
+        Serial.println(F("isConfigured failed to save"));
     }
 
     delay(2000); // Make sure the CREATE and LASTWRITE times are different
@@ -336,13 +336,13 @@ void Configuration::saveConfig()
  */
 void Configuration::loadConfig()
 {
-    Serial.println("Loading Config");
+    Serial.println(F("Loading Config"));
     Serial.println("");
 
     File file = LittleFS.open("/config.txt", "r");
     if (!file)
     {
-        Serial.println("Failed to open file for reading");
+        Serial.println(F("Failed to open file for reading"));
         return;
     }
 
@@ -422,16 +422,16 @@ void Configuration::loadConfig()
  */
 void Configuration::listFiles()
 {
-    Serial.println("Found files in root dir:");
+    Serial.println(F("Found files in root dir:"));
 
     Dir root = LittleFS.openDir("/");
 
     while (root.next())
     {
         File file = root.openFile("r");
-        Serial.print("  FILE: ");
+        Serial.print(F("  FILE: "));
         Serial.print(root.fileName());
-        Serial.print("  SIZE: ");
+        Serial.print(F("  SIZE: "));
         Serial.println(file.size());
         file.close();
     }
@@ -442,16 +442,16 @@ void Configuration::listFiles()
  */
 void Configuration::createConfig()
 {
-    Serial.println("Create config.txt file if missing");
+    Serial.println(F("Create config.txt file if missing"));
     if (!LittleFS.exists("/config.txt"))
     {
-        Serial.println("Creating new config.txt file");
+        Serial.println(F("Creating new config.txt file"));
         File file = LittleFS.open("/config.txt", "w+");
         file.close();
     }
     else
     {
-        Serial.println("Found existing config.txt file");
+        Serial.println(F("Found existing config.txt file"));
     }
 };
 
@@ -460,7 +460,7 @@ void Configuration::createConfig()
  */
 void Configuration::resetConfig()
 {
-    Serial.println("Reset config.txt file");
+    Serial.println(F("Reset config.txt file"));
     if (LittleFS.exists("/config.txt"))
     {
         File file = LittleFS.open("/config.txt", "w");

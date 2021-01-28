@@ -54,11 +54,11 @@ bool LedDriver::Init()
 
         // ---- Calculate refresh rate data
         intervalRefreshRate = (unsigned long)(1000.0 / LED_STRIP_REFRESH_RATE);
-        Serial.print("LED Strip get refreshed every '");
+        Serial.print(F("LED Strip get refreshed every '"));
         Serial.print(intervalRefreshRate);
-        Serial.println("' Milliseconds");
+        Serial.println(F("' Milliseconds"));
 
-        Serial.println("LED Driver initialized");
+        Serial.println(F("LED Driver initialized"));
         init = true;
     }
 

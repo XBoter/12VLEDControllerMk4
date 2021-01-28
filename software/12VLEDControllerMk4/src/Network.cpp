@@ -33,7 +33,7 @@ bool Network::Init()
 
         virtualPIRSensorTriggered = false;
 
-        Serial.println("Network initialized");
+        Serial.println(F("Network initialized"));
         init = true;
     }
 
@@ -63,21 +63,21 @@ void Network::Run()
     {
         if (wifiConnected)
         {
-            Serial.println("\n-- Wifi Connected --");
-            Serial.print("  IP Address  : ");
+            Serial.println(F("\n-- Wifi Connected --"));
+            Serial.print(F("  IP Address  : "));
             ipAddress = WiFi.localIP().toString().c_str();
             Serial.println(ipAddress);
-            Serial.print("  Subnetmask  : ");
+            Serial.print(F("  Subnetmask  : "));
             Serial.println(WiFi.subnetMask());
-            Serial.print("  MAC Address : ");
+            Serial.print(F("  MAC Address : "));
             macAddress = WiFi.macAddress();
             Serial.println(macAddress);
-            Serial.print("  Gateway     : ");
+            Serial.print(F("  Gateway     : "));
             Serial.println(WiFi.gatewayIP());
         }
         else
         {
-            Serial.println("\n-- Wifi Disconnected --");
+            Serial.println(F("\n-- Wifi Disconnected --"));
         }
         wifiOneTimePrint = false;
     }
@@ -93,11 +93,11 @@ void Network::Run()
     {
         if (mqttConnected)
         {
-            Serial.println("\n-- Mqtt Connected --");
+            Serial.println(F("\n-- Mqtt Connected --"));
         }
         else
         {
-            Serial.println("\n-- Mqtt Disconnected --");
+            Serial.println(F("\n-- Mqtt Disconnected --"));
         }
         mqttOneTimePrint = false;
     }
@@ -157,7 +157,7 @@ void Network::HandleWifi()
         break;
 
     default:
-        Serial.println("Wifi State Error!");
+        Serial.println(F("Wifi State Error!"));
         break;
     }
 };
@@ -295,7 +295,7 @@ void Network::HandleMqtt()
         break;
 
     default:
-        Serial.println("Mqtt State Error!");
+        Serial.println(F("Mqtt State Error!"));
         break;
     }
 };

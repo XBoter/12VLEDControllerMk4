@@ -102,19 +102,19 @@ bool PowerMeasurement::Init()
 
         uint16_t ConfigRegister = 0b0000100110011111;
 
-        Serial.println("Setting config register");
+        Serial.println(F("Setting config register"));
         i2c->write16(i2cAddress, CONFIG, ConfigRegister);
-        Serial.print("Config Register : ");
+        Serial.print(F("Config Register : "));
         Print2ByteValue(i2c->read16(i2cAddress, CONFIG));
 
         uint16_t CalibrationRegister = 0b101011011110101;
 
-        Serial.println("Setting calibration register");
+        Serial.println(F("Setting calibration register"));
         i2c->write16(i2cAddress, CALIBRATION, CalibrationRegister);
-        Serial.print("Calibration Register : ");
+        Serial.print(F("Calibration Register : "));
         Print2ByteValue(i2c->read16(i2cAddress, CALIBRATION));
 
-        Serial.println("Power Measurement Unit initialized");
+        Serial.println(F("Power Measurement Unit initialized"));
         init = true;
     }
 
@@ -179,19 +179,19 @@ void PowerMeasurement::Run()
  **/
 void PowerMeasurement::PrintAllRegister()
 {
-    Serial.println("# ==== INA219 REGISTERS ==== #");
+    Serial.println(F("# ==== INA219 REGISTERS ==== #"));
     for (uint i = 0; i < 6; i++)
     {
         if (i < 16)
         {
-            Serial.print("0");
+            Serial.print(F("0"));
         }
         uint16_t reg_data = i2c->read16(i2cAddress, i);
         Serial.print(i, HEX);
         Serial.print(" ");
         Print2ByteValue(reg_data);
     }
-    Serial.println("# ========================== #");
+    Serial.println(F("# ========================== #"));
     Serial.println("");
 };
 

@@ -17,7 +17,7 @@ bool I2C::Init()
     if (!init)
     {
         Wire.begin();
-        Serial.println("I2C initialized");
+        Serial.println(F("I2C initialized"));
         init = true;
     }
 
@@ -166,19 +166,19 @@ bool I2C::checkTransmissionError(uint8_t result)
         success = true;
         break;
     case 1:
-        Serial.println("I2C Write ERROR! => data too long to fit in transmit buffer");
+        Serial.println(F("I2C Write ERROR! => data too long to fit in transmit buffer"));
         success = false;
         break;
     case 2:
-        Serial.println("I2C Write ERROR! => received NACK on transmit of address");
+        Serial.println(F("I2C Write ERROR! => received NACK on transmit of address"));
         success = false;
         break;
     case 3:
-        Serial.println("I2C Write ERROR! => received NACK on transmit of data");
+        Serial.println(F("I2C Write ERROR! => received NACK on transmit of data"));
         success = false;
         break;
     case 4:
-        Serial.println("I2C Write ERROR! => other error");
+        Serial.println(F("I2C Write ERROR! => other error"));
         success = false;
         break;
     }

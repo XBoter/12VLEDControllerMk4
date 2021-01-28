@@ -30,7 +30,7 @@ bool PirReader::Init()
         // PIR Sensor 2
         pinMode(pinPirSensor2, INPUT);
 
-        Serial.println("PIR Reader initialized");
+        Serial.println(F("PIR Reader initialized"));
         init = true;
     }
 
