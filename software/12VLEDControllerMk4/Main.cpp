@@ -59,7 +59,7 @@ void Main::_loop()
         {
         case 0:
             // Init all components
-            //otaGit.Init();
+            ota.Init();
             i2c.Init();
             network.Init();
             //powerMessurement.Init();
@@ -71,7 +71,7 @@ void Main::_loop()
 
         case 1:
             // Run all components
-            //otaGit.Run();
+            ota.Run();
             i2c.Run();
             network.Run();
             //powerMessurement.Run();
@@ -90,7 +90,7 @@ void Main::_loop()
     }
     else
     {
-        otaGit.init = false;
+        ota.init = false;
         i2c.init = false;
         network.init = false;
         powerMessurement.init = false;

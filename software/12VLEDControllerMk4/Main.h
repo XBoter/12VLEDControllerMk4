@@ -9,22 +9,21 @@
 #include "include/Information.h"
 #include "include/PirReader.h"
 #include "include/Configuration.h"
-#include "include/OTAGit.h"
+#include "include/OTA.h"
 
 //-------------------- Basic Information --------------------//
 #define Name "12V LED Controller Mk4"
 #define Programmer "Nico Weidenfeller"
 #define Created "28.06.2020"
-#define LastModifed "19.01.2021"
-#define Version "1.2.0"
+#define LastModifed "28.01.2021"
+#define Version "1.2.1"
 
 /*
       ToDo     Change Shut Resistor to 0.02 Ohm for better reading 
       ToDo     Add NTP Summer/Winter time swap => For now only Winter Time 
-      ToDo     Add PCA9685 reset after to many I2C errors => Fix in later version
+      ToDo     Add PCA9685 reset after to many I2C errorss
       ToDo     Add option to sync diffrent single strip led effects
-      ToDo     Optimize code (RAM Fragmentation, F String for print ln)
-      ToDo     ESP OTA Github after reboot and after time period
+      ToDo     Add ESP OTA GitHub upgrade 
 */
 
 //++++ Global Defines ++++//
@@ -49,9 +48,14 @@ private:
 public:
    // Components
    I2C i2c = I2C();
+
    Network network = Network();
+
    Configuration configuration = Configuration();
-   OTAGit otaGit = OTAGit(&network);
+
+   OTA ota = OTA(&network,
+                 &configuration);
+
    PowerMeasurement powerMessurement = PowerMeasurement(INA219AIDR_I2C_ADDRESS,
                                                         &i2c,
                                                         &network,
