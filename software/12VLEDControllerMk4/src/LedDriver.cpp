@@ -471,16 +471,16 @@ uint8_t LedDriver::getMotionBrightnessPercent()
 
     if (stTimeBasedMotionBrightness.isSunfallSet && stTimeBasedMotionBrightness.isSunriseSet)
     {
-        uint32_t difference = sunfallUnix - sunriseUnix;
-        unsigned long lowestBrightnessUnix = sunfallUnix + (unsigned long)((double)difference / 2.0);
-        unsigned long maxBrightness = sunfallUnix + difference;
-        if (network->unix <= lowestBrightnessUnix)
+        uint32_t difference = stTimeBasedMotionBrightness.sunfallUnix - stTimeBasedMotionBrightness.sunriseUnix;
+        unsigned long lowestBrightnessUnix = stTimeBasedMotionBrightness.sunfallUnix + (unsigned long)((double)difference / 2.0);
+        unsigned long maxBrightness = stTimeBasedMotionBrightness.sunfallUnix + difference;
+        if (network->stNetworkTimeData.unix <= lowestBrightnessUnix)
         {
-            percent = map(network->unix, sunfallUnix, lowestBrightnessUnix, 100, 13);
+            percent = map(network->stNetworkTimeData.unix, stTimeBasedMotionBrightness.sunfallUnix, lowestBrightnessUnix, 100, 13);
         }
-        else if (network->unix > lowestBrightnessUnix)
+        else if (network->stNetworkTimeData.unix > lowestBrightnessUnix)
         {
-            percent = map(network->unix, sunfallUnix, maxBrightness, 13, 100);
+            percent = map(network->stNetworkTimeData.unix, stTimeBasedMotionBrightness.sunfallUnix, maxBrightness, 13, 100);
         }
     }
     else
