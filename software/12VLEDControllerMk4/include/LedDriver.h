@@ -48,7 +48,6 @@ private:
     unsigned long prevMillisReconnect = 0;
     unsigned long timeoutReconnect = 4000;
 
-
     // ---- LED Effect data
     // -- Multi
     MultiLEDStripEffectData multiLEDStripEffectData = {};
@@ -70,13 +69,16 @@ private:
     // -- Current
     LEDStripData emptyCurrentLEDStripData = {};
     LEDStripData currentLEDStrip1Data = {};
-    LEDStripData currentLEDStrip2Data = {}; 
+    LEDStripData currentLEDStrip2Data = {};
     // -- Previous
     LEDStripData emptyPrevLEDStripData = {};
     LEDStripData prevLEDStrip1Data = {};
     LEDStripData prevLEDStrip2Data = {};
 
 public:
+    // ---- Motion Brightness
+    TimeBasedMotionBrightness stTimeBasedMotionBrightness = {};
+
     // ## Functions ## //
 private:
     // ---- Logic
@@ -88,7 +90,7 @@ private:
     void HandleSingleLEDStripEffects(uint8_t stripID,
                                      NetworkLEDStripData commandNetworkLEDStripData);
 
-    uint16_t getTimeBasedBrightness();
+    uint8_t getMotionBrightnessPercent();
 
     MultiLEDStripEffectData *getMultiLEDStripEffectData();
     MultiLEDEffect prevMultiLEDEffect = MultiLEDEffect::Idle;

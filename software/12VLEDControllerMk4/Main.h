@@ -15,8 +15,8 @@
 #define Name "12V LED Controller Mk4"
 #define Programmer "Nico Weidenfeller"
 #define Created "28.06.2020"
-#define LastModifed "28.01.2021"
-#define Version "1.2.1"
+#define LastModifed "01.02.2021"
+#define Version "1.2.2"
 
 /*
       ToDo     Change Shut Resistor to 0.02 Ohm for better reading 
@@ -24,6 +24,9 @@
       ToDo     Add PCA9685 reset after to many I2C errorss
       ToDo     Add option to sync diffrent single strip led effects
       ToDo     Add ESP OTA GitHub upgrade 
+      ToDo     Update Readme.md
+      ToDo     Update Function description
+      ToDo     Maybe add option for led strip pin map order
 */
 
 //++++ Global Defines ++++//

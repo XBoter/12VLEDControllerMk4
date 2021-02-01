@@ -216,8 +216,10 @@ void LedDriver::HandleMultiLEDStripEffects()
             // Check for timebased brightness
             if (networkMotionData.timeBasedBrightnessChangeEnabled)
             {
-                highLevelLEDStripData.colorBrightnessValue = getTimeBasedBrightness();
-                highLevelLEDStripData.whiteBrightnessValue = getTimeBasedBrightness();
+                // Map brightness value
+                uint8_t percent = getMotionBrightnessPercent();
+                highLevelLEDStripData.colorBrightnessValue = (uint16_t)((double)networkMotionData.colorBrightnessValue * ((double)percent / 100.0));
+                highLevelLEDStripData.whiteBrightnessValue = (uint16_t)((double)networkMotionData.whiteBrightnessValue * ((double)percent / 100.0));
             }
             else
             {
@@ -459,75 +461,92 @@ void LedDriver::HandleSingleLEDStripEffects(uint8_t stripID,
 };
 
 /**
- * Returns a brightness value based on the current time
+ * Returns a brightness percent value based on the current time
  * 
- * @return Time baed brightness value
+ * @return Brightness percent
  */
-uint16_t LedDriver::getTimeBasedBrightness()
+uint8_t LedDriver::getMotionBrightnessPercent()
 {
-    uint16_t brightness = 4096;
+    uint8_t percent = 100;
 
-    switch (network->stNetworkTimeData.hour)
+    if (stTimeBasedMotionBrightness.isSunfallSet && stTimeBasedMotionBrightness.isSunriseSet)
     {
-    // 100%
-    case 20:
-        brightness = 4095;
-        break;
-    // 75%
-    case 21:
-        brightness = 3096;
-        break;
-    // 50%
-    case 22:
-        brightness = 2048;
-        break;
-    // 37,5%
-    case 23:
-        brightness = 1536;
-        break;
-    // 25%
-    case 24:
-        brightness = 1024;
-        break;
-    // 12,5%
-    case 0:
-        brightness = 512;
-        break;
-    // 12,5%
-    case 1:
-        brightness = 512;
-        break;
-    // 12,5%
-    case 2:
-        brightness = 512;
-        break;
-    // 12,5%
-    case 3:
-        brightness = 512;
-        break;
-    // 25%
-    case 4:
-        brightness = 1024;
-        break;
-    // 37,5%
-    case 5:
-        brightness = 1536;
-        break;
-    // 50%
-    case 6:
-        brightness = 2048;
-        break;
-    // 75%
-    case 7:
-        brightness = 3096;
-        break;
-    // 100%
-    case 8:
-        brightness = 4095;
-        break;
+        uint32_t difference = sunfallUnix - sunriseUnix;
+        unsigned long lowestBrightnessUnix = sunfallUnix + (unsigned long)((double)difference / 2.0);
+        unsigned long maxBrightness = sunfallUnix + difference;
+        if (network->unix <= lowestBrightnessUnix)
+        {
+            percent = map(network->unix, sunfallUnix, lowestBrightnessUnix, 100, 13);
+        }
+        else if (network->unix > lowestBrightnessUnix)
+        {
+            percent = map(network->unix, sunfallUnix, maxBrightness, 13, 100);
+        }
+    }
+    else
+    {
+        switch (network->stNetworkTimeData.hour)
+        {
+        // 100%
+        case 20:
+            percent = 100;
+            break;
+        // 75%
+        case 21:
+            percent = 75;
+            break;
+        // 50%
+        case 22:
+            percent = 50;
+            break;
+        // 37,5%
+        case 23:
+            percent = 38;
+            break;
+        // 25%
+        case 24:
+            percent = 25;
+            break;
+        // 12,5%
+        case 0:
+            percent = 13;
+            break;
+        // 12,5%
+        case 1:
+            percent = 13;
+            break;
+        // 12,5%
+        case 2:
+            percent = 13;
+            break;
+        // 12,5%
+        case 3:
+            percent = 13;
+            break;
+        // 25%
+        case 4:
+            percent = 25;
+            break;
+        // 37,5%
+        case 5:
+            percent = 38;
+            break;
+        // 50%
+        case 6:
+            percent = 50;
+            break;
+        // 75%
+        case 7:
+            percent = 75;
+            break;
+        // 100%
+        case 8:
+            percent = 100;
+            break;
+        }
     }
 
-    return brightness;
+    return percent;
 };
 
 MultiLEDStripEffectData *LedDriver::getMultiLEDStripEffectData()

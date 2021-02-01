@@ -10,6 +10,21 @@ struct NetworkTimeData
     uint8_t hour = 12;
     uint8_t minute = 0;
     uint8_t second = 0;
+    unsigned long unix = 0;
+};
+
+/**
+ * Holds the data for the time based motion brightness
+ */
+struct TimeBasedMotionBrightness
+{
+    // Sunfall
+    unsigned long sunfallUnix = 0;
+    bool isSunfallSet = false;
+
+    // Sunrise
+    unsigned long sunriseUnix = 0;
+    bool isSunriseSet = false;
 };
 
 /**
@@ -29,7 +44,6 @@ struct NetworkMotionData
     uint16_t whiteTemperatureValue = 0;
     uint16_t whiteBrightnessValue = 0;
 };
-
 
 /**
  * Holds all register for one LED Color

@@ -41,7 +41,8 @@ private:
     void FormatPrintTime(String name,
                          String hour,
                          String minute,
-                         String second);
+                         String second,
+                         String unix);
 
     void FormatPrintLEDStrip(String name,
                              String power,

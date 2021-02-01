@@ -317,6 +317,7 @@ void Network::HandleNTP()
             stNetworkTimeData.hour = timeClient.getHours();
             stNetworkTimeData.minute = timeClient.getMinutes();
             stNetworkTimeData.second = timeClient.getSeconds();
+            stNetworkTimeData.unix = timeClient.getEpochTime();
         }
     }
 };
@@ -358,6 +359,17 @@ void mqttCallback(char *topic, byte *payload, unsigned int length)
         if (data >= 0 && data <= 1)
         {
             mainController.network.parameter_sun = (bool)data;
+
+            if ((bool)data)
+            {
+                mainController.ledDriver.stTimeBasedMotionBrightness.sunfallUnix = mainController.network.stNetworkTimeData.unix;
+                mainController.ledDriver.stTimeBasedMotionBrightness.isSunfallSet = true;
+            }
+            else
+            {
+                mainController.ledDriver.stTimeBasedMotionBrightness.sunriseUnix = mainController.network.stNetworkTimeData.unix;
+                mainController.ledDriver.stTimeBasedMotionBrightness.isSunriseSet = true;
+            }
         }
     }
     // ======== MasterPresent ======== //
