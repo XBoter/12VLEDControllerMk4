@@ -37,7 +37,7 @@ void Main::_setup()
     // Set references to external components
     ota.setReference(&network,
                      &configuration);
-                     
+
     i2c.setReference();
 
     network.setReference(&configuration,
@@ -59,9 +59,9 @@ void Main::_setup()
 
     pirReader.setReference(&network);
 
-    configuration.setReference();
+    configuration.setReference(&ledDriver);
 
-    // Init configuration 
+    // Init configuration
     configuration.Init();
 
     Serial.println("# ==== Setup finished ==== #");
@@ -87,6 +87,18 @@ void Main::_loop()
         switch (state)
         {
         case 0:
+            // Reset init flag
+            ota.init = false;
+            i2c.init = false;
+            network.init = false;
+            powerMessurement.init = false;
+            ledDriver.init = false;
+            information.init = false;
+            pirReader.init = false;
+            state++;
+            break;
+
+        case 1:
             // Init all components
             ota.Init();
             i2c.Init();
@@ -98,7 +110,7 @@ void Main::_loop()
             state++;
             break;
 
-        case 1:
+        case 2:
             // Run all components
             ota.Run();
             i2c.Run();
@@ -119,13 +131,6 @@ void Main::_loop()
     }
     else
     {
-        ota.init = false;
-        i2c.init = false;
-        network.init = false;
-        powerMessurement.init = false;
-        ledDriver.init = false;
-        information.init = false;
-        pirReader.init = false;
         state = 0;
     }
 };

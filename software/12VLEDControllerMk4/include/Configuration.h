@@ -6,18 +6,23 @@
 #include <WiFiClient.h>
 #include <ESP8266WebServer.h>
 #include "Structs.h"
+#include "LedDriver.h"
 #include <LittleFS.h>
 
 // Interface
 #include "../interface/IBaseClass.h"
 
+// Blueprint for compiler. Problem => circular dependency
+class LedDriver;
+
 // Classes
 class Configuration : public IBaseClass
 {
-    // ## Constructor ## //
+    // ## Constructor / Important ## //
 public:
-    Configuration(void);
-    void setReference();
+    Configuration();
+    void setReference(LedDriver *ledDriver);
+    bool init = false;
 
     // ## Interface ## //
 private:
@@ -27,6 +32,8 @@ public:
 
     // ## Data ## //
 private:
+    LedDriver *ledDriver;
+
     unsigned long prevMillisReset = 0;
     unsigned long prevMillisResetBlink = 0;
     unsigned long prevMillisAPShutdown = 0;

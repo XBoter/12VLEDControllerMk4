@@ -16,8 +16,9 @@ Configuration::Configuration(){
 /**
  * Sets reference to external components
  */
-void Configuration::setReference(){
-
+void Configuration::setReference(LedDriver *ledDriver)
+{
+    this->ledDriver = ledDriver;
 };
 
 /**
@@ -84,6 +85,7 @@ void Configuration::Run()
         return;
     }
 
+    bool isLedDriverConfigureMode = false;
     unsigned long curMillis = millis();
     // Check if button is pressed longer then 10 sec
     if (digitalRead(0) == 0)
@@ -108,15 +110,24 @@ void Configuration::Run()
             // ================ CONFIGURATION PROCEDURE ================ //
             switch (state)
             {
-                // Save that we are not configured or doing a reset
             case 0:
-                data.isConfigured = false;
-                resetConfig();
+                Serial.println("");
+                Serial.println("LED Controller Mk4 in configuration mode");
                 state++;
                 break;
 
-                // Stop wifi connection
+                // Save that we are not configured or doing a reset
             case 1:
+                data.isConfigured = false;
+                isLedDriverConfigureMode = ledDriver->ConfigureMode();
+                if (isLedDriverConfigureMode)
+                {
+                    state++;
+                }
+                break;
+
+                // Stop wifi connection
+            case 2:
                 if (WiFi.status() == WL_CONNECTED)
                 {
                     WiFi.disconnect();
@@ -128,29 +139,31 @@ void Configuration::Run()
                 break;
 
                 // Create hotspot default IP Address of ESP 192.168.4.1.
-            case 2:
+            case 3:
                 WiFi.softAP("LED Controller Mk4");
                 state++;
                 break;
 
                 // Start webserver
-            case 3:
+            case 4:
                 server.on("/", [this]() { this->inputForm(); });
                 server.on("/final", [this]() { this->inputFormFilled(); });
                 server.begin();
+                Serial.println("Waiting for user configuration");
                 state++;
                 break;
 
                 // Wait for user configuration
-            case 4:
+            case 5:
                 server.handleClient();
                 prevMillisAPShutdown = curMillis;
                 break;
 
                 // Wait before shuting down AP
-            case 5:
+            case 6:
                 if (curMillis - prevMillisAPShutdown >= timeoutAPShutdown)
                 {
+                    Serial.println("User finished configuration");
                     state = 99;
                 }
                 break;
@@ -162,8 +175,11 @@ void Configuration::Run()
                 digitalWrite(LED_BUILTIN, HIGH);
                 resetOrNotConfigured = false;
                 data.isConfigured = true;
+                resetConfig();
                 saveConfig();
                 isFinished = true;
+                Serial.println("LED Controller Mk4 finished configuration");
+                Serial.println("");
                 state = 0;
                 break;
             }

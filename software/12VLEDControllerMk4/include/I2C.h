@@ -10,10 +10,11 @@
 // Classes
 class I2C : public IBaseClass
 {
-    // ## Constructor ## //
+    // ## Constructor / Important ## //
 public:
     I2C();
     void setReference();
+    bool init = false;
 
     // ## Interface ## //
 private:

@@ -28,13 +28,14 @@ class PowerMeasurement;
 // Classes
 class Network : public IBaseClass
 {
-    // ## Constructor ## //
+    // ## Constructor / Important ## //
 public:
     Network();
     void setReference(Configuration *configuration,
                       Information *information,
                       PirReader *pirReader,
                       PowerMeasurement *powerMeasurement);
+    bool init = false;
 
     // ## Interface ## //
 private:

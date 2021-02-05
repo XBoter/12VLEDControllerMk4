@@ -62,6 +62,7 @@ bool LedDriver::Init()
         Serial.println(F("' Milliseconds"));
 
         Serial.println(F("LED Driver initialized"));
+
         init = true;
     }
 
@@ -1670,3 +1671,36 @@ uint16_t LedDriver::easeInOutQuart(double percent,
 {
     return start + (end - start) * (percent < 0.5 ? 8 * pow(percent, 4) : 1 - pow(-2 * percent + 2, 4) / 2);
 };
+
+/**
+ * LED driver configuration mode. Turns off all led strips.
+ */
+bool LedDriver::ConfigureMode()
+{
+    bool finishedConfigureMode = false;
+
+    // Check for init
+    if (!init)
+    {
+        Init();
+    }
+    else
+    {
+
+        unsigned long currentMillisRefreshRate = millis();
+        if (currentMillisRefreshRate - previousMillisRefreshRate >= intervalRefreshRate)
+        {
+            previousMillisRefreshRate = currentMillisRefreshRate;
+            refreshRateCounter++;
+
+            // Fade both strips to black
+            finishedConfigureMode = FadeToBlack();
+
+            // Call update LED Strips because LED Driver gets not called in configuration mode
+            UpdateLEDStrip(1);
+            UpdateLEDStrip(2);
+        }
+    }
+
+    return finishedConfigureMode;
+}

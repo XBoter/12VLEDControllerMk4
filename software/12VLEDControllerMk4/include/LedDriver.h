@@ -20,12 +20,13 @@ class PirReader;
 // Classes
 class LedDriver : public IBaseClass
 {
-    // ## Constructor ## //
+    // ## Constructor / Important ## //
 public:
     LedDriver(uint8_t i2cAddress);
     void setReference(I2C *i2c,
                       Network *network,
                       PirReader *pirReader);
+    bool init = false;
 
     // ## Interface ## //
 private:
@@ -85,6 +86,8 @@ private:
 
 public:
     // ## Functions ## //
+    bool ConfigureMode();
+
 private:
     // ---- Logic
     void HandleMultiLEDStripControlLogic();

@@ -16,11 +16,12 @@ class Configuration;
 // Classes
 class OTA : public IBaseClass
 {
-    // ## Constructor ## //
+    // ## Constructor / Important ## //
 public:
     OTA();
     void setReference(Network *network,
                       Configuration *configuration);
+    bool init = false;
 
     // ## Interface ## //
 private:

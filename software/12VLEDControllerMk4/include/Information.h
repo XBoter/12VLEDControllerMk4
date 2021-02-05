@@ -16,13 +16,14 @@ class PirReader;
 // Classes
 class Information : public IBaseClass
 {
-    // ## Constructor ## //
+    // ## Constructor / Important ## //
 public:
     Information();
     void setReference(Network *network,
                       Network *memNetwork,
                       PirReader *pirReader,
                       PirReader *memPirReader);
+    bool init = false;
 
     // ## Interface ## //
 private:

@@ -3,10 +3,6 @@
 // Interface
 class IBaseClass
 {
-    // ## Data ## //
-private:
-public:
-    bool init = false;
 
     // ## Functions ## //
 private:

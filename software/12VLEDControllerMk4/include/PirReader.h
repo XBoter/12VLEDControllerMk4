@@ -13,11 +13,12 @@ class Network;
 // Classes
 class PirReader : public IBaseClass
 {
-    // ## Constructor ## //
+   // ## Constructor / Important ## //
 public:
     PirReader(uint8_t pinPirSensor1,
               uint8_t pinPirSensor2);
     void setReference(Network *network);
+    bool init = false;
 
     // ## Interface ## //
 private:

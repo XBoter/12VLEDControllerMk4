@@ -16,12 +16,13 @@ class Network;
 // Classes
 class PowerMeasurement : public IBaseClass
 {
-    // ## Constructor ## //
+    // ## Constructor / Important ## //
 public:
     PowerMeasurement(uint8_t i2cAddress,
                      double shuntResistorOhm);
     void setReference(I2C *i2c,
                       Network *network);
+    bool init = false;
 
     // ## Interface ## //
 private:
