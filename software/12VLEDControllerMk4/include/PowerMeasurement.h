@@ -9,15 +9,19 @@
 // Interface
 #include "../interface/IBaseClass.h"
 
+// Blueprint for compiler. Problem => circular dependency
+class I2C;
+class Network;
+
 // Classes
 class PowerMeasurement : public IBaseClass
 {
     // ## Constructor ## //
 public:
     PowerMeasurement(uint8_t i2cAddress,
-                     I2C *i2c,
-                     Network *network,
                      double shuntResistorOhm);
+    void setReference(I2C *i2c,
+                      Network *network);
 
     // ## Interface ## //
 private:

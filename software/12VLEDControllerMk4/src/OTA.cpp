@@ -3,8 +3,15 @@
 /**
  * Empty constructor
  */
-OTA::OTA(Network *network,
-         Configuration *configuration)
+OTA::OTA(){
+
+};
+
+/**
+ * Sets reference to external components
+ */
+void OTA::setReference(Network *network,
+                       Configuration *configuration)
 {
     this->network = network;
     this->configuration = configuration;

@@ -13,6 +13,7 @@ class I2C : public IBaseClass
     // ## Constructor ## //
 public:
     I2C();
+    void setReference();
 
     // ## Interface ## //
 private:

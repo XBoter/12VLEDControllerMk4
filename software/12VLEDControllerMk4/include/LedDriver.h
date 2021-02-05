@@ -12,15 +12,20 @@
 // Interface
 #include "../interface/IBaseClass.h"
 
+// Blueprint for compiler. Problem => circular dependency
+class I2C;
+class Network;
+class PirReader;
+
 // Classes
 class LedDriver : public IBaseClass
 {
     // ## Constructor ## //
 public:
-    LedDriver(uint8_t i2cAddress,
-              I2C *i2c,
-              Network *network,
-              PirReader *pirReader);
+    LedDriver(uint8_t i2cAddress);
+    void setReference(I2C *i2c,
+                      Network *network,
+                      PirReader *pirReader);
 
     // ## Interface ## //
 private:
@@ -40,6 +45,9 @@ private:
     uint16_t intervalRefreshRate = 0;
     double LED_STRIP_REFRESH_RATE = 90; // x Times per Second
     unsigned long refreshRateCounter = 0;
+
+    // ---- Motion Brightness
+    TimeBasedMotionBrightness stTimeBasedMotionBrightness = {};
 
     // ---- Network data
     NetworkMotionData networkMotionData = {};
@@ -76,9 +84,6 @@ private:
     LEDStripData prevLEDStrip2Data = {};
 
 public:
-    // ---- Motion Brightness
-    TimeBasedMotionBrightness stTimeBasedMotionBrightness = {};
-
     // ## Functions ## //
 private:
     // ---- Logic

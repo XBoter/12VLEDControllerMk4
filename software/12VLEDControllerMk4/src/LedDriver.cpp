@@ -5,16 +5,19 @@
  * Constructor for the LedDriver class
  * 
  * @parameter i2cAddress    The i2c address of the pwm ic
- * @parameter *i2c          Pointer to the used instance of the I2C class
- * @parameter *network      Pointer to the used instace of the Network class
- * @parameter *pitReader    Pointer to the used instace of the PirReader class
  */
-LedDriver::LedDriver(uint8_t i2cAddress,
-                     I2C *i2c,
-                     Network *network,
-                     PirReader *pirReader)
+LedDriver::LedDriver(uint8_t i2cAddress)
 {
     this->i2cAddress = i2cAddress;
+};
+
+/**
+ * Sets reference to external components
+ */
+void LedDriver::setReference(I2C *i2c,
+                             Network *network,
+                             PirReader *pirReader)
+{
     this->i2c = i2c;
     this->network = network;
     this->pirReader = pirReader;

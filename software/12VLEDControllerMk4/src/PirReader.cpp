@@ -1,5 +1,4 @@
 #include "../include/PirReader.h"
-#include "../Main.h"
 
 /**
  * Constructor for the PirReader class
@@ -8,10 +7,18 @@
  * @parameter pinPirSensor2     The digital pin of the 2 PIR sensor
  * @parameter *network          Pointer to the used instace of the Network class
  */
-PirReader::PirReader(uint8_t pinPirSensor1, uint8_t pinPirSensor2, Network *network)
+PirReader::PirReader(uint8_t pinPirSensor1,
+                     uint8_t pinPirSensor2)
 {
     this->pinPirSensor1 = pinPirSensor1;
     this->pinPirSensor2 = pinPirSensor2;
+};
+
+/**
+ * Sets reference to external components
+ */
+void PirReader::setReference(Network *network)
+{
     this->network = network;
 };
 

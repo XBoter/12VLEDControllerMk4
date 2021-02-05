@@ -5,7 +5,14 @@
  */
 I2C::I2C()
 {
-}
+};
+
+/**
+ * Sets reference to external components
+ */
+void I2C::setReference()
+{
+};
 
 /**
  * Does init stuff for the I2C component

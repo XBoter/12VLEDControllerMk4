@@ -4,17 +4,23 @@
 #include <Arduino.h>
 #include <ArduinoOTA.h>
 #include "Network.h"
+#include "Configuration.h"
 
 // Interface
 #include "../interface/IBaseClass.h"
+
+// Blueprint for compiler. Problem => circular dependency
+class Network;
+class Configuration;
 
 // Classes
 class OTA : public IBaseClass
 {
     // ## Constructor ## //
 public:
-    OTA(Network *network,
-        Configuration *configuration);
+    OTA();
+    void setReference(Network *network,
+                      Configuration *configuration);
 
     // ## Interface ## //
 private:

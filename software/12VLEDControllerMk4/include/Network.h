@@ -12,9 +12,18 @@
 #include "Enums.h"
 #include "Structs.h"
 #include "Configuration.h"
+#include "Information.h"
+#include "PirReader.h"
+#include "PowerMeasurement.h"
 
 // Interface
 #include "../interface/IBaseClass.h"
+
+// Blueprint for compiler. Problem => circular dependency
+class Configuration;
+class Information;
+class PirReader;
+class PowerMeasurement;
 
 // Classes
 class Network : public IBaseClass
@@ -22,6 +31,10 @@ class Network : public IBaseClass
     // ## Constructor ## //
 public:
     Network();
+    void setReference(Configuration *configuration,
+                      Information *information,
+                      PirReader *pirReader,
+                      PowerMeasurement *powerMeasurement);
 
     // ## Interface ## //
 private:
@@ -31,7 +44,13 @@ public:
 
     // ## Data ## //
 private:
-    ConfiguredData data;
+    // External components
+    Configuration *configuration;
+    Information *information;
+    PirReader *pirReader;
+    PowerMeasurement *powerMeasurement;
+
+    ConfiguredData data = {};
 
     WiFiClient wifiMqtt;
     WiFiUDP ntpUDP;
@@ -67,21 +86,24 @@ public:
     bool wifiConnected = false;
     bool mqttConnected = false;
 
+    // Other Data
+    TimeBasedMotionBrightness stTimeBasedMotionBrightness = {};
+
     // MQTT Data
     // Sun
     bool parameter_sun = false;
     // Time
-    NetworkTimeData stNetworkTimeData;
+    NetworkTimeData stNetworkTimeData = {};
     // Master
     bool parameter_master_present = false;
     // Alarm
     bool alarm = false;
     // Motion
-    NetworkMotionData stNetworkMotionData;
+    NetworkMotionData stNetworkMotionData = {};
     // LED Strip 1
-    NetworkLEDStripData stNetworkLedStrip1Data;
+    NetworkLEDStripData stNetworkLedStrip1Data = {};
     // LED Strip 2
-    NetworkLEDStripData stNetworkLedStrip2Data;
+    NetworkLEDStripData stNetworkLedStrip2Data = {};
     // Virtual PIR Sensor
     bool virtualPIRSensorTriggered = false;
 
@@ -106,6 +128,8 @@ private:
     void HandleWifi();
     void HandleMqtt();
     void HandleNTP();
+
+    void MqttCallback(char *topic, byte *payload, unsigned int length);
 
     // ==== Republish / Publish functions
     // == Handle

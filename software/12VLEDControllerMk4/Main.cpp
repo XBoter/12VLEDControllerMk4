@@ -34,8 +34,38 @@ void Main::_setup()
     Serial.println("# ======================== #");
     Serial.println("");
 
-    // Init all configuration
+    // Set references to external components
+    ota.setReference(&network,
+                     &configuration);
+                     
+    i2c.setReference();
+
+    network.setReference(&configuration,
+                         &information,
+                         &pirReader,
+                         &powerMessurement);
+
+    powerMessurement.setReference(&i2c,
+                                  &network);
+
+    ledDriver.setReference(&i2c,
+                           &network,
+                           &pirReader);
+
+    information.setReference(&network,
+                             &memNetwork,
+                             &pirReader,
+                             &memPirReader);
+
+    pirReader.setReference(&network);
+
+    configuration.setReference();
+
+    // Init configuration 
     configuration.Init();
+
+    Serial.println("# ==== Setup finished ==== #");
+    Serial.println("");
 };
 
 /**
@@ -52,7 +82,6 @@ void Main::_loop()
 
     // Run configuration before all other components
     configuration.Run();
-
     if (configuration.isFinished)
     {
         switch (state)

@@ -8,15 +8,21 @@
  * @parameter *network      Pointer to the used instace of the Network class
  */
 PowerMeasurement::PowerMeasurement(uint8_t i2cAddress,
-                                   I2C *i2c,
-                                   Network *network,
                                    double shuntResistorOhm)
 {
     this->i2cAddress = i2cAddress;
+    this->shuntResistorOhm = shuntResistorOhm;
+};
+
+/**
+ * Sets reference to external components
+ */
+void PowerMeasurement::setReference(I2C *i2c,
+                                    Network *network)
+{
     this->i2c = i2c;
     this->network = network;
-    this->shuntResistorOhm = shuntResistorOhm;
-}
+};
 
 /**
  * Does init stuff for the PowerMeasurement component

@@ -15,8 +15,8 @@
 #define Name "12V LED Controller Mk4"
 #define Programmer "Nico Weidenfeller"
 #define Created "28.06.2020"
-#define LastModifed "01.02.2021"
-#define Version "1.2.2"
+#define LastModifed "05.02.2021"
+#define Version "1.2.3"
 
 /*
       ToDo     Change Shut Resistor to 0.02 Ohm for better reading 
@@ -24,7 +24,6 @@
       ToDo     Add PCA9685 reset after to many I2C errorss
       ToDo     Add option to sync diffrent single strip led effects
       ToDo     Add ESP OTA GitHub upgrade 
-      ToDo     Update Readme.md
       ToDo     Update Function description
       ToDo     Maybe add option for led strip pin map order
 */
@@ -51,30 +50,17 @@ private:
 public:
    // Components
    I2C i2c = I2C();
-
-   Network network = Network();
-
    Configuration configuration = Configuration();
-
-   OTA ota = OTA(&network,
-                 &configuration);
-
+   Network network = Network();
+   Network memNetwork = Network(); // Memory Version Instance for Information
+   OTA ota = OTA();
    PowerMeasurement powerMessurement = PowerMeasurement(INA219AIDR_I2C_ADDRESS,
-                                                        &i2c,
-                                                        &network,
                                                         0.002); // 2 mOhm
-
    PirReader pirReader = PirReader(PIR_SENSOR_1_PIN,
-                                   PIR_SENSOR_2_PIN,
-                                   &network);
-
-   LedDriver ledDriver = LedDriver(PCA9685PW_I2C_ADDRESS,
-                                   &i2c,
-                                   &network,
-                                   &pirReader);
-
-   Information information = Information(&network,
-                                         &pirReader);
+                                   PIR_SENSOR_2_PIN);
+   PirReader memPirReader = PirReader(0, 0); // Memory Version Instance for Information
+   LedDriver ledDriver = LedDriver(PCA9685PW_I2C_ADDRESS);
+   Information information = Information();
 
    // ## Functions ## //
 private:

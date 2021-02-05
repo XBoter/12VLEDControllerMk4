@@ -9,12 +9,20 @@
 // Interface
 #include "../interface/IBaseClass.h"
 
+// Blueprint for compiler. Problem => circular dependency
+class Network;
+class PirReader;
+
 // Classes
 class Information : public IBaseClass
 {
     // ## Constructor ## //
 public:
-    Information(Network *network, PirReader *pirReader);
+    Information();
+    void setReference(Network *network,
+                      Network *memNetwork,
+                      PirReader *pirReader,
+                      PirReader *memPirReader);
 
     // ## Interface ## //
 private:
@@ -24,10 +32,10 @@ public:
 
     // ## Data ## //
 private:
-    PirReader *pirReader;                        // Pointer to used pirReader instance
-    PirReader memPirReader = PirReader(0, 0, 0); // Memory version of pirReader instance
-    Network *network;                            // Pointer to used network instance
-    Network memNetwork = Network();              // Memory version of network instance
+    PirReader *pirReader;    // Pointer to used pirReader instance
+    PirReader *memPirReader; // Memory version of pirReader instance
+    Network *network;        // Pointer to used network instance
+    Network *memNetwork;     // Memory version of network instance
     const String symbol = "=";
     const uint8_t spacerLength = 40; // x * Spaces
     const uint8_t insertLength = 4;  // x * Spaces

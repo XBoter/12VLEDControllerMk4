@@ -7,14 +7,17 @@
 // Interface
 #include "../interface/IBaseClass.h"
 
+// Blueprint for compiler. Problem => circular dependency
+class Network;
+
 // Classes
 class PirReader : public IBaseClass
 {
     // ## Constructor ## //
 public:
     PirReader(uint8_t pinPirSensor1,
-              uint8_t pinPirSensor2,
-              Network *network);
+              uint8_t pinPirSensor2);
+    void setReference(Network *network);
 
     // ## Interface ## //
 private:

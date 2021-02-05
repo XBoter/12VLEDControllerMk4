@@ -16,7 +16,8 @@ class Configuration : public IBaseClass
 {
     // ## Constructor ## //
 public:
-    Configuration();
+    Configuration(void);
+    void setReference();
 
     // ## Interface ## //
 private:
@@ -41,7 +42,7 @@ private:
     uint configDataAddr = 0;
 
 public:
-    ConfiguredData data;
+    ConfiguredData data = {};
     bool isFinished = false;
 
     // ## Functions ## //
@@ -52,8 +53,9 @@ private:
     void createConfig();
     void listFiles();
 
+    void inputForm();
+    void inputFormFilled();
+
 public:
-    void setData(ConfiguredData data);
     ConfiguredData getData();
-    void formSubmitFinished();
 };
