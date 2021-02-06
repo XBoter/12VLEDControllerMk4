@@ -18,15 +18,6 @@
 #define LastModifed "05.02.2021"
 #define Version "1.2.4"
 
-/*
-      ToDo     Change Shut Resistor to 0.02 Ohm for better reading 
-      ToDo     Add NTP Summer/Winter time swap => For now only Winter Time 
-      ToDo     Add PCA9685 reset after to many I2C errorss
-      ToDo     Add option to sync diffrent single strip led effects
-      ToDo     Add ESP OTA GitHub upgrade 
-      ToDo     Update Function description
-      ToDo     Maybe add option for led strip pin map order
-*/
 
 //++++ Global Defines ++++//
 #define BAUDRATE 115200

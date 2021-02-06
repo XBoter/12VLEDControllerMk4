@@ -14,7 +14,7 @@ All notable changes to this project will be documented in this file.
 
 ### Fixed
 - Bug with interface and initialization of components
-
+ 
 ## Version 1.2.3
 
 - Release date: 05.02.2021
