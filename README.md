@@ -32,3 +32,6 @@ For more information and guids for installation and configuration head over to t
 ## Warning
 I am not responsible for any failure or fire, destruction or other damage caused by the LED controller.
 Use at your own risk
+
+## Buy me a coffee or sponsor the project
+[![PayPal](https://img.shields.io/badge/paypal-donate-yellow.svg)](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=5UD82M4V6M2XC)  
