@@ -18,7 +18,7 @@ jobs:
       run: arduino-cli config init
 
     - name: Add ESP8266 Board to Arduino CLI
-      run: arduino-cli core --additional-urls https://arduino.esp8266.com/stable/package_esp8266com_index.json
+      run: arduino-cli config add board_manager.additional_urls https://arduino.esp8266.com/stable/package_esp8266com_index.json
 
     - name: Update Arduino CLI index
       run: arduino-cli core update-index
