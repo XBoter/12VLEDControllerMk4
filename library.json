@@ -1,0 +1,20 @@
+{
+    "name": "12VLEDControllerMk4",
+    "keywords": "esp, leds, nodemuc, homeassistant",
+    "description": "Library for the 12VLEDControllerMk4 PCB",
+    "homepage": "https://github.com/XBoter/12VLEDControllerMk4",
+    "repository": {
+      "type": "git",
+      "url": "https://github.com/XBoter/12VLEDControllerMk4"
+    },
+    "version": "1.2.4",
+    "authors": {
+      "name": "Nico Weidenfeller",
+      "url": "https://nicoweidenfeller.com"
+    },
+    "exclude": [
+      ".github"
+    ],
+    "frameworks": "arduino",
+    "platforms": "*"
+  }
