@@ -1,5 +1,7 @@
 # 12VLEDControllerMk4
 
+![Build](https://github.com/XBoter/12VLEDControllerMk4/workflows/Build/badge.svg)
+
 ## Features
 - Control for 2x 12V RGBCWWW LED Strips 
 - Support for 2x 5V PIR Motion Sensors
