@@ -13,7 +13,7 @@ jobs:
     - name: Install Arduino CLI
       uses: arduino/setup-arduino-cli@v1.1.1
     - name: Install ESP8266 Board
-      uses: arduino-cli core update-index --additional-urls https://arduino.esp8266.com/stable/package_esp8266com_index.json
+      uses: arduino-cli core update-index --additional-urls "https://arduino.esp8266.com/stable/package_esp8266com_index.json"
     - name: Install NTPClient Library
       uses: arduino-cli lib install NTPClient
     - name: Install PubSubClient Library
