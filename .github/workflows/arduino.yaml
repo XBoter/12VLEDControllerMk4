@@ -12,8 +12,10 @@ jobs:
       uses: actions/checkout@master
     - name: Install Arduino CLI
       uses: arduino/setup-arduino-cli@v1.1.1
-    - name: Install ESP8266 Board
+    - name: Add ESP8266 Board to Arduino CLI
       run: arduino-cli core update-index --additional-urls https://arduino.esp8266.com/stable/package_esp8266com_index.json
+    - name: Install ESP8266 Board Core
+      run: arduino-cli core install esp8266:esp8266
     - name: Install NTPClient Library
       run: arduino-cli lib install NTPClient
     - name: Install PubSubClient Library
@@ -21,4 +23,4 @@ jobs:
     - name: Install ArduinoJson Library
       run: arduino-cli lib install ArduinoJson
     - name: Compile
-      run: arduino-cli compile --fqbn esp8266:esp8266:nodemcu ./example/LEDControllerUsage/LEDControllerUsage.ino
+      run: arduino-cli compile --Board esp8266:esp8266:nodemcu ./example/LEDControllerUsage/LEDControllerUsage.ino
