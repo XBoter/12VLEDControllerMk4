@@ -1,4 +1,4 @@
-#include "../../src/LEDControllerMk4.h"
+#include "LEDControllerMk4.h"
 
 LEDControllerMk4 controller;
 
