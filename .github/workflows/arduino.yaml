@@ -21,4 +21,4 @@ jobs:
     - name: Install ArduinoJson Library
       run: arduino-cli lib install ArduinoJson
     - name: Compile
-      run: arduino-cli compile --fqbn esp8266:esp8266:nodemcu %cd%/example/LEDControllerUsage/LEDControllerUsage.ino
+      run: arduino-cli compile --fqbn esp8266:esp8266:nodemcu ./example/LEDControllerUsage/LEDControllerUsage.ino
