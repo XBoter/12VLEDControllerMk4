@@ -4,7 +4,7 @@
 #include <Arduino.h>
 #include <ArduinoOTA.h>
 #include "../Network/Network.h"
-#include "Configuration.h"
+#include "../Configuration/Configuration.h"
 
 // Interface
 #include "../Interface/IBaseClass.h"
