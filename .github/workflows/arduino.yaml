@@ -38,8 +38,5 @@ jobs:
     - name: Install ArduinoJson Library
       run: arduino-cli lib install ArduinoJson
 
-    - name: Install LEDControllerMk4 Library
-      run: arduino-cli lib install --git-url https://github.com/XBoter/12VLEDControllerMk4
-
     - name: Compile
-      run: arduino-cli compile --fqbn esp8266:esp8266:nodemcu ./example/LEDControllerUsage/LEDControllerUsage.ino
+      run: arduino-cli compile --fqbn esp8266:esp8266:nodemcu ./ci/LEDControllerCISketch/LEDControllerCISketch.ino
