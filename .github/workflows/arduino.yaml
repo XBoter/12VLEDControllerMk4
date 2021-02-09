@@ -1,0 +1,24 @@
+name: Build Arduino
+
+on: push
+
+jobs:
+  build:
+
+    runs-on: windows-latest
+
+    steps:
+    - name: Checkout Repo
+      uses: actions/checkout@v2.1.0
+    - name: Install Arduino CLI
+      uses: arduino/setup-arduino-cli@v1.1.1
+    - name: Install ESP8266 Board
+      uses: arduino-cli core update-index --additional-urls https://arduino.esp8266.com/stable/package_esp8266com_index.json
+    - name: Install NTPClient Library
+      uses: arduino-cli lib install NTPClient
+    - name: Install PubSubClient Library
+      uses: arduino-cli lib install pubsubclient
+    - name: Install ArduinoJson Library
+      uses: arduino-cli lib install ArduinoJson
+    - name: Compile
+      uses: arduino-cli compile --fqbn esp8266:esp8266:nodemcu %cd%/example/LEDControllerUsage/LEDControllerUsage.ino
