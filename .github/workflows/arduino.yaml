@@ -38,10 +38,8 @@ jobs:
     - name: Install ArduinoJson Library
       run: arduino-cli lib install ArduinoJson
 
-    - name: Checkout LEDControllerMk4 lib in CI Sketch folder
-      uses: actions/checkout@master
-      with:
-        path: 'ci/LEDControllerCISketch/'
+    - name: Print dir tree
+      run: tree /a /f
 
-    - name: Compile
-      run: arduino-cli compile --fqbn esp8266:esp8266:nodemcu ./ci/LEDControllerCISketch/LEDControllerCISketch.ino
+    #- name: Compile
+    #  run: arduino-cli compile --fqbn esp8266:esp8266:nodemcu ./ci/LEDControllerCISketch/LEDControllerCISketch.ino
