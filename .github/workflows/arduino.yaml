@@ -1,47 +1,47 @@
-name: Build
-
-on: push
-
-jobs:
-  build:
-
-    runs-on: windows-latest
-
-    steps:
-    - name: Checkout
-      uses: actions/checkout@master
-
-    - name: Install Arduino CLI
-      uses: arduino/setup-arduino-cli@v1.1.1
-
-    - name: Create Arduino CLI Configuration File
-      run: arduino-cli config init
-
-    - name: Add ESP8266 Board to Configuration File
-      run: arduino-cli config add board_manager.additional_urls https://arduino.esp8266.com/stable/package_esp8266com_index.json
-
-    - name: Update Arduino CLI index
-      run: arduino-cli core update-index
-
-    - name: Install ESP8266 Board Core
-      run: arduino-cli core install esp8266:esp8266
-
-    - name: List Installed Boards
-      run: arduino-cli core list
-
-    - name: Install NTPClient Library
-      run: arduino-cli lib install NTPClient
-
-    - name: Install PubSubClient Library
-      run: arduino-cli lib install pubsubclient
-
-    - name: Install ArduinoJson Library
-      run: arduino-cli lib install ArduinoJson
-
-    - name: Print dir tree
-      run: | 
-        cd/
-        tree /a /F
-
-    #- name: Compile
-    #  run: arduino-cli compile --fqbn esp8266:esp8266:nodemcu ./ci/LEDControllerCISketch/LEDControllerCISketch.ino
+#name: Build
+#
+#on: push
+#
+#jobs:
+#  build:
+#
+#    runs-on: windows-latest
+#
+#    steps:
+#    - name: Checkout
+#      uses: actions/checkout@master
+#
+#    - name: Install Arduino CLI
+#      uses: arduino/setup-arduino-cli@v1.1.1
+#
+#    - name: Create Arduino CLI Configuration File
+#      run: arduino-cli config init
+#
+#    - name: Add ESP8266 Board to Configuration File
+#      run: arduino-cli config add board_manager.additional_urls https://arduino.esp8266.com/stable/package_esp8266com_index.json
+#
+#    - name: Update Arduino CLI index
+#      run: arduino-cli core update-index
+#
+#    - name: Install ESP8266 Board Core
+#      run: arduino-cli core install esp8266:esp8266
+#
+#    - name: List Installed Boards
+#      run: arduino-cli core list
+#
+#    - name: Install NTPClient Library
+#      run: arduino-cli lib install NTPClient
+#
+#    - name: Install PubSubClient Library
+#      run: arduino-cli lib install pubsubclient
+#
+#    - name: Install ArduinoJson Library
+#      run: arduino-cli lib install ArduinoJson
+#
+#    - name: Print dir tree
+#      run: | 
+#        cd/
+#        tree /a /F
+#
+#    #- name: Compile
+#    #  run: arduino-cli compile --fqbn esp8266:esp8266:nodemcu ./ci/LEDControllerCISketch/LEDControllerCISketch.ino
