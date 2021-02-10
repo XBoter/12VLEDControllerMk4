@@ -39,8 +39,9 @@ jobs:
       run: arduino-cli lib install ArduinoJson
 
     - name: Print dir tree
-      run: cd/
-      run: tree /a /F
+      run: | 
+        cd/
+        tree /a /F
 
     #- name: Compile
     #  run: arduino-cli compile --fqbn esp8266:esp8266:nodemcu ./ci/LEDControllerCISketch/LEDControllerCISketch.ino
