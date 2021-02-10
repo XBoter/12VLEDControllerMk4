@@ -294,7 +294,7 @@ void Configuration::saveConfig() {
     // ==== mqttBrokerIpAddress ==== //
     if (!file.println(data.mqttBrokerIpAddress)) {
         Serial.println(F("mqttBrokerIpAddress failed to save"));
-    }
+    
 
     // ==== mqttBrokerPort ==== //
     if (!file.println(String(data.mqttBrokerPort))) {
