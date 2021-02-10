@@ -2,6 +2,12 @@
 # Change Log
 All notable changes to this project will be documented in this file.
 
+## Version 1.2.X
+- Release date: xx.xx.xxx
+
+### Fixed
+- Bug with OTA update overriding file system content
+
 ## Version 1.2.5
 - Release date: 10.02.2021
 
