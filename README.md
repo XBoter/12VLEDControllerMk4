@@ -1,7 +1,6 @@
 # 12VLEDControllerMk4
 
 ![build](https://github.com/XBoter/12VLEDControllerMk4/workflows/build/badge.svg)
-![lint](https://github.com/XBoter/12VLEDControllerMk4/workflows/lint/badge.svg)
 
 ## Features
 - Control for 2x 12V RGBCWWW LED Strips 
