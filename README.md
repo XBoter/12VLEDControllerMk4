@@ -15,18 +15,12 @@
 - Nodemcu ESP8266 microcontroller with WiFi
 - OTA Sketch updates possible
 
-
 ## Roadmap 
 - OTA Github updates of Sketch
 - Rework of power messurement unit
 - Sync option for led strip effects on both strips
 - STL for MK2 PIR Housing
 - Wiring diagram
-
-
-## Known Bug's
-- PCA9685 thrwos cassualy IC2 errors => needs reset
-- Power messurment unit calc wrong => fixing calc with new shunt resistor
 
 ## Wiki
 For more information and guids for installation and configuration head over to the [Wiki](https://github.com/XBoter/12VLEDControllerMk4/wiki)
