@@ -2,12 +2,13 @@
 
 // Includes
 #include <Arduino.h>
-#include <ESP8266WiFi.h>
-#include <WiFiClient.h>
 #include <ESP8266WebServer.h>
-#include "../Structs/Structs.h"
-#include "../LedDriver/LedDriver.h"
+#include <ESP8266WiFi.h>
 #include <LittleFS.h>
+#include <WiFiClient.h>
+
+#include "../LedDriver/LedDriver.h"
+#include "../Structs/Structs.h"
 
 // Interface
 #include "../Interface/IBaseClass.h"
@@ -16,22 +17,21 @@
 class LedDriver;
 
 // Classes
-class Configuration : public IBaseClass
-{
+class Configuration : public IBaseClass {
     // ## Constructor / Important ## //
-public:
+   public:
     Configuration();
     void setReference(LedDriver *ledDriver);
     bool init = false;
 
     // ## Interface ## //
-private:
-public:
+   private:
+   public:
     virtual bool Init();
     virtual void Run();
 
     // ## Data ## //
-private:
+   private:
     LedDriver *ledDriver;
 
     unsigned long prevMillisReset = 0;
@@ -39,8 +39,8 @@ private:
     unsigned long prevMillisAPShutdown = 0;
 
     unsigned long timeoutResetBlink = 300;
-    unsigned long timeoutRest = 5000;       // 5 sec
-    unsigned long timeoutAPShutdown = 2000; // 2 sec
+    unsigned long timeoutRest = 5000;        // 5 sec
+    unsigned long timeoutAPShutdown = 2000;  // 2 sec
 
     bool ledOn = false;
     bool resetOrNotConfigured = false;
@@ -48,12 +48,12 @@ private:
 
     uint configDataAddr = 0;
 
-public:
+   public:
     ConfiguredData data = {};
     bool isFinished = false;
 
     // ## Functions ## //
-private:
+   private:
     void saveConfig();
     void loadConfig();
     void resetConfig();
@@ -63,6 +63,6 @@ private:
     void inputForm();
     void inputFormFilled();
 
-public:
+   public:
     ConfiguredData getData();
 };
