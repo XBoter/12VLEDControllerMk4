@@ -18,8 +18,8 @@
 #define Name "12V LED Controller Mk4"
 #define Programmer "Nico Weidenfeller"
 #define Created "28.06.2020"
-#define LastModifed "05.02.2021"
-#define Version "1.2.4"
+#define LastModifed "10.02.2021"
+#define Version "1.2.5"
 
 //++++ Global Defines ++++//
 #define BAUDRATE 115200

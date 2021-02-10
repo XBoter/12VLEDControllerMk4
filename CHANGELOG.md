@@ -2,6 +2,25 @@
 # Change Log
 All notable changes to this project will be documented in this file.
 
+## Version 1.2.5
+- Release date: 10.02.2021
+
+### Changed
+- Restructured code base
+- Moved Readme instructions to wiki
+
+### Added
+- library.json
+- library.properties
+- Lib examples
+- Github Wiki
+- Github Bug Report and Feature Request
+- Github Project
+- Github Workflow for compiling project
+
+### Removed
+- Not used code 
+
 ## Version 1.2.4 
 - Release date: 05.02.2021
 
