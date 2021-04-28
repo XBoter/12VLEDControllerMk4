@@ -107,12 +107,19 @@ void LEDControllerMk4::_loop()
         case 2:
             // Run all components
             ota.Run();
+            yield(); 
             i2c.Run();
+            yield(); 
             network.Run();
+            yield(); 
             //powerMessurement.Run();
+            //yield(); 
             ledDriver.Run();
+            yield(); 
             information.Run();
+            yield(); 
             pirReader.Run();
+            yield(); 
 
             // Reset virtual pir sensor at end of current loop after all components got called
             if (network.virtualPIRSensorTriggered)

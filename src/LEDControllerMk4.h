@@ -18,8 +18,8 @@
 #define Name "12V LED Controller Mk4"
 #define Programmer "Nico Weidenfeller"
 #define Created "28.06.2020"
-#define LastModifed "10.02.2021"
-#define Version "1.2.5"
+#define LastModifed "28.04.2021"
+#define Version "1.2.6"
 
 //++++ Global Defines ++++//
 #define BAUDRATE 115200
@@ -44,8 +44,8 @@ private:
     // ## Components ## //
     I2C i2c = I2C();
     Configuration configuration = Configuration();
-    Network network = Network();
-    Network memNetwork = Network(); // Memory Version Instance for Information
+    Network network = Network(Version);
+    Network memNetwork = Network(Version); // Memory Version Instance for Information
     OTA ota = OTA();
     PowerMeasurement powerMessurement = PowerMeasurement(INA219AIDR_I2C_ADDRESS,
                                                          0.002); // 2 mOhm

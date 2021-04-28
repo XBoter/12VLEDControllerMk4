@@ -88,6 +88,19 @@ private:
                                    String sensor2Triggered,
                                    String virtualSensorTriggered);
 
+    void FormatPrintNetworkWiFi(String connectionState,
+                                String hostname,
+                                String ipAddress,
+                                String subnetmask,
+                                String macAddress,
+                                String gateway);
+
+    void FormatPrintNetworkMQTT(String connectionState,
+                                String clientStateInfo,
+                                String brokerIpAddress,
+                                int brokerPort,
+                                String clientName);
+
     // Help functions
     void TopSpacerPrint();
     void BottomSpacerPrint();
@@ -96,6 +109,8 @@ private:
 public:
     // Help functions
     String BoolToString(bool b);
+    String BollToConnectionState(bool b);
+    String IntToClientStateInfo(int i);
     String SingleLEDEffectToString(SingleLEDEffect effect);
     SingleLEDEffect StringToSingleLEDEffect(String effect);
     String MultiLEDEffectToString(MultiLEDEffect effect);

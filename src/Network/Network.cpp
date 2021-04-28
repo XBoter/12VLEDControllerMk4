@@ -3,8 +3,8 @@
 /**
  * Empty constructor
  */
-Network::Network(){
-
+Network::Network(String codeVersion){
+    this->codeVersion = codeVersion;
 };
 
 /**
@@ -77,21 +77,11 @@ void Network::Run()
     {
         if (wifiConnected)
         {
-            Serial.println(F("\n-- Wifi Connected --"));
-            Serial.print(F("  IP Address  : "));
             ipAddress = WiFi.localIP().toString().c_str();
-            Serial.println(ipAddress);
-            Serial.print(F("  Subnetmask  : "));
-            Serial.println(WiFi.subnetMask());
-            Serial.print(F("  MAC Address : "));
+            subnetmask = WiFi.subnetMask().toString().c_str();
             macAddress = WiFi.macAddress();
-            Serial.println(macAddress);
-            Serial.print(F("  Gateway     : "));
-            Serial.println(WiFi.gatewayIP());
-        }
-        else
-        {
-            Serial.println(F("\n-- Wifi Disconnected --"));
+            gateway = WiFi.gatewayIP().toString().c_str();
+            hostname = WiFi.hostname();
         }
         wifiOneTimePrint = false;
     }
@@ -105,14 +95,9 @@ void Network::Run()
     }
     if (mqttOneTimePrint)
     {
-        if (mqttConnected)
-        {
-            Serial.println(F("\n-- Mqtt Connected --"));
-        }
-        else
-        {
-            Serial.println(F("\n-- Mqtt Disconnected --"));
-        }
+        clientName = data.mqttClientName.c_str();
+        brokerIpAddress = data.mqttBrokerIpAddress.c_str();
+        brokerPort = data.mqttBrokerPort;
         mqttOneTimePrint = false;
     }
 
@@ -136,7 +121,6 @@ void Network::HandleWifi()
         WiFi.hostname(data.mqttClientName.c_str());
         WiFi.begin(data.wifiSSID.c_str(),
                    data.wifiPassword.c_str());
-        delay(1); // Call delay(1) for the WiFi stack
         wifiState = NetworkWiFiState::SuperviseWiFiConnection;
         break;
 
@@ -185,6 +169,9 @@ void Network::HandleWifi()
 void Network::HandleMqtt()
 {
 
+    // Client state for information print
+    clientState = mqttClient.state();
+
     switch (mqttState)
     {
     case NetworkMQTTState::StartMqtt:
@@ -208,6 +195,10 @@ void Network::HandleMqtt()
 
                 // Alarm
                 mqttClient.subscribe("LEDController/Global/HomeAssistant/Effect/Alarm/command");
+
+                // Code Version
+                // The installed code version of the LED Controller Mk4.1 is published under the following path on connect
+                // "LEDController/" + data.mqttClientName + "/Version"
 
                 // ==== Specific ==== //
                 // Motion
@@ -272,6 +263,7 @@ void Network::HandleMqtt()
                 PublishNetwork();
                 PublishHeartbeat();
                 PublishElectricalMeasurement();
+                PublishCodeVersion();
 
                 mqttState = NetworkMQTTState::SuperviseMqttConnection;
             }
@@ -923,3 +915,11 @@ void Network::PublishNetwork()
     // == JSON
     PublishJsonNetwork();
 }
+
+/**
+ * Publishes the current installed code version 
+ */
+void Network::PublishCodeVersion()
+{
+    mqttClient.publish(("LEDController/" + data.mqttClientName + "/Version").c_str(), codeVersion.c_str());
+} 

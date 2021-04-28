@@ -30,7 +30,7 @@ class Network : public IBaseClass
 {
     // ## Constructor / Important ## //
 public:
-    Network();
+    Network(String codeVersion);
     void setReference(Configuration *configuration,
                       Information *information,
                       PirReader *pirReader,
@@ -58,10 +58,6 @@ private:
     const long utcOffsetInSeconds = 3600; // UTC +1 (Germany) => 1 * 60 * 60 => 3600
     NTPClient timeClient = NTPClient(ntpUDP, "europe.pool.ntp.org", utcOffsetInSeconds);
 
-    // Network Info
-    String ipAddress = "";
-    String macAddress = "";
-
     // Prev Millis
     unsigned long PrevMillis_WiFiTimeout = 0;
     unsigned long PrevMillis_MQTTTimeout = 0;
@@ -79,6 +75,8 @@ private:
     bool memWifiConnected = false;
     bool memMqttConnected = false;
 
+    String codeVersion = "";
+
 public:
     DynamicJsonDocument doc = DynamicJsonDocument(2048);
     PubSubClient mqttClient;
@@ -86,6 +84,19 @@ public:
     NetworkMQTTState mqttState = NetworkMQTTState::StartMqtt;
     bool wifiConnected = false;
     bool mqttConnected = false;
+
+    // Network WiFi Info
+    String ipAddress = "";
+    String macAddress = "";
+    String subnetmask = "";
+    String gateway = "";
+    String hostname = "";
+
+    // Network MQTT Info
+    String clientName = "";
+    String brokerIpAddress = "";
+    int brokerPort = -1; // Unknown
+    int clientState = -99; // Unknown
 
     // Other Data
     TimeBasedMotionBrightness stTimeBasedMotionBrightness = {};
@@ -160,4 +171,5 @@ public:
     void PublishHeartbeat();
     void PublishMotionLEDStripData();
     void PublishNetwork();
+    void PublishCodeVersion();
 };

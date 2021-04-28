@@ -2,17 +2,23 @@
 # Change Log
 All notable changes to this project will be documented in this file.
 
-## Version 1.2.X
+## Version 1.2.x
 - Release date: xx.xx.xxx
+
+## Version 1.2.6
+- Release date: 28.04.2021
 
 ### Changed
 - WiFi default hostname to MQTT Client name
 
 ### Added
 - Multi LED Strip Effect Alarm
+- Detailed information print for Network WiFi and MQTT
+- Publish of controller Version to MQTT path
 
 ### Fixed
 - Bug with OTA update overriding file system content
+- Bug with Mqtt timeout (Added multiple yield calls for TCP/IP stack)
 
 ## Version 1.2.5
 - Release date: 10.02.2021
