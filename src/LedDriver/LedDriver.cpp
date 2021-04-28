@@ -164,6 +164,8 @@ void LedDriver::HandleMultiLEDStripEffects()
 {
     bool fadeToBlackStrip1Finished = false;
     bool fadeToBlackStrip2Finished = false;
+    bool fadeToColorStrip1Finished = false;
+    bool fadeToColorStrip2Finished = false;
 
     // Get Effect data
     MultiLEDStripEffectData *effectData = getMultiLEDStripEffectData();
@@ -234,6 +236,51 @@ void LedDriver::HandleMultiLEDStripEffects()
             break;
 
         case MultiLEDEffect::Alarm:
+
+            highLevelLEDStripData.redColorValue = 255;
+            highLevelLEDStripData.greenColorValue = 0;
+            highLevelLEDStripData.blueColorValue = 0;
+            highLevelLEDStripData.colorBrightnessValue = 4096;
+
+            highLevelLEDStripData.whiteTemperatureValue = 0;
+            highLevelLEDStripData.whiteBrightnessValue = 0;
+
+            switch (effectData->subTransitionState)
+            {
+
+            case 0:
+                fadeToBlackStrip1Finished = FadeToBlack(1);
+                fadeToBlackStrip2Finished = FadeToBlack(2);
+                if (fadeToBlackStrip1Finished && fadeToBlackStrip2Finished)
+                {
+                    effectData->prevMillis = millis();
+                    effectData->subTransitionState = 10;
+                }
+                break;
+            
+            case 10:
+                if(millis() - effectData->prevMillis >= 500){
+                    effectData->subTransitionState = 20;
+                }
+                break;
+
+            case 20:
+                fadeToColorStrip1Finished = FadeToColor(1, highLevelLEDStripData);
+                fadeToColorStrip2Finished = FadeToColor(2, highLevelLEDStripData);
+                if (fadeToColorStrip1Finished && fadeToColorStrip2Finished)
+                {
+                    effectData->prevMillis = millis();
+                    effectData->subTransitionState = 30;
+                }
+                break;
+
+            case 30:
+                if(millis() - effectData->prevMillis >= 1500){
+                    effectData->subTransitionState = 0;
+                }
+                break;
+
+            }
 
             break;
         }
