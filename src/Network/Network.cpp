@@ -133,6 +133,7 @@ void Network::HandleWifi()
     {
     case NetworkWiFiState::StartWifi:
         WiFi.mode(WIFI_STA);
+        WiFi.hostname(data.mqttClientName.c_str());
         WiFi.begin(data.wifiSSID.c_str(),
                    data.wifiPassword.c_str());
         delay(1); // Call delay(1) for the WiFi stack
