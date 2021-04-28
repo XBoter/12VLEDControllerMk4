@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 ## Version 1.2.X
 - Release date: xx.xx.xxx
 
+### Changed
+- WiFi default hostname to MQTT Client name
+
+### Added
+- Multi LED Strip Effect Alarm
+
 ### Fixed
 - Bug with OTA update overriding file system content
 
