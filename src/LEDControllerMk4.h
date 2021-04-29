@@ -28,6 +28,8 @@
 #define PIR_SENSOR_1_PIN D6
 #define PIR_SENSOR_2_PIN D7
 
+#define cycle 10
+
 class LEDControllerMk4
 {
 
@@ -38,7 +40,6 @@ public:
 
 private:
     // ## Data ## //
-    unsigned long PrevMicros_Loop = 0;
     uint8_t state = 0;
 
     // ## Components ## //
@@ -54,4 +55,22 @@ private:
     PirReader memPirReader = PirReader(0, 0); // Memory Version Instance for Information
     LedDriver ledDriver = LedDriver(PCA9685PW_I2C_ADDRESS);
     Information information = Information();
+
+    // ==== Performance Calculation ==== //
+    bool enablePerformanceMonitor = false;
+
+    unsigned long difTimeI2C[cycle];
+    unsigned long difTimeConfiguration[cycle];
+    unsigned long difTimeNetwork[cycle];
+    unsigned long difTimeOTA[cycle];
+    unsigned long difTimePowerMeasurement[cycle];
+    unsigned long difTimePIR[cycle];
+    unsigned long difTimeLED[cycle];
+    unsigned long difTimeInformation[cycle];
+    unsigned long difTimeAll[cycle];
+
+    uint16_t localCycle = 10;
+    uint16_t cycleCounter = 0;
+    void CalcPerformance();
+    
 };

@@ -700,12 +700,12 @@ void Information::FormatPrintNetworkMQTT(String connectionState,
 void Information::TopSpacerPrint()
 {
     Serial.println(F(""));
-    Serial.print(" # ");
+    Serial.print(F(" # "));
     for (uint8_t i = 0; i < spacerLength; i++)
     {
         Serial.print(symbol);
     }
-    Serial.print(" #");
+    Serial.print(F(" #"));
     Serial.println(F(""));
 };
 
@@ -714,12 +714,12 @@ void Information::TopSpacerPrint()
  **/
 void Information::BottomSpacerPrint()
 {
-    Serial.print(" # ");
+    Serial.print(F(" # "));
     for (uint8_t i = 0; i < spacerLength; i++)
     {
         Serial.print(symbol);
     }
-    Serial.print(" #");
+    Serial.print(F(" #"));
     Serial.println(F(""));
 };
 

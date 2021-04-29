@@ -101,13 +101,11 @@ private:
                                 int brokerPort,
                                 String clientName);
 
+public:
     // Help functions
     void TopSpacerPrint();
     void BottomSpacerPrint();
     void InsertPrint();
-
-public:
-    // Help functions
     String BoolToString(bool b);
     String BollToConnectionState(bool b);
     String IntToClientStateInfo(int i);
