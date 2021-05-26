@@ -90,8 +90,23 @@ void LedDriver::Run()
         networkLEDStrip1Data = network->stNetworkLedStrip1Data;
         networkLEDStrip2Data = network->stNetworkLedStrip2Data;
 
-        // Check if WiFi and MQTT is connected
-        if (network->wifiConnected && network->mqttConnected)
+        // Check if WiFi or MQTT got a disconnect and start the timer
+        unsigned long CurMillis_ConnectionLost = millis();
+        if(!network->wifiConnected || !network->mqttConnected)
+        {
+            if (CurMillis_ConnectionLost - PrevMillis_ConnectionLost >= TimeOut_ConnectionLost)
+            {
+                ConnectionLost = true;
+            }
+        }
+        else
+        {
+            PrevMillis_ConnectionLost = CurMillis_ConnectionLost;
+            ConnectionLost = false;
+        }
+
+        // Only Display when we got a connection
+        if (!ConnectionLost)
         {
             // Wait a little to receive data from mqtt before showing led strip
             if (currentMillisRefreshRate - prevMillisReconnect >= timeoutReconnect)
@@ -106,6 +121,7 @@ void LedDriver::Run()
             prevMillisReconnect = currentMillisRefreshRate;
             FadeToBlack();
         }
+
 
         // ---- Update LED strip
         // -- Strip 1

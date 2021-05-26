@@ -57,6 +57,11 @@ private:
     unsigned long prevMillisReconnect = 0;
     unsigned long timeoutReconnect = 4000;
 
+    // ---- Other
+    bool ConnectionLost = false;
+    unsigned long PrevMillis_ConnectionLost = 0;
+    const unsigned long TimeOut_ConnectionLost = 60000; // 1 Minute
+
     // ---- LED Effect data
     // -- Multi
     MultiLEDStripEffectData multiLEDStripEffectData = {};
