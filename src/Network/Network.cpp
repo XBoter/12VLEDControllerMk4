@@ -668,7 +668,6 @@ void Network::MqttCallback(char *topic, byte *payload, unsigned int length)
 void Network::HandleRepublish()
 {
     // For now disabled
-    return;
 
     unsigned long curMillis = millis();
 

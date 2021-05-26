@@ -127,12 +127,12 @@ public:
     unsigned long prevMillisPublishMotionLEDStripData = 0;
     unsigned long prevMillisPublishNetwork = 0;
 
-    uint32_t timeoutPublishMotionDetected = 10000;        // 10 Seconds
-    uint32_t timeoutPublishLEDStripData = 300000;         // 5 Minutes
-    uint32_t timeoutPublishElectricalMeasurement = 30000; // 30 Seconds
-    uint32_t timeoutPublishHeartbeat = 5000;              // 5 Seconds
-    uint32_t timeoutPublishMotionLEDStripData = 300000;   // 5 Minutes
-    uint32_t timeoutPublishNetwork = 600000;              // 10 Minutes
+    uint32_t timeoutPublishMotionDetected = 60000;          // 1 Minute
+    uint32_t timeoutPublishLEDStripData = 60000;            // 1 Minute
+    uint32_t timeoutPublishElectricalMeasurement = 60000;   // 1 Minute
+    uint32_t timeoutPublishHeartbeat = 5000;                // 5 Seconds
+    uint32_t timeoutPublishMotionLEDStripData = 60000;      // 1 Minute
+    uint32_t timeoutPublishNetwork = 60000;                 // 1 Minute
 
     // ## Functions ## //
 private:
