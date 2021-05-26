@@ -5,6 +5,14 @@ All notable changes to this project will be documented in this file.
 ## Version 1.2.x
 - Release date: xx.xx.xxx
 
+## Version 1.2.7
+- Release date: 26.05.2021
+
+### Changed
+ - Added a timer for Fade To Black when a short WiFi or MQTT DC happens
+ - Enabled republish of Controller Values and change publish frequency to 1 Minute
+
+
 ## Version 1.2.6
 - Release date: 28.04.2021
 
