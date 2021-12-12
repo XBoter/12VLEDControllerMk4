@@ -34,6 +34,8 @@ class Configuration : public IBaseClass {
    private:
     LedDriver *ledDriver;
 
+    IPAddress apIP = IPAddress(192,168,1,1);
+
     unsigned long prevMillisReset = 0;
     unsigned long prevMillisResetBlink = 0;
     unsigned long prevMillisAPShutdown = 0;

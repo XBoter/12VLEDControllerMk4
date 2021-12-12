@@ -115,9 +115,11 @@ void Configuration::Run() {
                     }
                     break;
 
-                    // Create hotspot default IP Address of ESP 192.168.4.1.
+                    // Create Access Point
                 case 3:
-                    WiFi.softAP("LED Controller Mk4");
+                    WiFi.mode(WIFI_AP);
+                    WiFi.softAPConfig(this->apIP, this->apIP, IPAddress(255, 255, 255, 0));
+                    WiFi.softAP("LED Controller Mk4","",0,0,1);
                     state++;
                     break;
 
