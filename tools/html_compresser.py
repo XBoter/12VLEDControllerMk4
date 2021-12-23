@@ -5,6 +5,8 @@ html_uncompressed_folder_local_path = "src\\Webpage\\html_uncompressed"
 html_compressed_folder_local_path = "src\\Webpage\\html_compressed"
 cur_dir = os.getcwd()
 
+print("Cur dir '{}'".format(cur_dir))
+
 # Prints the html page before and after minified
 enable_hml_print = False
 
@@ -17,6 +19,7 @@ print("")
 
 html_files = []
 for file in os.listdir(html_uncompressed_folder_full_path):
+    if os.isfi
     if file.endswith(".html"):
         html_files.append(file)
 
