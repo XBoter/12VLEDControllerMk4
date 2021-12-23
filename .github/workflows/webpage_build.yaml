@@ -2,8 +2,8 @@ name: Compress Webpage and transform to C Header
 on:
   push:
     paths:
-    - 'tools'
-    - 'src/Webpage'
+    - 'tools/**'
+    - 'src/Webpage/**'
 jobs:
   build:
     runs-on: windows-latest

@@ -2,7 +2,7 @@ name: Compile Arduino Code
 on: 
   push:
     paths:
-    - 'src'
+    - 'src/**'
 jobs:
   build:
     runs-on: ubuntu-latest
