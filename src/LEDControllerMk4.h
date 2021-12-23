@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Configuration/Configuration.h"
+#include "Webserver/Webserver.h"
 #include "Enums/Enums.h"
 #include "I2C/I2C.h"
 #include "Information/Information.h"
@@ -18,8 +18,8 @@
 #define Name "12V LED Controller Mk4"
 #define Programmer "Nico Weidenfeller"
 #define Created "28.06.2020"
-#define LastModifed "12.12.2021"
-#define Version "1.2.8"
+#define LastModifed "23.12.2021"
+#define Version "2.0.0"
 
 //++++ Global Defines ++++//
 #define BAUDRATE 115200
@@ -44,7 +44,7 @@ private:
 
     // ## Components ## //
     I2C i2c = I2C();
-    Configuration configuration = Configuration();
+    Webserver webserver = Webserver();
     Network network = Network(Version);
     Network memNetwork = Network(Version); // Memory Version Instance for Information
     OTA ota = OTA();
@@ -60,7 +60,7 @@ private:
     bool enablePerformanceMonitor = false;
 
     unsigned long difTimeI2C[cycle];
-    unsigned long difTimeConfiguration[cycle];
+    unsigned long difTimeWebserver[cycle];
     unsigned long difTimeNetwork[cycle];
     unsigned long difTimeOTA[cycle];
     unsigned long difTimePowerMeasurement[cycle];

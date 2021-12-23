@@ -53,10 +53,10 @@ void LEDControllerMk4::_setup()
 
     pirReader.setReference(&network);
 
-    configuration.setReference(&ledDriver);
+    webserver.setReference(&ledDriver);
 
     // Init configuration
-    configuration.Init();
+    webserver.Init();
 
     Serial.println("# ==== Setup finished ==== #");
     Serial.println("");
@@ -75,12 +75,12 @@ void LEDControllerMk4::_loop()
     x = micros();
 
     // Run configuration before all other components
-    configuration.Run();
+    webserver.Run();
     yield();
 
     difTimeConfiguration[cycleCounter] = micros() - x;
 
-    if (configuration.isFinished)
+    if (webserver.isFinished)
     {
         switch (state)
         {
@@ -187,7 +187,7 @@ void LEDControllerMk4::CalcPerformance()
 {
 
     unsigned long avgTimeI2C = 0;
-    unsigned long avgTimeConfiguration = 0;
+    unsigned long avgTimeWebserver = 0;
     unsigned long avgTimeNetwork = 0;
     unsigned long avgTimeOTA = 0;
     unsigned long avgTimePowerMeasurement = 0;
@@ -201,7 +201,7 @@ void LEDControllerMk4::CalcPerformance()
     for(int i = 0; i < cycle - 1; i++)
     {
       avgTimeI2C += difTimeI2C[i];
-      avgTimeConfiguration += difTimeConfiguration[i];
+      avgTimeWebserver += difTimeWebserver[i];
       avgTimeNetwork += difTimeNetwork[i];
       avgTimeOTA += difTimeOTA[i];
       avgTimePowerMeasurement += difTimePowerMeasurement[i];
@@ -212,7 +212,7 @@ void LEDControllerMk4::CalcPerformance()
     }
 
     avgTimeI2C = avgTimeI2C / localCycle;
-    avgTimeConfiguration = avgTimeConfiguration / localCycle;
+    avgTimeWebserver = avgTimeWebserver / localCycle;
     avgTimeNetwork = avgTimeNetwork / localCycle;
     avgTimeOTA = avgTimeOTA / localCycle;
     avgTimePowerMeasurement = avgTimePowerMeasurement / localCycle;
@@ -236,11 +236,11 @@ void LEDControllerMk4::CalcPerformance()
     Serial.println(percent);
 
     // ==== Configuration
-    percent = double(avgTimeConfiguration) / double(avgTimeAll) * 100;
+    percent = double(avgTimeWebserver) / double(avgTimeAll) * 100;
     information.InsertPrint();
-    Serial.print(F("Config Time     : "));
-    Serial.println(avgTimeConfiguration);
-    Serial.print(F("Config Percent  : "));
+    Serial.print(F("Webserver Time     : "));
+    Serial.println(avgTimeWebserver);
+    Serial.print(F("Webserver Percent  : "));
     Serial.println(percent);
 
     // ==== Network

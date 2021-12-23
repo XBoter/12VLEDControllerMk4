@@ -264,9 +264,10 @@ struct LEDStripData
 };
 
 /**
- * Hold the configuration data
+ * @brief Data Type which holds all cirtical information needed for Network connectivity
+ * 
  */
-struct ConfiguredData
+struct ConfigurationData
 {
     String wifiSSID = "";
     String wifiPassword = "";
@@ -277,3 +278,49 @@ struct ConfiguredData
     String mqttClientName = "";
     bool isConfigured = false;
 };
+
+/**
+ * @brief Data Type which holds the settings data for example the hardware LED Strip output config
+ * 
+ */
+struct SettingsData
+{
+    // == LED Strip 1 Output Config
+    LEDOutputType ledStrip1Output1 = LEDOutputType::R;
+    LEDOutputType ledStrip1Output2 = LEDOutputType::G;
+    LEDOutputType ledStrip1Output3 = LEDOutputType::B;
+    LEDOutputType ledStrip1Output4 = LEDOutputType::CW;
+    LEDOutputType ledStrip1Output5 = LEDOutputType::WW;
+    // == LED Strip 2 Output Config
+    LEDOutputType ledStrip2Output1 = LEDOutputType::R;
+    LEDOutputType ledStrip2Output2 = LEDOutputType::G;
+    LEDOutputType ledStrip2Output3 = LEDOutputType::B;
+    LEDOutputType ledStrip2Output4 = LEDOutputType::CW;
+    LEDOutputType ledStrip2Output5 = LEDOutputType::WW;
+};
+
+/**
+ * @brief Data Type which holds the last state of the LED Strip
+ * 
+ */
+struct LEDStateData
+{
+    // == LED Strip 1 State
+    bool ledStrip1Power = false;
+    uint8_t ledStrip1RedValue = 0;
+    uint8_t ledStrip1GreenValue = 0;
+    uint8_t ledStrip1BlueValue = 0;
+    uint8_t ledStrip1ColdWhiteValue = 0;
+    uint8_t ledStrip1WarmWhiteValue = 0;
+    uint8_t ledStrip1BrightnessValue = 0;
+    SingleLEDEffect ledStrip1EffectValue = SingleLEDEffect::None;
+    // == LED Strip 2 State
+    bool ledStrip2Power = false;
+    uint8_t ledStrip2RedValue = 0;
+    uint8_t ledStrip2GreenValue = 0;
+    uint8_t ledStrip2BlueValue = 0;
+    uint8_t ledStrip2ColdWhiteValue = 0;
+    uint8_t ledStrip2WarmWhiteValue = 0;
+    uint8_t ledStrip2BrightnessValue = 0;
+    SingleLEDEffect ledStrip2EffectValue = SingleLEDEffect::None;
+}

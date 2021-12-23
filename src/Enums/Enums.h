@@ -1,6 +1,9 @@
 #pragma once
 
-// LED Effects that use multiple connected LED strips
+/**
+ * @brief Defines the possible Multi LED Strips effects
+ * 
+ */
 enum class MultiLEDEffect
 {
     Idle,
@@ -9,28 +12,32 @@ enum class MultiLEDEffect
     Alarm,
 };
 
-
-// LED Effects that are used by a singel LED strip
-enum class SingleLEDEffect 
+/**
+ * @brief Defines the possible Single LED Strip effects
+ * 
+ */
+enum class SingleLEDEffect
 {
     None,
     TriplePulse,
     Rainbow
 };
 
-
-// Diffrent curves for fading a value
-enum class FadeCurve 
+/**
+ * @brief Defines the options for fading functions used by the LED Strips
+ * 
+ */
+enum class FadeCurve
 {
-    None,    // Instant => No fading at all
+    None,
     Linear,
     EaseIn,
     EaseOut,
     EaseInOut,
 };
 
-
 // Diffrent Alarm modes
+/*
 enum class AlarmMode
 {
     Nothing,
@@ -38,9 +45,12 @@ enum class AlarmMode
     Error,
     Critical,
 };
+*/
 
-
-// Enum for the wifi state
+/**
+ * @brief Defines the WiFi Connection States
+ * 
+ */
 enum class NetworkWiFiState
 {
     StartWifi,
@@ -48,8 +58,10 @@ enum class NetworkWiFiState
     CheckWiFiDisconnect,
 };
 
-
-// Enum for the mqtt state
+/**
+ * @brief Defines the MQTT Connection States
+ * 
+ */
 enum class NetworkMQTTState
 {
     StartMqtt,
@@ -57,3 +69,15 @@ enum class NetworkMQTTState
     CheckMqttDisconnect,
 };
 
+/**
+ * @brief Defines the Output Options which 1 pin on the LED Strip connector can have
+ * 
+ */
+enum class LEDOutputType
+{
+    R,
+    G,
+    B,
+    CW,
+    WW,
+};
