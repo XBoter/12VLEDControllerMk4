@@ -7,6 +7,10 @@ cur_dir = os.getcwd()
 
 print("Cur dir '{}'".format(cur_dir))
 
+print("Dir under cur dir")
+for x in os.listdir(cur_dir):
+    print(x)
+
 # Prints the html page before and after minified
 enable_hml_print = False
 
