@@ -1,0 +1,9 @@
+steps:
+- uses: actions/checkout@v2
+- uses: actions/setup-python@v2
+  with:
+    python-version: '3.x' 
+    architecture: 'x64' 
+- run: pip install -r tools/requirements.txt
+- run: python tools/html_compresser.py
+- run: python tools/html_to_c_converter.py
