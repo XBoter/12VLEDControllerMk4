@@ -9,6 +9,8 @@
 
 #include "../LedDriver/LedDriver.h"
 #include "../Structs/Structs.h"
+#include "../src/Webpage/transformed_to_c/ConfigurationPage.h"
+#include "../src/Webpage/transformed_to_c/SubmittedConfigurationPage.h"
 
 // Interface
 #include "../Interface/IBaseClass.h"
