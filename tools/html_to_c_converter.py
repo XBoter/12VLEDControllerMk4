@@ -7,7 +7,9 @@ cur_dir = os.getcwd()
 
 print("Cur dir '{}'".format(cur_dir))
 
-print(os.listdir(cur_dir))
+print("Dir under cur dir")
+for x in os.listdir(cur_dir):
+    print(x)
 
 transformed_c_folder_local_path_full_path = os.path.join(os.path.dirname(cur_dir), transformed_c_folder_local_path)
 html_compressed_folder_full_path = os.path.join(os.path.dirname(cur_dir), html_compressed_folder_local_path)
