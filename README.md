@@ -1,7 +1,7 @@
 # 12VLEDControllerMk4
 
-![Compile Arduino](https://github.com/XBoter/12VLEDControllerMk4/workflows/build/badge.svg)
-![Compress HTML](https://github.com/XBoter/12VLEDControllerMk4/workflows/webpage_build/badge.svg)
+[![Compile Arduino Code](https://github.com/XBoter/12VLEDControllerMk4/actions/workflows/compile_action.yaml/badge.svg)](https://github.com/XBoter/12VLEDControllerMk4/actions/workflows/compile_action.yaml)
+[![Compress Webpage and transform to C Header](https://github.com/XBoter/12VLEDControllerMk4/actions/workflows/html_compression_action.yaml/badge.svg)](https://github.com/XBoter/12VLEDControllerMk4/actions/workflows/html_compression_action.yaml)
 
 ## Features
 - Control for 2x 12V RGBCWWW LED Strips 
