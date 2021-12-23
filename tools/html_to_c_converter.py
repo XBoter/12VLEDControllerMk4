@@ -58,7 +58,7 @@ for compressed_html_file in compressed_html_files:
 
         # save html file to compressed fcompressed_html_file_contentolder
         with open(transformed_c_folder_local_path_full_path_with_file, 'w') as f:
-            data = 'const String {} PROGMEM = "{}";'.format(compressed_html_file.replace("_compressed.html",""),compressed_html_file_content)
+            data = '#pragma once\nconst char {}[] PROGMEM = "{}";'.format(compressed_html_file.replace("_compressed.html",""),compressed_html_file_content)
             f.write(data)
             f.close()
 
