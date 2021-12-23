@@ -25,5 +25,5 @@ jobs:
           git config --global user.name 'Nico Weidenfeller'
           git config --global user.email 'iot@nicoweidenfeller.com'
           git add -A
-          git commit -am "Automated report"
+          git commit -am "Automated ${{ github.run_id }} report"
           git push
