@@ -22,7 +22,7 @@ jobs:
       run: python tools/html_to_c_converter.py
     - name: Commit and push changes
       run: |
-          git config --global user.name 'Mr. Automation'
-          git config --global user.email ''
-          git commit -am "Automated compression report"
+          git config --global user.name 'Nico Weidenfeller'
+          git config --global user.email 'iot@nicoweidenfeller.com'
+          git commit -am "Automated report"
           git push
