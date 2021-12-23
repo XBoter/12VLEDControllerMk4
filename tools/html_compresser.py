@@ -19,7 +19,6 @@ print("")
 
 html_files = []
 for file in os.listdir(html_uncompressed_folder_full_path):
-    if os.isfi
     if file.endswith(".html"):
         html_files.append(file)
 
