@@ -14,7 +14,7 @@ for folder in os.listdir(cur_dir):
         break
 
 if found_src_folder_in_cur_dir:
-    transformed_c_folder_local_path_full_path = os.path.join(os.path.dirname(cur_dir), transformed_c_folder_local_path)
+    transformed_c_folder_local_path_full_path = os.path.join(cur_dir, transformed_c_folder_local_path)
     html_compressed_folder_full_path = os.path.join(cur_dir, html_compressed_folder_local_path)
 else:
     transformed_c_folder_local_path_full_path = os.path.join(os.path.dirname(cur_dir), transformed_c_folder_local_path)
