@@ -5,10 +5,20 @@ transformed_c_folder_local_path = "src\\Webpage\\transformed_to_c"
 
 cur_dir = os.getcwd()
 
-print("Cur dir '{}'".format(cur_dir))
+found_src_folder_in_cur_dir = False
 
-transformed_c_folder_local_path_full_path = os.path.join(os.path.dirname(cur_dir), transformed_c_folder_local_path)
-html_compressed_folder_full_path = os.path.join(os.path.dirname(cur_dir), html_compressed_folder_local_path)
+# Search for src folder
+for folder in os.listdir(cur_dir):
+    if folder == "src":
+        found_src_folder_in_cur_dir = True
+        break
+
+if found_src_folder_in_cur_dir:
+    transformed_c_folder_local_path_full_path = os.path.join(os.path.dirname(cur_dir), transformed_c_folder_local_path)
+    html_compressed_folder_full_path = os.path.join(cur_dir, html_compressed_folder_local_path)
+else:
+    transformed_c_folder_local_path_full_path = os.path.join(os.path.dirname(cur_dir), transformed_c_folder_local_path)
+    html_compressed_folder_full_path = os.path.join(os.path.dirname(cur_dir), html_compressed_folder_local_path)
 
 print("Transformed C File Folder path '{}'".format(transformed_c_folder_local_path_full_path))
 print("Compressed Folder path '{}'".format(html_compressed_folder_full_path))

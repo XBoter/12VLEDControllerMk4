@@ -5,21 +5,27 @@ html_uncompressed_folder_local_path = "src\\Webpage\\html_uncompressed"
 html_compressed_folder_local_path = "src\\Webpage\\html_compressed"
 cur_dir = os.getcwd()
 
-print("Cur dir '{}'".format(cur_dir))
-
-print("Dir under cur dir")
-for x in os.listdir(cur_dir):
-    print(x)
-
 # Prints the html page before and after minified
 enable_hml_print = False
+found_src_folder_in_cur_dir = False
 
-html_uncompressed_folder_full_path = os.path.join(os.path.dirname(cur_dir), html_uncompressed_folder_local_path)
-html_compressed_folder_full_path = os.path.join(os.path.dirname(cur_dir), html_compressed_folder_local_path)
+# Search for src folder
+for folder in os.listdir(cur_dir):
+    if folder == "src":
+        found_src_folder_in_cur_dir = True
+        break
+
+if found_src_folder_in_cur_dir:
+    html_uncompressed_folder_full_path = os.path.join(cur_dir, html_uncompressed_folder_local_path)
+    html_compressed_folder_full_path = os.path.join(cur_dir, html_compressed_folder_local_path)
+else:
+    html_uncompressed_folder_full_path = os.path.join(os.path.dirname(cur_dir), html_uncompressed_folder_local_path)
+    html_compressed_folder_full_path = os.path.join(os.path.dirname(cur_dir), html_compressed_folder_local_path)
 
 print("Uncompressed Folder path '{}'".format(html_uncompressed_folder_full_path))
 print("Compressed Folder path '{}'".format(html_compressed_folder_full_path))
 print("")
+
 
 html_files = []
 for file in os.listdir(html_uncompressed_folder_full_path):
