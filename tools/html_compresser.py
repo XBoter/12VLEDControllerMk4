@@ -15,6 +15,7 @@ for folder in os.listdir(cur_dir):
         found_src_folder_in_cur_dir = True
         break
 
+
 if found_src_folder_in_cur_dir:
     html_uncompressed_folder_full_path = os.path.join(cur_dir, html_uncompressed_folder_local_path)
     html_compressed_folder_full_path = os.path.join(cur_dir, html_compressed_folder_local_path)
