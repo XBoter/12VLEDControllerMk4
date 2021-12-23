@@ -2,7 +2,7 @@ name: Compile Arduino Code
 on: 
   push:
     paths:
-    - 'workflows/compile_action.yaml'
+    - '.github/workflows/compile_action.yaml'
     - 'src/**'
 jobs:
   build:
