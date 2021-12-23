@@ -1,0 +1,323 @@
+<html>
+
+<head>
+    <meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=2.0, user-scalable=no'>
+    <title>Settings Page</title>
+    <style>
+        html,
+        body {
+            max-width: 100%;
+            overflow-x: hidden;
+        }
+
+        body {
+            background-color: #616161;
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        form {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+        }
+
+        h1,
+        h2,
+        h3,
+        h4 {
+            font-family: Arial, Helvetica, sans-serif;
+            text-align: center;
+            font-size: 35px;
+            padding-top: 5px;
+            margin: 5px;
+            color: #ffab00;
+        }
+
+        h2 {
+
+            font-size: 25px;
+            color: #00e676;
+        }
+
+        h3 {
+            font-size: 20;
+            color: #00e5ff;
+        }
+
+        h4 {
+            font-size: 18;
+            color: #ff4081;
+        }
+
+        #wrapper {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+        }
+
+        #main-button {
+            font-family: Arial, Helvetica, sans-serif;
+            text-align: center;
+            font-size: 15px;
+            background: #00e5ff;
+            color: #424242;
+        }
+
+        .pure-material-button-contained {
+            position: relative;
+            display: inline-block;
+            box-sizing: border-box;
+            border: none;
+            border-radius: 4px;
+            padding: 0 16px;
+            min-width: 64px;
+            height: 36px;
+            vertical-align: middle;
+            text-align: center;
+            color: rgb(var(--pure-material-onprimary-rgb, 255, 255, 255));
+            background-color: rgb(var(--pure-material-primary-rgb, 33, 150, 243));
+            box-shadow: 0 3px 1px -2px rgba(0, 0, 0, 0.2), 0 2px 2px 0 rgba(0, 0, 0, 0.14), 0 1px 5px 0 rgba(0, 0, 0, 0.12);
+            overflow: hidden;
+            outline: none;
+            cursor: pointer;
+            transition: box-shadow 0.2s;
+        }
+
+        .pure-material-button-contained::-moz-focus-inner {
+            border: none;
+        }
+
+        .pure-material-button-contained::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background-color: rgb(var(--pure-material-onprimary-rgb, 255, 255, 255));
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+
+        .pure-material-button-contained::after {
+            content: "";
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            border-radius: 50%;
+            padding: 50%;
+            width: 32px;
+            height: 32px;
+            background-color: rgb(var(--pure-material-onprimary-rgb, 255, 255, 255));
+            opacity: 0;
+            transform: translate(-50%, -50%) scale(1);
+            transition: opacity 1s, transform 0.5s;
+        }
+
+        .pure-material-button-contained:hover,
+        .pure-material-button-contained:focus {
+            box-shadow: 0 2px 4px -1px rgba(0, 0, 0, 0.2), 0 4px 5px 0 rgba(0, 0, 0, 0.14), 0 1px 10px 0 rgba(0, 0, 0, 0.12);
+        }
+
+        .pure-material-button-contained:hover::before {
+            opacity: 0.08;
+        }
+
+        .pure-material-button-contained:focus::before {
+            opacity: 0.24;
+        }
+
+        .pure-material-button-contained:hover:focus::before {
+            opacity: 0.3;
+        }
+
+        .pure-material-button-contained:active {
+            box-shadow: 0 5px 5px -3px rgba(0, 0, 0, 0.2), 0 8px 10px 1px rgba(0, 0, 0, 0.14), 0 3px 14px 2px rgba(0, 0, 0, 0.12);
+        }
+
+        .pure-material-button-contained:active::after {
+            opacity: 0.32;
+            transform: translate(-50%, -50%) scale(0);
+            transition: transform 0s;
+        }
+
+        .pure-material-button-contained:disabled {
+            color: rgba(var(--pure-material-onsurface-rgb, 0, 0, 0), 0.38);
+            background-color: rgba(var(--pure-material-onsurface-rgb, 0, 0, 0), 0.12);
+            box-shadow: none;
+            cursor: initial;
+        }
+
+        .pure-material-button-contained:disabled::before {
+            opacity: 0;
+        }
+
+        .pure-material-button-contained:disabled::after {
+            opacity: 0;
+        }
+
+        select {
+            width: 20vw;
+            height: 20px;
+            background: #ff4081;
+            color: #424242;
+            border: none;
+            border-radius: 10px;
+            -webkit-appearance: none;
+            outline: none;
+            text-align: center;
+        }
+
+        option {
+            text-align: center;
+        }
+
+        .output-config-wrapper {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+        }
+
+        .output-config-wrapper-internal {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: row;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="wrapper">
+        <h1>LED Controller Mk4</h1>
+        <div class="output-config-wrapper">
+            <h2>Settings</h2>
+            <!-- LED Strip 1 Output Config-->
+            <div class="output-config-wrapper">
+                <h3>LED Strip 1 Output Config</h3>
+                <div class="output-config-wrapper">
+                    <div class="output-config-wrapper-internal">
+                        <h4>Output 1</h4>
+                        <select id="led-strip-1-output-config-1">
+                            <option value="0">R</option>
+                            <option value="1">G</option>
+                            <option value="2">B</option>
+                            <option value="3">CW</option>
+                            <option value="4">WW</option>
+                        </select>
+                    </div>
+                    <div class="output-config-wrapper-internal">
+                        <h4>Output 2</h4>
+                        <select id="led-strip-1-output-config-2">
+                            <option value="0">R</option>
+                            <option value="1">G</option>
+                            <option value="2">B</option>
+                            <option value="3">CW</option>
+                            <option value="4">WW</option>
+                        </select>
+                    </div>
+                    <div class="output-config-wrapper-internal">
+                        <h4>Output 3</h4>
+                        <select id="led-strip-1-output-config-3">
+                            <option value="0">R</option>
+                            <option value="1">G</option>
+                            <option value="2">B</option>
+                            <option value="3">CW</option>
+                            <option value="4">WW</option>
+                        </select>
+                    </div>
+                    <div class="output-config-wrapper-internal">
+                        <h4>Output 4</h4>
+                        <select id="led-strip-1-output-config-4">
+                            <option value="0">R</option>
+                            <option value="1">G</option>
+                            <option value="2">B</option>
+                            <option value="3">CW</option>
+                            <option value="4">WW</option>
+                        </select>
+                    </div>
+                    <div class="output-config-wrapper-internal">
+                        <h4>Output 5</h4>
+                        <select id="led-strip-1-output-config-5">
+                            <option value="0">R</option>
+                            <option value="1">G</option>
+                            <option value="2">B</option>
+                            <option value="2">CW</option>
+                            <option value="2">WW</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            <!-- LED Strip 2 Output Config-->
+            <div class="output-config-wrapper">
+                <h3>LED Strip 2 Output Config</h3>
+                <div class="output-config-wrapper">
+                    <div class="output-config-wrapper-internal">
+                        <h4>Output 1</h4>
+                        <select id="led-strip-2-output-config-1">
+                            <option value="0">R</option>
+                            <option value="1">G</option>
+                            <option value="2">B</option>
+                            <option value="3">CW</option>
+                            <option value="4">WW</option>
+                        </select>
+                    </div>
+                    <div class="output-config-wrapper-internal">
+                        <h4>Output 2</h4>
+                        <select id="led-strip-2-output-config-2">
+                            <option value="0">R</option>
+                            <option value="1">G</option>
+                            <option value="2">B</option>
+                            <option value="3">CW</option>
+                            <option value="4">WW</option>
+                        </select>
+                    </div>
+                    <div class="output-config-wrapper-internal">
+                        <h4>Output 3</h4>
+                        <select id="led-strip-2-output-config-3">
+                            <option value="0">R</option>
+                            <option value="1">G</option>
+                            <option value="2">B</option>
+                            <option value="3">CW</option>
+                            <option value="4">WW</option>
+                        </select>
+                    </div>
+                    <div class="output-config-wrapper-internal">
+                        <h4>Output 4</h4>
+                        <select id="led-strip-2-output-config-4">
+                            <option value="0">R</option>
+                            <option value="1">G</option>
+                            <option value="2">B</option>
+                            <option value="3">CW</option>
+                            <option value="4">WW</option>
+                        </select>
+                    </div>
+                    <div class="output-config-wrapper-internal">
+                        <h4>Output 5</h4>
+                        <select id="led-strip-2-output-config-5">
+                            <option value="0">R</option>
+                            <option value="1">G</option>
+                            <option value="2">B</option>
+                            <option value="3">CW</option>
+                            <option value="4">WW</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            <div>
+                <h2>Main Page</h2>
+                <button class="pure-material-button-contained" id="main-button">Go to Main Page</button>
+            </div>
+        </div>
+    </div>
+
+</body>
+
+</html>
