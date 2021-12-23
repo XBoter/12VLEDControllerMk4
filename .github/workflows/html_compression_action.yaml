@@ -2,6 +2,7 @@ name: Compress Webpage and transform to C Header
 on:
   push:
     paths:
+    - 'workflows/html_compression_action.yaml'
     - 'tools/**'
     - 'src/Webpage/html_uncompressed/**'
 jobs:
