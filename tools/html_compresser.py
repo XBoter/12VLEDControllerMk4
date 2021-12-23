@@ -26,6 +26,16 @@ print("Uncompressed Folder path '{}'".format(html_uncompressed_folder_full_path)
 print("Compressed Folder path '{}'".format(html_compressed_folder_full_path))
 print("")
 
+# Create folder if missing
+if not os.path.isdir(html_uncompressed_folder_full_path):
+    os.mkdir(html_uncompressed_folder_full_path)
+    print("Created missing dir '{}'".format(os.path.basename(html_uncompressed_folder_full_path)))
+    print("")
+
+if not os.path.isdir(html_compressed_folder_full_path):
+    os.mkdir(html_compressed_folder_full_path)
+    print("Created missing dir '{}'".format(os.path.basename(html_compressed_folder_full_path)))
+    print("")
 
 html_files = []
 for file in os.listdir(html_uncompressed_folder_full_path):

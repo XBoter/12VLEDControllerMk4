@@ -24,6 +24,17 @@ print("Transformed C File Folder path '{}'".format(transformed_c_folder_local_pa
 print("Compressed Folder path '{}'".format(html_compressed_folder_full_path))
 print("")
 
+# Create folder if missing
+if not os.path.isdir(transformed_c_folder_local_path_full_path):
+    os.mkdir(transformed_c_folder_local_path_full_path)
+    print("Created missing dir '{}'".format(os.path.basename(transformed_c_folder_local_path_full_path)))
+    print("")
+
+if not os.path.isdir(html_compressed_folder_full_path):
+    os.mkdir(html_compressed_folder_full_path)
+    print("Created missing dir '{}'".format(os.path.basename(html_compressed_folder_full_path)))
+    print("")
+
 compressed_html_files = []
 for file in os.listdir(html_compressed_folder_full_path):
     if file.endswith("_compressed.html"):
