@@ -1,4 +1,4 @@
-name: build
+name: Compile Arduino Code
 on: [pull_request, push]
 jobs:
   build:
