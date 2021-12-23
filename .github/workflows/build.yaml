@@ -1,5 +1,8 @@
 name: Compile Arduino Code
-on: [pull_request, push]
+on: 
+  push:
+    paths:
+    - 'src'
 jobs:
   build:
     runs-on: ubuntu-latest
