@@ -54,6 +54,9 @@ for compressed_html_file in compressed_html_files:
 
     if compressed_html_file_content != "":
         
+        # Replace all " with ' for c++ string literal
+        compressed_html_file_content = compressed_html_file_content.replace(chr(34),chr(39))
+
         transformed_c_folder_local_path_full_path_with_file = os.path.join(transformed_c_folder_local_path_full_path,compressed_html_file.replace("_compressed.html",".h"))
 
         # save html file to compressed fcompressed_html_file_contentolder
