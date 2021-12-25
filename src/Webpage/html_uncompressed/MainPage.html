@@ -82,7 +82,7 @@
 
         .slider:before {
             position: absolute;
-            content: "";
+            content: '';
             height: 18px;
             width: 18px;
             left: 4px;
@@ -200,7 +200,7 @@
         }
 
         .pure-material-button-contained::before {
-            content: "";
+            content: '';
             position: absolute;
             top: 0;
             bottom: 0;
@@ -212,7 +212,7 @@
         }
 
         .pure-material-button-contained::after {
-            content: "";
+            content: '';
             position: absolute;
             left: 50%;
             top: 50%;
@@ -268,7 +268,7 @@
             opacity: 0;
         }
 
-        input[type="color"] {
+        input[type='color'] {
             -webkit-appearance: none;
             border: none;
             width: 50px;
@@ -277,11 +277,11 @@
             color: #616161;
         }
 
-        input[type="color"]::-webkit-color-swatch-wrapper {
+        input[type='color']::-webkit-color-swatch-wrapper {
             padding: 0;
         }
 
-        input[type="color"]::-webkit-color-swatch {
+        input[type='color']::-webkit-color-swatch {
             border: none;
         }
 
@@ -303,116 +303,116 @@
 </head>
 
 <body>
-    <div id="wrapper">
+    <div id='wrapper'>
         <h1>LED Controller Mk4</h1>
         <div>
             <h2>LED Strip 1</h2>
-            <div class="led-strip-control-panel">
+            <div class='led-strip-control-panel'>
                 <!-- Power Toggle Switch-->
                 <div>
-                    <h3>Power: <span id="led-strip-1-power-value"></span></h3>
-                    <label class="switch">
-                        <input type="checkbox" onclick='powerButton1(this);' id="led-strip-1-power">
-                        <span class="slider round"></span>
+                    <h3>Power: <span id='led-strip-1-power-value'></span></h3>
+                    <label class='switch'>
+                        <input type='checkbox' onclick='powerButton1(this);' id='led-strip-1-power'>
+                        <span class='slider round'></span>
                     </label>
                 </div>
                 <!-- Brightness Slider -->
                 <div>
-                    <h3>Brightness: <span id="led-strip-1-brightness-value"></span></h3>
-                    <div class="slidecontainer">
-                        <input type="range" min="1" max="100" value="50" class="input-slider"
-                            id="led-strip-1-brightness">
+                    <h3>Brightness: <span id='led-strip-1-brightness-value'></span></h3>
+                    <div class='slidecontainer'>
+                        <input type='range' min='1' max='100' value='50' class='input-slider'
+                            id='led-strip-1-brightness'>
                     </div>
                 </div>
                 <!-- Color Picker -->
                 <div>
                     <h3>Color</h3>
-                    <input class="color-picker" type="color" id="led-strip-1-color" value="#ff0000">
+                    <input class='color-picker' type='color' id='led-strip-1-color' value='#ff0000'>
                 </div>
                 <!-- Effects -->
                 <div>
                     <h3>Effect</h3>
-                    <select id="led-strip-1-effect">
-                        <option value="0">None</option>
-                        <option value="1">TriplePulse</option>
-                        <option value="2">Rainbow</option>
+                    <select id='led-strip-1-effect'>
+                        <option value='0'>None</option>
+                        <option value='1'>TriplePulse</option>
+                        <option value='2'>Rainbow</option>
                     </select>
                 </div>
             </div>
         </div>
         <div>
             <h2>LED Strip 2</h2>
-            <div class="led-strip-control-panel">
+            <div class='led-strip-control-panel'>
                 <!-- Power Toggle Switch-->
                 <div>
-                    <h3>Power: <span id="led-strip-2-power-value"></span></h3>
-                    <label class="switch">
-                        <input type="checkbox" onclick='powerButton2(this);' id="led-strip-2-power">
-                        <span class="slider round"></span>
+                    <h3>Power: <span id='led-strip-2-power-value'></span></h3>
+                    <label class='switch'>
+                        <input type='checkbox' onclick='powerButton2(this);' id='led-strip-2-power'>
+                        <span class='slider round'></span>
                     </label>
                 </div>
                 <!-- Brightness Slider -->
                 <div>
-                    <h3>Brightness: <span id="led-strip-2-brightness-value"></span></h3>
-                    <div class="slidecontainer">
-                        <input type="range" min="1" max="100" value="50" class="input-slider"
-                            id="led-strip-2-brightness">
+                    <h3>Brightness: <span id='led-strip-2-brightness-value'></span></h3>
+                    <div class='slidecontainer'>
+                        <input type='range' min='1' max='100' value='50' class='input-slider'
+                            id='led-strip-2-brightness'>
                     </div>
                 </div>
                 <!-- Color Picker -->
                 <div>
                     <h3>Color</h3>
-                    <input class="color-picker" type="color" id="led-strip-2-color" value="#ff0000">
+                    <input class='color-picker' type='color' id='led-strip-2-color' value='#ff0000'>
                 </div>
                 <!-- Effects -->
                 <div>
                     <h3>Effect</h3>
-                    <select id="led-strip-2-effect">
-                        <option value="0">None</option>
-                        <option value="1">TriplePulse</option>
-                        <option value="2">Rainbow</option>
+                    <select id='led-strip-2-effect'>
+                        <option value='0'>None</option>
+                        <option value='1'>TriplePulse</option>
+                        <option value='2'>Rainbow</option>
                     </select>
                 </div>
             </div>
         </div>
         <div>
             <h2>Settings</h2>
-            <button class="pure-material-button-contained" id="settings-button">Go to Settings Page</button>
+            <button class='pure-material-button-contained' id='settings-button'>Go to Settings Page</button>
         </div>
     </div>
     <script>
         // LED Strip 1 Power Toggle Switch
-        var input1 = document.getElementById("led-strip-1-power");
-        var output3 = document.getElementById("led-strip-1-power-value");
-        output3.innerHTML = "off";
+        var input1 = document.getElementById('led-strip-1-power');
+        var output3 = document.getElementById('led-strip-1-power-value');
+        output3.innerHTML = 'off';
         function powerButton1(element) {
             if (element.checked) {
-                output3.innerHTML = "on";
+                output3.innerHTML = 'on';
             } else {
-                output3.innerHTML = "off";
+                output3.innerHTML = 'off';
             }
         }
         // LED Strip 1 Power Toggle Switch
-        var input2 = document.getElementById("led-strip-2-power");
-        var output4 = document.getElementById("led-strip-2-power-value");
-        output4.innerHTML = "off";
+        var input2 = document.getElementById('led-strip-2-power');
+        var output4 = document.getElementById('led-strip-2-power-value');
+        output4.innerHTML = 'off';
         function powerButton2(element) {
             if (element.checked) {
-                output4.innerHTML = "on";
+                output4.innerHTML = 'on';
             } else {
-                output4.innerHTML = "off";
+                output4.innerHTML = 'off';
             }
         }
         // LED Strip 1 Brightness Slider
-        var slider1 = document.getElementById("led-strip-1-brightness");
-        var output1 = document.getElementById("led-strip-1-brightness-value");
+        var slider1 = document.getElementById('led-strip-1-brightness');
+        var output1 = document.getElementById('led-strip-1-brightness-value');
         output1.innerHTML = slider1.value;
         slider1.oninput = function () {
             output1.innerHTML = this.value;
         }
         // LED Strip 2 Brightness Slider
-        var slider2 = document.getElementById("led-strip-2-brightness");
-        var output2 = document.getElementById("led-strip-2-brightness-value");
+        var slider2 = document.getElementById('led-strip-2-brightness');
+        var output2 = document.getElementById('led-strip-2-brightness-value');
         output2.innerHTML = slider2.value;
         slider2.oninput = function () {
             output2.innerHTML = this.value;
