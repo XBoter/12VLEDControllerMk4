@@ -14,25 +14,32 @@ for folder in os.listdir(cur_dir):
         break
 
 if found_src_folder_in_cur_dir:
-    transformed_c_folder_local_path_full_path = os.path.join(cur_dir, transformed_c_folder_local_path)
-    html_compressed_folder_full_path = os.path.join(cur_dir, html_compressed_folder_local_path)
+    transformed_c_folder_local_path_full_path = os.path.join(
+        cur_dir, transformed_c_folder_local_path)
+    html_compressed_folder_full_path = os.path.join(
+        cur_dir, html_compressed_folder_local_path)
 else:
-    transformed_c_folder_local_path_full_path = os.path.join(os.path.dirname(cur_dir), transformed_c_folder_local_path)
-    html_compressed_folder_full_path = os.path.join(os.path.dirname(cur_dir), html_compressed_folder_local_path)
+    transformed_c_folder_local_path_full_path = os.path.join(
+        os.path.dirname(cur_dir), transformed_c_folder_local_path)
+    html_compressed_folder_full_path = os.path.join(
+        os.path.dirname(cur_dir), html_compressed_folder_local_path)
 
-print("Transformed C File Folder path '{}'".format(transformed_c_folder_local_path_full_path))
+print("Transformed C File Folder path '{}'".format(
+    transformed_c_folder_local_path_full_path))
 print("Compressed Folder path '{}'".format(html_compressed_folder_full_path))
 print("")
 
 # Create folder if missing
 if not os.path.isdir(transformed_c_folder_local_path_full_path):
     os.mkdir(transformed_c_folder_local_path_full_path)
-    print("Created missing dir '{}'".format(os.path.basename(transformed_c_folder_local_path_full_path)))
+    print("Created missing dir '{}'".format(
+        os.path.basename(transformed_c_folder_local_path_full_path)))
     print("")
 
 if not os.path.isdir(html_compressed_folder_full_path):
     os.mkdir(html_compressed_folder_full_path)
-    print("Created missing dir '{}'".format(os.path.basename(html_compressed_folder_full_path)))
+    print("Created missing dir '{}'".format(
+        os.path.basename(html_compressed_folder_full_path)))
     print("")
 
 compressed_html_files = []
@@ -45,7 +52,8 @@ print("")
 
 for compressed_html_file in compressed_html_files:
 
-    html_compressed_folder_full_path_with_file = os.path.join(html_compressed_folder_full_path,compressed_html_file)
+    html_compressed_folder_full_path_with_file = os.path.join(
+        html_compressed_folder_full_path, compressed_html_file)
     compressed_html_file_content = ""
     with open(html_compressed_folder_full_path_with_file) as f:
         # minify puts all the compressed html code in line one
@@ -53,19 +61,24 @@ for compressed_html_file in compressed_html_files:
         f.close()
 
     if compressed_html_file_content != "":
-        
-        # Replace all " with ' for c++ string literal
-        compressed_html_file_content = compressed_html_file_content.replace(chr(34),chr(39))
 
-        transformed_c_folder_local_path_full_path_with_file = os.path.join(transformed_c_folder_local_path_full_path,compressed_html_file.replace("_compressed.html",".h"))
+        # Replace all " with ' for c++ string literal
+        compressed_html_file_content = compressed_html_file_content.replace(
+            chr(34), chr(39))
+
+        transformed_c_folder_local_path_full_path_with_file = os.path.join(
+            transformed_c_folder_local_path_full_path, compressed_html_file.replace("_compressed.html", ".h"))
 
         # save html file to compressed fcompressed_html_file_contentolder
         with open(transformed_c_folder_local_path_full_path_with_file, 'w') as f:
-            data = '#pragma once\nconst char {}[] PROGMEM = "{}";'.format(compressed_html_file.replace("_compressed.html",""),compressed_html_file_content)
+            data = '#pragma once\nconst char {}[] PROGMEM = "{}";'.format(
+                compressed_html_file.replace("_compressed.html", ""), compressed_html_file_content)
             f.write(data)
             f.close()
 
-        print("Transformed HTML file '{}' to C Header '{}'".format(compressed_html_file,compressed_html_file.replace("_compressed.html",".h")))
+        print("Transformed HTML file '{}' to C Header '{}'".format(
+            compressed_html_file, compressed_html_file.replace("_compressed.html", ".h")))
 
     else:
-        print("Error reading file '{}'".format(html_compressed_folder_full_path_with_file))
+        print("Error reading file '{}'".format(
+            html_compressed_folder_full_path_with_file))
