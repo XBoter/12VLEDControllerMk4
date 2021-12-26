@@ -4,7 +4,7 @@
 #include <Arduino.h>
 #include <ArduinoOTA.h>
 #include "../Network/Network.h"
-#include "../Configuration/Configuration.h"
+#include "../Webserver/Webserver.h"
 
 // Interface
 #include "../Interface/IBaseClass.h"
@@ -20,7 +20,7 @@ class OTA : public IBaseClass
 public:
     OTA();
     void setReference(Network *network,
-                      Configuration *configuration);
+                      Webserver *webserver);
     bool init = false;
 
     // ## Interface ## //
@@ -32,7 +32,7 @@ public:
     // ## Data ## //
 private:
     Network *network;
-    Configuration *configuration;
+    Webserver *webserver;
 
 public:
     // ## Functions ## //

@@ -1,4 +1,4 @@
-#include "Configuration.h"
+#include "Webserver.h"
 
 /**
  * @brief ESP Webserver instance which we use to display the webpages
@@ -17,26 +17,39 @@ Webserver::Webserver(){
 /**
  * @brief Sets the needed refernce for the webserver
  * 
- * @param ledDriver pointer to the used ledDriver instance
  */
-void Webserver::setReference(LedDriver *ledDriver)
-{
-    this->ledDriver = ledDriver;
-};
+void Webserver::setReference(){};
 
 /**
  * @brief Blinks the onBoard LED in the given interval
  * 
+ * @param interval The blink intervall in milliseconds
  */
 void Webserver::blinkOnBoardLED(uint16_t interval)
 {
+    if (millis() >= (this->prevMillisBlinkOnBoardLED + interval))
+    {
+        this->prevMillisBlinkOnBoardLED = millis();
+        this->onboardLEDState = !this->onboardLEDState;
+        if (this->onboardLEDState)
+        {
+            digitalWrite(LED_BUILTIN, LOW);
+        }
+        else
+        {
+            digitalWrite(LED_BUILTIN, HIGH);
+        }
+    }
+}
 
-    static unsigned long prevMillisBlinkOnBoardLED = 0;
-    static bool 
-    unsigned long currentMillisBlinkOnBoardLED = millis();
-
+/**
+ * @brief Turns of the onBoard LED
+ * 
+ */
+void Webserver::turnOffOnBoardLED()
+{
+    this->onboardLEDState = false;
     digitalWrite(LED_BUILTIN, HIGH);
-        pinMode(LED_BUILTIN, OUTPUT);
 }
 
 /**
@@ -48,55 +61,22 @@ bool Webserver::Init()
 {
     if (!init)
     {
-        // Configure Flash button on the nodemcu as reset putton
+        // == Configure Flash button on the nodemcu as reset putton
         pinMode(0, INPUT_PULLUP);
 
-        // Enable blink led
-        digitalWrite(LED_BUILTIN, HIGH);
+        // == Configure the onBoard LED
         pinMode(LED_BUILTIN, OUTPUT);
-
-        // Start LittleFS
-        Serial.println("Mount LittleFS");
-        if (!LittleFS.begin())
-        {
-            Serial.println("LittleFS mount Failed!");
-            return init;
-        }
-        else
-        {
-            Serial.println("LittleFS mount OK!");
-            Serial.println("");
-        }
-
-        // Create config.txt if missing
-        createConfig();
-
-        // List all found files
-        listFiles();
-        // Load config
-        loadConfig();
-
-        // Check if controller is already configured
-        if (!data.isConfigured)
-        {
-            resetOrNotConfigured = true;
-        }
-        else
-        {
-            // All okay we can procedure with the rest
-            isFinished = true;
-        }
+        this->turnOffOnBoardLED();
 
         init = true;
     }
-
     return init;
 };
 
 /**
  * Runs the Configuration component
  */
-void Configuration::Run()
+void Webserver::Run()
 {
     if (!init)
     {
@@ -229,7 +209,15 @@ void Configuration::Run()
     }
 };
 
-void Configuration::inputForm()
+void Webserver::ConfigurationModeHandler()
+{
+}
+
+void Webserver::NormalModeHandler()
+{
+}
+
+void Webserver::inputForm()
 {
     server.send(200, "text/html", ConfigurationPage);
 };
@@ -237,7 +225,7 @@ void Configuration::inputForm()
 /*
     Gets called on access to url 192.168.4.1/final
 */
-void Configuration::inputFormFilled()
+void Webserver::inputFormFilled()
 {
 
     if (server.hasArg("wifiSSID"))
@@ -276,213 +264,22 @@ void Configuration::inputFormFilled()
     state++;
 };
 
-/**
- * Returns the current config data
- *
- * @return ConfiguredData
- */
-ConfiguredData Configuration::getData() { return data; };
-
-/**
- * Saves the current config to a persist data storage
- */
-void Configuration::saveConfig()
+bool Webserver::getConfigurationMode()
 {
-    Serial.println(F("Saving Config"));
-    Serial.println(F(""));
+    return this->configurationMode;
+}
 
-    File file = LittleFS.open("/config.txt", "w");
-    if (!file)
-    {
-        Serial.println(F("Failed to open file for writing"));
-        return;
-    }
-
-    // ==== wifiSSID ==== //
-    if (!file.println(data.wifiSSID))
-    {
-        Serial.println(F("wifiSSID failed to save"));
-    }
-
-    // ==== wifiPassword ==== //
-    if (!file.println(data.wifiPassword))
-    {
-        Serial.println(F("wifiPassword failed to save"));
-    }
-
-    // ==== mqttBrokerIpAddress ==== //
-    if (!file.println(data.mqttBrokerIpAddress))
-    {
-        Serial.println(F("mqttBrokerIpAddress failed to save"));
-    }
-
-    // ==== mqttBrokerPort ==== //
-    if (!file.println(String(data.mqttBrokerPort)))
-    {
-        Serial.println(F("mqttBrokerPort failed to save"));
-    }
-
-    // ==== mqttBrokerUsername ==== //
-    if (!file.println(data.mqttBrokerUsername))
-    {
-        Serial.println(F("mqttBrokerUsername failed to save"));
-    }
-
-    // ==== mqttBrokerPassword ==== //
-    if (!file.println(data.mqttBrokerPassword))
-    {
-        Serial.println(F("mqttBrokerPassword failed to save"));
-    }
-
-    // ==== mqttClientName ==== //
-    if (!file.println(data.mqttClientName))
-    {
-        Serial.println(F("mqttClientName failed to save"));
-    }
-
-    // ==== isConfigured ==== //
-    if (!file.println(String(data.isConfigured)))
-    {
-        Serial.println(F("isConfigured failed to save"));
-    }
-
-    delay(2000); // Make sure the CREATE and LASTWRITE times are different
-    file.close();
-};
-
-/**
- * Loads the saved config from a persist data storage
- */
-void Configuration::loadConfig()
+void Webserver::RequestChangeToConfigurationMode()
 {
-    Serial.println(F("Loading Config"));
-    Serial.println("");
+    this->changeToConfigurationModeRequest = true;
+}
 
-    File file = LittleFS.open("/config.txt", "r");
-    if (!file)
-    {
-        Serial.println(F("Failed to open file for reading"));
-        return;
-    }
-
-    uint8_t state = 0;
-    String message = "";
-    char symbol = '\0';
-    while (file.available())
-    {
-        int x = file.read();
-
-        // Check for ascii symbol 13 => Carriage Return
-        if (x == 13)
-        {
-            x = file.read();
-            // Check for ascii symbol 10 => Line Feed
-            if (x == 10)
-            {
-                switch (state)
-                {
-                    // ==== wifiSSID ==== //
-                case 0:
-                    data.wifiSSID = message;
-                    state++;
-                    break;
-                    // ==== wifiPassword ==== //
-                case 1:
-                    data.wifiPassword = message;
-                    state++;
-                    break;
-                    // ==== mqttBrokerIpAddress ==== //
-                case 2:
-                    data.mqttBrokerIpAddress = message;
-                    state++;
-                    break;
-                    // ==== mqttBrokerPort ==== //
-                case 3:
-                    data.mqttBrokerPort = strtol(message.c_str(), NULL, 0);
-                    state++;
-                    break;
-                    // ==== mqttBrokerUsername ==== //
-                case 4:
-                    data.mqttBrokerUsername = message;
-                    state++;
-                    break;
-                    // ==== mqttBrokerPassword ==== //
-                case 5:
-                    data.mqttBrokerPassword = message;
-                    state++;
-                    break;
-                    // ==== mqttClientName ==== //
-                case 6:
-                    data.mqttClientName = message;
-                    state++;
-                    break;
-                    // ==== isConfigured ==== //
-                case 7:
-                    data.isConfigured = bool(message);
-                    break;
-                }
-                message = "";
-            }
-        }
-        else
-        {
-            if (x != 0)
-            {
-                symbol = char(x);
-                message += String(symbol);
-            }
-        }
-    }
-    file.close();
-};
-
-/**
- * Lists all configs found on the persits data storage
- */
-void Configuration::listFiles()
+bool Webserver::getNormalMode()
 {
-    Serial.println(F("Found files in root dir:"));
+    return this->normalMode;
+}
 
-    Dir root = LittleFS.openDir("/");
-
-    while (root.next())
-    {
-        File file = root.openFile("r");
-        Serial.print(F("  FILE: "));
-        Serial.print(root.fileName());
-        Serial.print(F("  SIZE: "));
-        Serial.println(file.size());
-        file.close();
-    }
-};
-
-/**
- * Lists all configs found on the persits data storage
- */
-void Configuration::createConfig()
+void Webserver::RequestChangeToNormalMode()
 {
-    Serial.println(F("Create config.txt file if missing"));
-    if (!LittleFS.exists("/config.txt"))
-    {
-        Serial.println(F("Creating new config.txt file"));
-        File file = LittleFS.open("/config.txt", "w+");
-        file.close();
-    }
-    else
-    {
-        Serial.println(F("Found existing config.txt file"));
-    }
-};
-
-/**
- * Resets the config file
- */
-void Configuration::resetConfig()
-{
-    Serial.println(F("Reset config.txt file"));
-    if (LittleFS.exists("/config.txt"))
-    {
-        File file = LittleFS.open("/config.txt", "w");
-        file.close();
-    }
-};
+    this->changeToNormalModeRequest = true;
+}

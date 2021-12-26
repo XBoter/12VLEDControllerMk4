@@ -5,53 +5,51 @@
 #include <PubSubClient.h> // @installed via Arduino Library Manger    GitHub => https://github.com/knolleary/pubsubclient
 #include <ArduinoJson.h>  // @installed via Arduino Library Manger    GitHub => https://github.com/bblanchon/ArduinoJson
 
-// Includes
+// ================================ INCLUDES ================================ //
 #include <Arduino.h>
 #include <ESP8266WiFi.h>
 #include <WiFiUdp.h>
 #include "../Enums/Enums.h"
 #include "../Structs/Structs.h"
-#include "../Configuration/Configuration.h"
+#include "../Filesystem/Filesystem.h"
 #include "../Information/Information.h"
 #include "../PirReader/PirReader.h"
 #include "../PowerMeasurement/PowerMeasurement.h"
 
-// Interface
+// ================================ INTERFACES ================================ //
 #include "../Interface/IBaseClass.h"
 
 // Blueprint for compiler. Problem => circular dependency
-class Configuration;
+class Filesystem;
 class Information;
 class PirReader;
 class PowerMeasurement;
 
-// Classes
+// ================================ CLASS ================================ //
 class Network : public IBaseClass
 {
-    // ## Constructor / Important ## //
+    // ================ Constructor / Reference ================ //
 public:
     Network(String codeVersion);
-    void setReference(Configuration *configuration,
+    void setReference(Filesystem *filesystem,
                       Information *information,
                       PirReader *pirReader,
                       PowerMeasurement *powerMeasurement);
     bool init = false;
 
-    // ## Interface ## //
+    // ================ Interface ================ //
 private:
 public:
     virtual bool Init();
     virtual void Run();
 
-    // ## Data ## //
+    // ================ Data ================ //
 private:
-    // External components
-    Configuration *configuration;
+    // ======== External Components ======== //
+    Filesystem *filesystem;
     Information *information;
     PirReader *pirReader;
     PowerMeasurement *powerMeasurement;
-
-    ConfiguredData data = {};
 
     WiFiClient wifiMqtt;
     WiFiUDP ntpUDP;
@@ -75,29 +73,36 @@ private:
     bool memWifiConnected = false;
     bool memMqttConnected = false;
 
+    // ==== NTP
+
+    // ==== MQTT
+    NetworkMQTTState mqttState = NetworkMQTTState::StartMqtt;
+    PubSubClient mqttClient;
+    bool isMQTTConnected = false;
+    int clientState = 0;
+    DynamicJsonDocument doc = DynamicJsonDocument(2048);
+
+    // ==== WiFi
+    NetworkWiFiState wifiState = NetworkWiFiState::StartWifi;
+    bool isWiFiConnected = false;
+    bool isInWiFiMode = true;
+    bool shutdownWiFi = false;
+    bool changeToWiFiModeRequest = false;
+
+    // ==== Access Point
+    NetworkAccessPointState accessPointState = NetworkAccessPointState::IdleAccessPoint;
+    bool isInAccessPointMode = false;
+    bool shutdownAccessPoint = true;
+    bool changeToAccessPointModeRequest = false;
+    uint8_t accessPointConnectedClients = 0;
+    String accesspointName = "LED Controller Mk4";
+    IPAddress accessPointIPAddress = IPAddress(192, 168, 1, 1);
+    IPAddress accessPointSubnetmask = IPAddress(255, 255, 255, 0);
+
+    // ======== Other ======== //
     String codeVersion = "";
 
 public:
-    DynamicJsonDocument doc = DynamicJsonDocument(2048);
-    PubSubClient mqttClient;
-    NetworkWiFiState wifiState = NetworkWiFiState::StartWifi;
-    NetworkMQTTState mqttState = NetworkMQTTState::StartMqtt;
-    bool wifiConnected = false;
-    bool mqttConnected = false;
-
-    // Network WiFi Info
-    String ipAddress = "";
-    String macAddress = "";
-    String subnetmask = "";
-    String gateway = "";
-    String hostname = "";
-
-    // Network MQTT Info
-    String clientName = "";
-    String brokerIpAddress = "";
-    int brokerPort = -1; // Unknown
-    int clientState = -99; // Unknown
-
     // Other Data
     TimeBasedMotionBrightness stTimeBasedMotionBrightness = {};
 
@@ -127,20 +132,19 @@ public:
     unsigned long prevMillisPublishMotionLEDStripData = 0;
     unsigned long prevMillisPublishNetwork = 0;
 
-    uint32_t timeoutPublishMotionDetected = 60000;          // 1 Minute
-    uint32_t timeoutPublishLEDStripData = 60000;            // 1 Minute
-    uint32_t timeoutPublishElectricalMeasurement = 60000;   // 1 Minute
-    uint32_t timeoutPublishHeartbeat = 5000;                // 5 Seconds
-    uint32_t timeoutPublishMotionLEDStripData = 60000;      // 1 Minute
-    uint32_t timeoutPublishNetwork = 60000;                 // 1 Minute
+    uint32_t timeoutPublishMotionDetected = 60000;        // 1 Minute
+    uint32_t timeoutPublishLEDStripData = 60000;          // 1 Minute
+    uint32_t timeoutPublishElectricalMeasurement = 60000; // 1 Minute
+    uint32_t timeoutPublishHeartbeat = 5000;              // 5 Seconds
+    uint32_t timeoutPublishMotionLEDStripData = 60000;    // 1 Minute
+    uint32_t timeoutPublishNetwork = 60000;               // 1 Minute
 
-    // ## Functions ## //
+    // ================ Methods ================ //
 private:
-    // Network handles
-    void HandleWifi();
+    void HandleWiFi(bool shutdown);
+    void HandleAccessPoint(bool shutdown);
     void HandleMqtt();
     void HandleNTP();
-
     void MqttCallback(char *topic, byte *payload, unsigned int length);
 
     // ==== Republish / Publish functions
@@ -172,4 +176,14 @@ public:
     void PublishMotionLEDStripData();
     void PublishNetwork();
     void PublishCodeVersion();
+
+    NetworkWiFiState getWiFiState();
+    NetworkAccessPointState getAccessPointState();
+    NetworkMQTTState getMQTTState();
+
+    void RequestChangeToWiFiMode();
+    void RequestChangeToAccessPointMode();
+
+    NetworkWiFiInformation getWiFiInformation();
+    NetworkMQTTInformation getMQTTInformation();
 };

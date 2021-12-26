@@ -1,30 +1,32 @@
 #include "Network.h"
 
 /**
- * Empty constructor
+ * @brief Construct a new Network::Network object
+ * 
  */
-Network::Network(String codeVersion){
+Network::Network(String codeVersion)
+{
     this->codeVersion = codeVersion;
 };
 
 /**
- * Sets reference to external components
+ * @brief Sets the needed refernce for the helper
  */
-void Network::setReference(Configuration *configuration,
+void Network::setReference(Filesystem *filesystem,
                            Information *information,
                            PirReader *pirReader,
                            PowerMeasurement *powerMeasurement)
 {
-    this->configuration = configuration;
+    this->filesystem = filesystem;
     this->information = information;
     this->pirReader = pirReader;
     this->powerMeasurement = powerMeasurement;
 };
 
 /**
- * Does init stuff for the Network component
+ * @brief Initializes the network component
  * 
- * @return True if successfull, false if not 
+ * @return True if the initialization was successful
  */
 bool Network::Init()
 {
@@ -35,10 +37,8 @@ bool Network::Init()
         mqttClient.setClient(wifiMqtt);
         mqttClient.setServer(data.mqttBrokerIpAddress.c_str(),
                              data.mqttBrokerPort);
-        //mqttClient.setCallback(mqttCallback);
-        mqttClient.setCallback([this](char *topic, byte *payload, unsigned int length) {
-            this->MqttCallback(topic, payload, length);
-        });
+        mqttClient.setCallback([this](char *topic, byte *payload, unsigned int length)
+                               { this->MqttCallback(topic, payload, length); });
 
         timeClient.begin();
 
@@ -55,7 +55,8 @@ bool Network::Init()
 };
 
 /**
- * Runs the Network component. 
+ * @brief Runs the network component
+ * 
  */
 void Network::Run()
 {
@@ -64,78 +65,158 @@ void Network::Run()
         return;
     }
 
-    mqttClient.loop();
-
-    // -- Wifi
-    HandleWifi();
-    if (wifiConnected != memWifiConnected)
+    // ==== STA / AP MODE ==== //
+    if (this->changeToWiFiModeRequest)
     {
-        memWifiConnected = wifiConnected;
-        wifiOneTimePrint = true;
-    }
-    if (wifiOneTimePrint)
-    {
-        if (wifiConnected)
+        this->shutdownAccessPoint = true;
+        this->shutdownWiFi = true;
+        if (this->accessPointState == NetworkAccessPointState::IdleAccessPoint)
         {
-            ipAddress = WiFi.localIP().toString().c_str();
-            subnetmask = WiFi.subnetMask().toString().c_str();
-            macAddress = WiFi.macAddress();
-            gateway = WiFi.gatewayIP().toString().c_str();
-            hostname = WiFi.hostname();
+            this->isInWiFiMode = true;
+            this->isInAccessPointMode = false;
+            this->shutdownWiFi = false;
+            this->changeToWiFiModeRequest = false;
         }
-        wifiOneTimePrint = false;
     }
+    else if (this->changeToAccessPointModeRequest)
+    {
+        this->shutdownAccessPoint = true;
+        this->shutdownWiFi = true;
+        if (this->wifiState == NetworkWiFiState::IdleWiFi)
+        {
+            this->isInWiFiMode = false;
+            this->isInAccessPointMode = true;
+            this->shutdownAccessPoint = false;
+            this->changeToAccessPointModeRequest = false;
+        }
+    }
+    HandleAccessPoint(shutdown = this->shutdownAccessPoint);
+    HandleWiFi(shutdown = this->shutdownWiFi);
 
-    // -- Mqtt
+    // ==== MQTT ==== //
+    mqttClient.loop();
     HandleMqtt();
-    if (mqttConnected != memMqttConnected)
-    {
-        memMqttConnected = mqttConnected;
-        mqttOneTimePrint = true;
-    }
-    if (mqttOneTimePrint)
-    {
-        clientName = data.mqttClientName.c_str();
-        brokerIpAddress = data.mqttBrokerIpAddress.c_str();
-        brokerPort = data.mqttBrokerPort;
-        mqttOneTimePrint = false;
-    }
 
-    // -- NTP
+    // ==== NTP ==== //
     HandleNTP();
 
-    // -- Republish
+    // ==== REPUBLISH ==== //
     HandleRepublish();
 };
 
 /**
- * Handels the WiFi connection.
- * Auto reconnects on dc
+ * @brief Handles the access point
+ * 
+ * @param shutdown If true the access point handler will shutdown the access point and change into the idle state
  */
-void Network::HandleWifi()
+void Network::HandleAccessPoint(bool shutdown)
 {
-    switch (wifiState)
-    {
-    case NetworkWiFiState::StartWifi:
-        WiFi.mode(WIFI_STA);
-        WiFi.hostname(data.mqttClientName.c_str());
-        WiFi.begin(data.wifiSSID.c_str(),
-                   data.wifiPassword.c_str());
-        wifiState = NetworkWiFiState::SuperviseWiFiConnection;
-        break;
+    bool ret = false;
 
-    case NetworkWiFiState::SuperviseWiFiConnection:
-        if (WiFi.status() != WL_CONNECTED)
+    switch (this->accessPointState)
+    {
+        // ================================ StartAccessPoint ================================ //
+    case NetworkAccessPointState::StartAccessPoint:
+        if (!shutdown)
         {
-            wifiState = NetworkWiFiState::CheckWiFiDisconnect; // Check if dc occurred
-            PrevMillis_WiFiTimeout = millis();                 // Set time for WiFi timeout check
+            WiFi.mode(WIFI_AP);
+            WiFi.softAPConfig(local_ip = this->accessPointIPAddress,
+                              gateway = this->accessPointIPAddress,
+                              subnet = this->accessPointSubnetmask);
+            ret = WiFi.softAP(ssid = this->accesspointName,
+                              psk = "",
+                              channel = 0,
+                              ssid_hidden = 0,
+                              max_connection = 1);
+            if (ret)
+            {
+                this->accessPointState = NetworkAccessPointState::SuperviseAccessPointConnection;
+            }
         }
         else
         {
-            wifiConnected = true;
+            this->accessPointState = NetworkAccessPointState::IdleAccessPoint;
         }
         break;
 
+        // ================================ SuperviseAccessPointConnection ================================ //
+    case NetworkAccessPointState::SuperviseAccessPointConnection:
+        this->accessPointConnectedClients = WiFi.softAPgetStationNum();
+        if (shutdown)
+        {
+            this->accessPointState = NetworkAccessPointState::ShutdownAccessPoint;
+        }
+        break;
+
+        // ================================ ShutdownAccessPoint ================================ //
+    case NetworkAccessPointState::ShutdownAccessPoint:
+        ret = WiFi.softAPdisconnect(wifioff = true);
+        if (ret)
+        {
+            this->accessPointState = NetworkAccessPointState::IdleAccessPoint;
+        }
+        break;
+
+        // ================================ IdleAccessPoint ================================ //
+    case NetworkAccessPointState::IdleAccessPoint:
+        if (!shutdown)
+        {
+            this->accessPointState = NetworkAccessPointState::StartAccessPoint;
+        }
+        break;
+
+    default:
+        Serial.println(F("Network unknown access point state!"));
+        break;
+    }
+}
+
+/**
+ * @brief Handles the connection to the wifi network
+ * 
+ * @param shutdown If true the wifi handler will shutdown the connection change into the idle state
+ */
+void Network::HandleWiFi(bool shutdown)
+{
+    switch (this->wifiState)
+    {
+        // ================================ StartWifi ================================ //
+    case NetworkWiFiState::StartWifi:
+        if (!shutdown)
+        {
+            if (this->filesystem->isConfigurationDataReady())
+            {
+                WiFi.mode(WIFI_STA);
+                WiFi.hostname(this->filesystem.getConfigurationData().mqttClientName.c_str());
+                WiFi.begin(this->filesystem.getConfigurationData().wifiSSID.c_str(),
+                           this->filesystem.getConfigurationData().wifiPassword.c_str());
+                this->wifiState = NetworkWiFiState::SuperviseWiFiConnection;
+            }
+        }
+        else
+        {
+            this->wifiState = NetworkWiFiState::Idle;
+        }
+        break;
+
+        // ================================ SuperviseWiFiConnection ================================ //
+    case NetworkWiFiState::SuperviseWiFiConnection:
+        if (WiFi.status() != WL_CONNECTED)
+        {
+            this->wifiState = NetworkWiFiState::CheckWiFiDisconnect;
+            PrevMillis_WiFiTimeout = millis();
+        }
+        else
+        {
+            this->isWiFiConnected = true;
+        }
+        if (shutdown)
+        {
+            this->wifiState = NetworkWiFiState::ShutdownWiFi;
+        }
+        break;
+
+        // ================================ CheckWiFiDisconnect ================================ //
     case NetworkWiFiState::CheckWiFiDisconnect:
         if (WiFi.status() != WL_CONNECTED)
         {
@@ -143,20 +224,41 @@ void Network::HandleWifi()
             unsigned long CurMillis_WiFiTimeout = millis();
             if (CurMillis_WiFiTimeout - PrevMillis_WiFiTimeout >= TimeOut_WiFiTimeout)
             {
-                wifiConnected = false;
+                this->isWiFiConnected = false;
                 PrevMillis_WiFiTimeout = CurMillis_WiFiTimeout;
-                WiFi.disconnect(); // Disconnect WiFi and start new connection
-                wifiState = NetworkWiFiState::StartWifi;
+                WiFi.disconnect();
+                this->wifiState = NetworkWiFiState::StartWifi;
             }
         }
         else
         {
-            wifiState = NetworkWiFiState::SuperviseWiFiConnection; // WiFi reconnected
+            this->wifiState = NetworkWiFiState::SuperviseWiFiConnection;
+        }
+        break;
+
+        // ================================ ShutdownWiFi ================================ //
+    case NetworkWiFiState::ShutdownWiFi:
+        if (WiFi.status() == WL_CONNECTED)
+        {
+            WiFi.disconnect();
+        }
+        else
+        {
+            this->isWiFiConnected = false;
+            this->wifiState = NetworkWiFiState::IdleWiFi;
+        }
+        break;
+
+        // ================================ IdleWiFi ================================ //
+    case NetworkWiFiState::IdleWiFi:
+        if (!shutdown)
+        {
+            this->wifiState = NetworkWiFiState::StartWifi;
         }
         break;
 
     default:
-        Serial.println(F("Wifi State Error!"));
+        Serial.println(F("Network unknown wifi state!"));
         break;
     }
 };
@@ -176,11 +278,11 @@ void Network::HandleMqtt()
     {
     case NetworkMQTTState::StartMqtt:
         // Only try reconnect when WiFi is connected
-        if (wifiConnected)
+        if (isWiFiConnected)
         {
-            if (mqttClient.connect(data.mqttClientName.c_str(),
-                                   data.mqttBrokerUsername.c_str(),
-                                   data.mqttBrokerPassword.c_str()))
+            if (mqttClient.connect(this->filesystem.getConfigurationData().mqttClientName.c_str(),
+                                   this->filesystem.getConfigurationData().mqttBrokerUsername.c_str(),
+                                   this->filesystem.getConfigurationData().mqttBrokerPassword.c_str()))
             {
                 // ================ HomeAssistant ================ //
                 /*
@@ -302,7 +404,7 @@ void Network::HandleMqtt()
         break;
 
     default:
-        Serial.println(F("Mqtt State Error!"));
+        Serial.println(F("Network unknown mqtt state!"));
         break;
     }
 };
@@ -921,4 +1023,84 @@ void Network::PublishNetwork()
 void Network::PublishCodeVersion()
 {
     mqttClient.publish(("LEDController/" + data.mqttClientName + "/Version").c_str(), codeVersion.c_str());
-} 
+}
+
+/**
+ * @brief Request for the network componente to change into access point mode
+ * 
+ */
+void Network::RequestChangeToAccessPointMode()
+{
+    if (this->isInWiFiMode && !this->isInAccessPointMode)
+    {
+        this->changeToAccessPointModeRequest = true;
+    }
+}
+
+/**
+ * @brief Request for the network componente to change into wifi mode
+ * 
+ */
+void Network::RequestChangeToWiFiMode()
+{
+    if (this->isInAccessPointMode && !this->isInWiFiMode)
+    {
+        this->changeToWiFiModeRequest = true;
+    }
+}
+
+/**
+ * @return The current WiFi state
+ */
+NetworkWiFiState Network::getWiFiState()
+{
+    return this->wifiState;
+}
+
+/**
+ * @return The current access point state
+ */
+NetworkAccessPointState Network::getAccessPointState()
+{
+    return this->accessPointState;
+}
+
+/**
+ * @return The current MQTT state
+ */
+NetworkMQTTState Network::getMQTTState()
+{
+    return this->mqttState;
+}
+
+/**
+ * @return The current WiFi information based on the used WiFi mode (AP or STA) 
+ */
+NetworkWiFiInformation Network::getWiFiInformation()
+{
+    NetworkWiFiInformation wiFiInformation = {};
+
+    wiFiInformation.ipAddress = WiFi.localIP().toString().c_str();
+    wiFiInformation.subnetMask = WiFi.subnetMask().toString().c_str();
+    wiFiInformation.macAddress = WiFi.macAddress();
+    wiFiInformation.gatewayIpAddress = WiFi.gatewayIP().toString().c_str();
+    wiFiInformation.hostname = WiFi.hostname();
+    wiFiInformation.inWiFiMode = this->isInWiFiMode;
+    wiFiInformation.inAccessPointMode = this->isInAccessPointMode;
+    wiFiInformation.isWiFiConnected = this->isWiFiConnected;
+
+    return wiFiInformation;
+}
+
+NetworkMQTTInformation Network::getMQTTInformation()
+{
+    NetworkMQTTInformation mqttInformation = {};
+
+    mqttInformation.clientName = this->filesystem.getConfigurationData().mqttClientName.c_str();
+    mqttInformation.brokerIpAddress = this->filesystem.getConfigurationData().mqttBrokerIpAddress.c_str();
+    mqttInformation.brokerPort = this->filesystem.getConfigurationData().mqttBrokerPort;
+    mqttInformation.isMQTTConnected = this->isMQTTConnected;
+    mqttInformation.clientState = this->clientState;
+
+    return mqttInformation;
+}

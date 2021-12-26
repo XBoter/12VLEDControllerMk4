@@ -56,6 +56,16 @@ enum class NetworkWiFiState
     StartWifi,
     SuperviseWiFiConnection,
     CheckWiFiDisconnect,
+    ShutdownWiFi,
+    IdleWiFi,
+};
+
+enum class NetworkAccessPointState
+{
+    StartAccessPoint,
+    SuperviseAccessPointConnection,
+    ShutdownAccessPoint,
+    IdleAccessPoint,
 };
 
 /**

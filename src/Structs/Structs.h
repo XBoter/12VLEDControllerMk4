@@ -14,6 +14,35 @@ struct NetworkTimeData
 };
 
 /**
+ * @brief Holds information about the current MQTT connection
+ * 
+ */
+struct NetworkMQTTInformation
+{
+    String clientName = "unknown";
+    String brokerIpAddress = "unknown";
+    uint16_t brokerPort = 0;
+    int clientState = 0;
+    bool isMQTTConnected = false;
+};
+
+/**
+ * @brief Holds information about the current usage of the WiFi connection
+ * 
+ */
+struct NetworkWiFiInformation
+{
+    String ipAddress = "unknown";
+    String subnetMask = "unknown";
+    String macAddress = "unknown";
+    String gatewayIpAddress = "unknown";
+    String hostname = "unknown";
+    bool inWiFiMode = false;
+    bool isWiFiConnected = false;
+    bool inAccessPointMode = false;
+};
+
+/**
  * Holds the data for the time based motion brightness
  */
 struct TimeBasedMotionBrightness
@@ -276,6 +305,7 @@ struct ConfigurationData
     String mqttBrokerUsername = "";
     String mqttBrokerPassword = "";
     String mqttClientName = "";
+    // == Flags
     bool isConfigured = false;
 };
 
@@ -297,6 +327,8 @@ struct SettingsData
     LEDOutputType ledStrip2Output3 = LEDOutputType::B;
     LEDOutputType ledStrip2Output4 = LEDOutputType::CW;
     LEDOutputType ledStrip2Output5 = LEDOutputType::WW;
+    // == Flags
+    bool isConfigured = false;
 };
 
 /**
@@ -323,4 +355,6 @@ struct LEDStateData
     uint8_t ledStrip2WarmWhiteValue = 0;
     uint8_t ledStrip2BrightnessValue = 0;
     SingleLEDEffect ledStrip2EffectValue = SingleLEDEffect::None;
-}
+    // == Flags
+    bool isConfigured = false;
+};

@@ -11,10 +11,10 @@ OTA::OTA(){
  * Sets reference to external components
  */
 void OTA::setReference(Network *network,
-                       Configuration *configuration)
+                       Webserver *webserver)
 {
     this->network = network;
-    this->configuration = configuration;
+    this->webserver = webserver;
 };
 
 /**
@@ -27,10 +27,10 @@ bool OTA::Init()
     if (!init)
     {
 
-        if (network->wifiConnected && configuration->isFinished)
+        if (network->wifiConnected && webserver->isConfigurationDataReady())
         {
-            ArduinoOTA.setHostname(configuration->data.mqttClientName.c_str());
-            ArduinoOTA.setPassword(configuration->data.mqttBrokerPassword.c_str());
+            ArduinoOTA.setHostname(webserver->getConfiguredData().mqttClientName.c_str());
+            ArduinoOTA.setPassword(webserver->getConfiguredData().mqttBrokerPassword.c_str());
 
             ArduinoOTA.onStart([]() {
                 String type;
