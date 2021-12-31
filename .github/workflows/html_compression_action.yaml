@@ -1,6 +1,5 @@
 name: Compress Webpage and transform to C Header
 on:
-  workflows: ["Run Tests"]
   push:
     paths:
     - '.github/workflows/html_compression_action.yaml'
