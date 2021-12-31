@@ -296,7 +296,8 @@
             outline: none;
             text-align: center;
         }
-        option{
+
+        option {
             text-align: center;
         }
     </style>
@@ -377,7 +378,11 @@
         </div>
         <div>
             <h2>Settings</h2>
-            <button class='pure-material-button-contained' id='settings-button'>Go to Settings Page</button>
+            <form action='/settings'>
+                <button type="submit" class='pure-material-button-contained' id='settings-button'>Go to Settings
+                    Page</button>
+            </form>
+
         </div>
     </div>
     <script>
