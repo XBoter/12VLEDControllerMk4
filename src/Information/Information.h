@@ -1,49 +1,45 @@
 #pragma once
 
-// Includes
+// ================================ INCLUDES ================================ //
 #include <Arduino.h>
 #include "../Network/Network.h"
 #include "../PirReader/PirReader.h"
 #include "../Enums/Enums.h"
 
-// Interface
+// ================================ INTERFACES ================================ //
 #include "../Interface/IBaseClass.h"
 
 // Blueprint for compiler. Problem => circular dependency
 class Network;
 class PirReader;
 
-// Classes
+// ================================ CLASS ================================ //
+/**
+ * @brief The Information Class prints diffrent information messages to the serial terminal
+ * 
+ */
 class Information : public IBaseClass
 {
-    // ## Constructor / Important ## //
+    // ================ Constructor / Reference ================ //
 public:
     Information();
-    void setReference(Network *network,
-                      Network *memNetwork,
-                      PirReader *pirReader,
-                      PirReader *memPirReader);
+    void setReference(Helper *helper);
     bool init = false;
 
-    // ## Interface ## //
+    // ================ Interface ================ //
 private:
 public:
     virtual bool Init();
     virtual void Run();
 
-    // ## Data ## //
+    // ================ Data ================ //
 private:
-    PirReader *pirReader;    // Pointer to used pirReader instance
-    PirReader *memPirReader; // Memory version of pirReader instance
-    Network *network;        // Pointer to used network instance
-    Network *memNetwork;     // Memory version of network instance
-    const String symbol = "=";
-    const uint8_t spacerLength = 40; // x * Spaces
-    const uint8_t insertLength = 4;  // x * Spaces
+    Helper *helper;
+
 public:
-    // ## Functions ## //
+    // ================ Methods ================ //
 private:
-    // Format print functions
+public:
     void FormatPrintSingle(String name,
                            String paramterValue);
 
@@ -100,17 +96,4 @@ private:
                                 String brokerIpAddress,
                                 int brokerPort,
                                 String clientName);
-
-public:
-    // Help functions
-    void TopSpacerPrint();
-    void BottomSpacerPrint();
-    void InsertPrint();
-    String BoolToString(bool b);
-    String BollToConnectionState(bool b);
-    String IntToClientStateInfo(int i);
-    String SingleLEDEffectToString(SingleLEDEffect effect);
-    SingleLEDEffect StringToSingleLEDEffect(String effect);
-    String MultiLEDEffectToString(MultiLEDEffect effect);
-    String FadeCurveToString(FadeCurve curve);
 };

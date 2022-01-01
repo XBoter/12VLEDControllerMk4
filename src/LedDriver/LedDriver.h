@@ -47,13 +47,6 @@ private:
     double LED_STRIP_REFRESH_RATE = 90; // x Times per Second
     unsigned long refreshRateCounter = 0;
 
-    // ---- Motion Brightness
-    TimeBasedMotionBrightness stTimeBasedMotionBrightness = {};
-
-    // ---- Network data
-    NetworkMotionData networkMotionData = {};
-    NetworkLEDStripData networkLEDStrip1Data = {};
-    NetworkLEDStripData networkLEDStrip2Data = {};
     unsigned long prevMillisReconnect = 0;
     unsigned long timeoutReconnect = 4000;
 

@@ -57,11 +57,6 @@ private:
     LedDriver ledDriver = LedDriver(PCA9685PW_I2C_ADDRESS);
     Information information = Information();
 
-    // ================ Memory Components ================ //
-    // Memory Version Instance for Information print
-    Network memNetwork = Network(Version);
-    PirReader memPirReader = PirReader(0, 0);
-
     // ================ Performance Calculation ================ //
     bool enablePerformanceMonitor = false;
 

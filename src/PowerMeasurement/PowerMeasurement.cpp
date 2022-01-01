@@ -143,7 +143,7 @@ void PowerMeasurement::Run()
         PrevMillis_PowerMessurmentUpdateRate = CurMillis_PowerMessurmentUpdateRate;
 
         // Check if WiFi or Mqtt is connected
-        if (network->wifiConnected || network->mqttConnected)
+        if (network->isWiFiConnected() || network->isMQTTConnected())
         {
 
             // Get Register Values
@@ -175,8 +175,7 @@ void PowerMeasurement::Run()
             valueCurrent_mA = 0.0;
         }
 
-        // Publish measured data
-        this->network->PublishElectricalMeasurement();
+        
     }
 }
 

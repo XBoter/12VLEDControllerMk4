@@ -4,14 +4,14 @@
 #include <Arduino.h>
 #include <ArduinoOTA.h>
 #include "../Network/Network.h"
-#include "../Webserver/Webserver.h"
+#include "../Filesystem/Filesystem.h"
 
 // Interface
 #include "../Interface/IBaseClass.h"
 
 // Blueprint for compiler. Problem => circular dependency
 class Network;
-class Configuration;
+class Filesystem;
 
 // Classes
 class OTA : public IBaseClass
@@ -20,7 +20,7 @@ class OTA : public IBaseClass
 public:
     OTA();
     void setReference(Network *network,
-                      Webserver *webserver);
+                      Filesystem *filesystem);
     bool init = false;
 
     // ## Interface ## //
@@ -32,7 +32,7 @@ public:
     // ## Data ## //
 private:
     Network *network;
-    Webserver *webserver;
+    Filesystem *filesystem;
 
 public:
     // ## Functions ## //

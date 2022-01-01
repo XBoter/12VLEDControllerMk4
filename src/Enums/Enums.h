@@ -36,16 +36,51 @@ enum class FadeCurve
     EaseInOut,
 };
 
-// Diffrent Alarm modes
-/*
-enum class AlarmMode
+/**
+ * @brief Defines the webserver configuration mode state
+ * 
+ */
+enum class WebserverConfigurationModeState
 {
-    Nothing,
-    Warning,
-    Error,
-    Critical,
+    StartConfigurationMode,
+    RunConfigurationMode,
+    ShutdownConfigurationMode,
+    IdleConfigurationMode,
 };
-*/
+
+/**
+ * @brief A substate for the configuration mode 
+ * 
+ */
+enum class WebserverConfigurationModeSubState
+{
+    BeginWebserver,
+    HandleClients,
+    StopWebServer,
+};
+
+/**
+ * @brief Defines the webserver normal mode state
+ * 
+ */
+enum class WebserverNormalModeState
+{
+    StartNormalMode,
+    RunNormalMode,
+    ShutdownNormalMode,
+    IdleNormalMode,
+};
+
+/**
+ * @brief A substate for the normal mode 
+ * 
+ */
+enum class WebserverNormalModeSubState
+{
+    BeginWebserver,
+    HandleClients,
+    StopWebServer,
+};
 
 /**
  * @brief Defines the WiFi Connection States
@@ -53,7 +88,7 @@ enum class AlarmMode
  */
 enum class NetworkWiFiState
 {
-    StartWifi,
+    StartWiFi,
     SuperviseWiFiConnection,
     CheckWiFiDisconnect,
     ShutdownWiFi,
@@ -74,9 +109,20 @@ enum class NetworkAccessPointState
  */
 enum class NetworkMQTTState
 {
-    StartMqtt,
-    SuperviseMqttConnection,
-    CheckMqttDisconnect,
+    StartMQTT,
+    SuperviseMQTTConnection,
+    CheckMQTTDisconnect,
+};
+
+/**
+ * @brief Defines the NTP Connection States
+ * 
+ */
+enum class NetworkNTPState
+{
+    StartNTP,
+    SuperviseNTPConnection,
+    CheckNTPDisconnect,
 };
 
 /**

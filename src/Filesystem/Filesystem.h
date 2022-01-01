@@ -10,7 +10,6 @@
 // ================================ INTERFACES ================================ //
 #include "../Interface/IBaseClass.h"
 
-
 // Blueprint for compiler. Problem => circular dependency
 class Helper;
 
@@ -57,13 +56,10 @@ private:
     // ================ Methods ================ //
 private:
     // ======== Configuration ======== //
-    void saveConfiguration(ConfigurationData data);
     ConfigurationData loadConfiguration();
     // ======== Settings ======== //
-    void saveSettings(SettingsData data);
     SettingsData loadSettings();
     // ======== LED State ======== //
-    void saveLEDState(LEDStateData data);
     LEDStateData loadLEDState();
     // ======== File Operations ======== //
     void createFileIfMissing(String filename);
@@ -71,13 +67,19 @@ private:
     void listAllFiles();
 
 public:
-    // ======== Config ======== //
+    // ======== Configuration ======== //
+    void resetConfiguration();
+    void saveConfiguration(ConfigurationData data);
     ConfigurationData getConfigurationData();
     bool isConfigurationDataReady();
     // ======== Settings ======== //
+    void resetSettings();
+    void saveSettings(SettingsData data);
     SettingsData getSettingData();
     bool isSettingsDataReady();
     // ======== LED State ======== //
+    void resetLEDState();
+    void saveLEDState(LEDStateData data);
     LEDStateData getLEDStateData();
     bool isLEDStateDataReady();
 };

@@ -1,11 +1,10 @@
 #include "PirReader.h"
 
 /**
- * Constructor for the PirReader class
+ * @brief Constructor for the PirReader class
  * 
- * @parameter pinPirSensor1     The digital pin of the 1 PIR sensor
- * @parameter pinPirSensor2     The digital pin of the 2 PIR sensor
- * @parameter *network          Pointer to the used instace of the Network class
+ * @param pinPirSensor1 The digital pin of the 1 PIR sensor
+ * @param pinPirSensor2 The digital pin of the 2 PIR sensor
  */
 PirReader::PirReader(uint8_t pinPirSensor1,
                      uint8_t pinPirSensor2)
@@ -15,27 +14,31 @@ PirReader::PirReader(uint8_t pinPirSensor1,
 };
 
 /**
- * Sets reference to external components
+ * @brief Sets the needed refernce for the pir reader class
  */
-void PirReader::setReference(Network *network)
+void PirReader::setReference(Network *network,
+                             Information *information,
+                             Helper *helper)
 {
     this->network = network;
+    this->information = information;
+    this->helper = helper;
 };
 
 /**
- * Does init stuff for the PirReader component
+ * @brief Initializes the pir reader component
  * 
- * @return True if successfull, false if not 
+ * @return True if the initialization was successful
  */
 bool PirReader::Init()
 {
     if (!init)
     {
         // PIR Sensor 1
-        pinMode(pinPirSensor1, INPUT);
+        pinMode(this->pinPirSensor1, INPUT);
 
         // PIR Sensor 2
-        pinMode(pinPirSensor2, INPUT);
+        pinMode(this->pinPirSensor2, INPUT);
 
         Serial.println(F("PIR Reader initialized"));
         init = true;
@@ -45,7 +48,8 @@ bool PirReader::Init()
 };
 
 /**
- * Runs the PirReader component. 
+ * @brief Runs the pir reader component
+ * 
  */
 void PirReader::Run()
 {
@@ -55,50 +59,89 @@ void PirReader::Run()
     }
 
     // Check Physical Motion Sensor 1
-    if (digitalRead(pinPirSensor1) == HIGH)
+    if (digitalRead(this->pinPirSensor1) == HIGH)
     {
-        sensor1Triggered = true;
+        this->sensor1Triggered = true;
     }
     else
     {
-        sensor1Triggered = false;
+        this->sensor1Triggered = false;
     }
 
     // Check Physical Motion Sensor 2
-    if (digitalRead(pinPirSensor2) == HIGH)
+    if (digitalRead(this->pinPirSensor2) == HIGH)
     {
-        sensor2Triggered = true;
+        this->sensor2Triggered = true;
     }
     else
     {
-        sensor2Triggered = false;
+        this->sensor2Triggered = false;
     }
 
     // Check Virtual Motion Sensor
-    if (network->virtualPIRSensorTriggered)
+    if (this->network->isVirtualPIRSensorTriggered())
     {
-        virtualSensorTriggered = true;
+        this->virtualSensorTriggered = true;
     }
     else
     {
-        virtualSensorTriggered = false;
+        this->virtualSensorTriggered = false;
     }
 
     // Check if motion detected by physical or virtual sensor
-    if (sensor1Triggered || sensor2Triggered || virtualSensorTriggered)
+    if (this->sensor1Triggered || this->sensor2Triggered || this->virtualSensorTriggered)
     {
-        sensorTriggered = true;
-        motionDetected = true;
+        this->sensorTriggered = true;
+        this->motionDetected = true;
         prevMillisMotion = millis();
     }
-    if (!sensor1Triggered && !sensor2Triggered && !virtualSensorTriggered)
+    if (!this->sensor1Triggered && !this->sensor2Triggered && !this->virtualSensorTriggered)
     {
-        sensorTriggered = false;
+        this->sensorTriggered = false;
     }
 
     // Update motionDetected based on timeout
-    if (millis() - prevMillisMotion >= (network->stNetworkMotionData.timeout * 1000))
+    if (millis() - prevMillisMotion >= (network->getNetworkMotionData().timeout * 1000))
     {
         motionDetected = false;
     }
+
+    if (this->sensorTriggered != this->memSensorTriggered || this->motionDetected != this->memMotionDetected)
+    {
+        this->information->FormatPrintMotionDetected(this->helper->BoolToString(this->motionDetected),
+                                                     this->helper->BoolToString(this->sensorTriggered),
+                                                     this->helper->BoolToString(this->sensor1Triggered),
+                                                     this->helper->BoolToString(this->sensor2Triggered),
+                                                     this->helper->BoolToString(this->virtualSensorTriggered));
+        this->memSensorTriggered = this->sensorTriggered;
+        this->memMotionDetected = this->motionDetected;
+    }
+}
+
+/**
+ * @brief Indicates if motion is detected
+ * 
+ * @return True motion was detected via the physical or virtual sensor
+ */
+bool PirReader::MotionDetected()
+{
+    return this->motionDetected;
+}
+
+/**
+ * @brief Retruns the current state of the PIR Reader data
+ * 
+ * @return PIRReaderData 
+ */
+PIRReaderData PirReader::getPIRReaderData()
+{
+    PIRReaderData data = {};
+
+    data.motionDetected = this->motionDetected;
+    data.sensorTriggered = this->sensorTriggered;
+    data.sensor1Triggered = this->sensor1Triggered;
+    data.sensor2Triggered = this->sensor2Triggered;
+    data.virtualSensorTriggered = this->virtualSensorTriggered;
+
+    return data;
 }

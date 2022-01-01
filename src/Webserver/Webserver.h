@@ -7,6 +7,9 @@
 #include <WiFiClient.h>
 
 #include "../Structs/Structs.h"
+#include "../Filesystem/Filesystem.h"
+#include "../Helper/Helper.h"
+#include "../Network/Network.h"
 #include "../src/Webpage/transformed_to_c/ConfigurationPage.h"
 #include "../src/Webpage/transformed_to_c/SubmittedConfigurationPage.h"
 #include "../src/Webpage/transformed_to_c/MainPage.h"
@@ -14,6 +17,11 @@
 
 // ================================ INTERFACES ================================ //
 #include "../Interface/IBaseClass.h"
+
+// Blueprint for compiler. Problem => circular dependency
+class Filesystem;
+class Helper;
+class Network;
 
 // ================================ CLASS ================================ //
 /**
@@ -27,7 +35,9 @@ class Webserver : public IBaseClass
     // ================ Constructor / Reference ================ //
 public:
     Webserver();
-    void setReference();
+    void setReference(Filesystem *filesystem,
+                      Helper *helper,
+                      Network *network);
     bool init = false;
 
     // ================ Interface ================ //
@@ -38,40 +48,54 @@ public:
 
     // ================ Data ================ //
 private:
-    // ======== onboard LED ======== //
+    Filesystem *filesystem;
+    Helper *helper;
+    Network *network;
+
+    // ======== OnBoard LED ======== //
     bool onboardLEDState = false;
     unsigned long prevMillisBlinkOnBoardLED = 0;
 
-    // ======== Configuration ======== //
-    uint configurationDataAdr = 0;
-    bool ControllerConfigurationIsSet = false;
-
-    IPAddress apIP = IPAddress(192, 168, 1, 1);
-
-    unsigned long prevMillisReset = 0;
-    unsigned long prevMillisResetBlink = 0;
-    unsigned long prevMillisAPShutdown = 0;
-
-    unsigned long timeoutResetBlink = 300;
-    unsigned long timeoutRest = 5000;       // 5 sec
-    unsigned long timeoutAPShutdown = 2000; // 2 sec
-
-    uint state = 0;
-
+    // ======== Configuration Mode ======== //
+    unsigned long prevMillisConfigurationMode = 0;
+    unsigned long timeoutConfigurationMode = 5000; // 5 sec
+    ConfigurationData configurationData = {};
+    WebserverConfigurationModeState configurationModeState = WebserverConfigurationModeState::StartConfigurationMode;
+    WebserverConfigurationModeSubState configurationModeSubState = WebserverConfigurationModeSubState::BeginWebserver;
     bool isInConfigurationMode = false;
+    bool shutdownConfigurationMode = true;
     bool changeToConfigurationModeRequest = false;
 
-    bool isInNormalMode = false;
+    // ======== Normal Mode ======== //
+    unsigned long prevMillisNormalMode = 0;
+    unsigned long timeoutNormalMode = 5000; // 5 sec
+    WebserverNormalModeState normalModeState = WebserverNormalModeState::StartNormalMode;
+    WebserverNormalModeSubState normalModeSubState = WebserverNormalModeSubState::BeginWebserver;
+    bool isInNormalMode = true;
+    bool shutdownNormalMode = false;
     bool changeToNormalModeRequest = false;
 
     // ================ Functions ================ //
 private:
-    void inputFormConfiguration();
-    void inputFormFilledConfiguration();
+    // ======== OnBoard LED ======== //
     void blinkOnBoardLED(uint16_t interval);
     void turnOffOnBoardLED();
-    void ConfigurationModeHandler();
-    void NormalModeHandler();
+    // ======== Configuration Mode ======== //
+    // ==== Handler
+    void ConfigurationModeHandler(bool shutdown);
+    // ==== Webpages
+    void ConfigurationWebpage();
+    void ConfigurationWebpageSubmitted();
+    void ConfigurationNotFoundWebpage();
+    // ======== Normal Mode ======== //
+    // ==== Handler
+    void NormalModeHandler(bool shutdown);
+    // ==== Webpages
+    void NormalMainWebpage();
+    void NormalMainWebpageEvent();
+    void NormalSettingsWebpage();
+    void NormalSettingsWebpageEvent();
+    void NormalNotFoundWebpage();
 
 public:
     bool getConfigurationMode();

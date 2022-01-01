@@ -1,6 +1,7 @@
 #pragma once
 
 #include "../Enums/Enums.h"
+#include "../Constants/Constants.h"
 
 /**
  * Holds the data for the current time
@@ -43,9 +44,10 @@ struct NetworkWiFiInformation
 };
 
 /**
- * Holds the data for the time based motion brightness
+ * @brief Holds detailed information about the sunfall and sunrise
+ * 
  */
-struct TimeBasedMotionBrightness
+struct DetailedSunData
 {
     // Sunfall
     unsigned long sunfallUnix = 0;
@@ -306,7 +308,7 @@ struct ConfigurationData
     String mqttBrokerPassword = "";
     String mqttClientName = "";
     // == Flags
-    bool isConfigured = false;
+    bool isConfigured = false; // If true the data is configured initially
 };
 
 /**
@@ -328,7 +330,7 @@ struct SettingsData
     LEDOutputType ledStrip2Output4 = LEDOutputType::CW;
     LEDOutputType ledStrip2Output5 = LEDOutputType::WW;
     // == Flags
-    bool isConfigured = false;
+    bool isConfigured = false; // If true the data is configured initially
 };
 
 /**
@@ -356,5 +358,32 @@ struct LEDStateData
     uint8_t ledStrip2BrightnessValue = 0;
     SingleLEDEffect ledStrip2EffectValue = SingleLEDEffect::None;
     // == Flags
-    bool isConfigured = false;
+    bool isConfigured = false; // If true the data is configured initially
+};
+
+/**
+ * @brief Data Type which holds information about the PIR Reader
+ * 
+ */
+struct PIRReaderData
+{
+    bool motionDetected = false;
+    bool sensorTriggered = false;
+    bool sensor1Triggered = false;
+    bool sensor2Triggered = false;
+    bool virtualSensorTriggered = false;
+};
+
+/**
+ * @brief Holds all the data received/transmitted over MQTT needed for the led operations
+ * 
+ */
+struct NetworkData
+{
+    bool masterPresent = false;
+    bool sunUnderTheHorizon = false;
+    bool alarm = false;
+    bool virtualPIRSensorTriggered = false;
+    NetworkMotionData networkMotionData = {};
+    NetworkLEDStripData networkLEDStripData[STRIP_COUNT] = {};
 };

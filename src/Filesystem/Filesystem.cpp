@@ -52,6 +52,7 @@ bool Filesystem::Init()
         this->loadSettings();
         this->loadLEDState();
 
+        Serial.println(F("Filesystem initialized"));
         init = true;
     }
     return init;
@@ -69,7 +70,7 @@ void Filesystem::Run()
 };
 
 /**
- * @brief Returns the loaded ConfigurationData if 'isConfigurationDataReady' is true
+ * @brief Returns the loaded ConfigurationData if 'configurationDataReady' is true
  * 
  * @return The loaded ConfigurationData from the filesystem
  */
@@ -82,7 +83,7 @@ ConfigurationData Filesystem::getConfigurationData()
 };
 
 /**
- * @brief Returns the loaded SettingsData if 'isSettingsDataReady' is true
+ * @brief Returns the loaded SettingsData if 'settingsDataReady' is true
  * 
  * @return The loaded SettingsData from the filesystem
  */
@@ -95,7 +96,7 @@ SettingsData Filesystem::getSettingData()
 };
 
 /**
- * @brief Returns the loaded LEDStateData if 'isLEDStateDataReady' is true
+ * @brief Returns the loaded LEDStateData if 'ledStateDataReady' is true
  * 
  * @return The loaded LEDStateData from the filesystem
  */
@@ -174,6 +175,8 @@ void Filesystem::saveConfiguration(ConfigurationData data)
 
     delay(2000); // Make sure the CREATE and LASTWRITE times are different
     file.close();
+    this->configurationData = data;
+    this->configurationDataReady = true;
 };
 
 /**
@@ -261,6 +264,8 @@ void Filesystem::saveSettings(SettingsData data)
 
     delay(2000); // Make sure the CREATE and LASTWRITE times are different
     file.close();
+    this->settingsData = data;
+    this->settingsDataReady = true;
 };
 
 /**
@@ -384,6 +389,8 @@ void Filesystem::saveLEDState(LEDStateData data)
 
     delay(2000); // Make sure the CREATE and LASTWRITE times are different
     file.close();
+    this->ledStateData = data;
+    this->ledStateDataReady = true;
 };
 
 /**
@@ -395,7 +402,6 @@ ConfigurationData Filesystem::loadConfiguration()
 {
     ConfigurationData data;
     Serial.println(F("Loading configuration data"));
-    Serial.println("");
 
     File file = LittleFS.open("/" + this->configurationFilename, "r");
     if (!file)
@@ -473,6 +479,9 @@ ConfigurationData Filesystem::loadConfiguration()
         }
     }
     file.close();
+    this->configurationData = data;
+    this->configurationDataReady = true;
+    Serial.println(F("Loaded configuration data"));
     return data;
 };
 
@@ -485,7 +494,6 @@ SettingsData Filesystem::loadSettings()
 {
     SettingsData data;
     Serial.println(F("Loading settings data"));
-    Serial.println("");
 
     File file = LittleFS.open("/" + this->settingsFilename, "r");
     if (!file)
@@ -578,6 +586,9 @@ SettingsData Filesystem::loadSettings()
         }
     }
     file.close();
+    this->settingsData = data;
+    this->settingsDataReady = true;
+    Serial.println(F("Loaded settings data"));
     return data;
 };
 
@@ -590,7 +601,6 @@ LEDStateData Filesystem::loadLEDState()
 {
     LEDStateData data;
     Serial.println(F("Loading led state data"));
-    Serial.println("");
 
     File file = LittleFS.open("/" + this->ledStateFilename, "r");
     if (!file)
@@ -713,6 +723,9 @@ LEDStateData Filesystem::loadLEDState()
         }
     }
     file.close();
+    this->ledStateData = data;
+    this->ledStateDataReady = true;
+    Serial.println(F("Loaded led state data"));
     return data;
 };
 
@@ -736,13 +749,73 @@ void Filesystem::createFileIfMissing(String filename)
 }
 
 /**
+ * @brief Resets the configuration file on the filesystem and the configuration data
+ * 
+ */
+void Filesystem::resetConfiguration()
+{
+    this->resetFileIfExists(this->configurationFilename);
+    this->configurationData = {};
+    this->configurationDataReady = false;
+}
+
+/**
+ * 
+ * @return True the configuration data is ready (loaded / saved)
+ */
+bool Filesystem::isConfigurationDataReady()
+{
+    return this->configurationDataReady;
+}
+
+/**
+ * 
+ * @return True the settings data is ready (loaded / saved)
+ */
+bool Filesystem::isSettingsDataReady()
+{
+    return this->settingsDataReady;
+}
+
+/**
+ * 
+ * @return True the led state data is ready (loaded / saved)
+ */
+bool Filesystem::isLEDStateDataReady()
+{
+    return this->ledStateDataReady;
+}
+
+/**
+ * @brief Resets the settings file on the filesystem and the settings data
+ * 
+ */
+void Filesystem::resetSettings()
+{
+    this->resetFileIfExists(this->settingsFilename);
+    this->settingsData = {};
+    this->settingsDataReady = false;
+}
+
+/**
+ * @brief Resets the led state file on the filesystem and the led state data
+ * 
+ */
+void Filesystem::resetLEDState()
+{
+    this->resetFileIfExists(this->ledStateFilename);
+    this->ledStateData = {};
+    this->ledStateDataReady = false;
+}
+
+/**
  * @brief Resets a file on the filesystem if it exists
  * 
  * @param filename The name of the file to reset
  */
 void Filesystem::resetFileIfExists(String filename)
 {
-    if (LittleFS.exists("/config.txt"))
+    if (LittleFS.exists(filename))
     {
         Serial.println("Resetting file: '" + filename + "'");
         File file = LittleFS.open("/" + filename, "w");

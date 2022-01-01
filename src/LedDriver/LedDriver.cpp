@@ -85,14 +85,9 @@ void LedDriver::Run()
         previousMillisRefreshRate = currentMillisRefreshRate;
         refreshRateCounter++;
 
-        // ---- Copy data from network to led driver
-        networkMotionData = network->stNetworkMotionData;
-        networkLEDStrip1Data = network->stNetworkLedStrip1Data;
-        networkLEDStrip2Data = network->stNetworkLedStrip2Data;
-
         // Check if WiFi or MQTT got a disconnect and start the timer
         unsigned long CurMillis_ConnectionLost = millis();
-        if(!network->wifiConnected || !network->mqttConnected)
+        if (!network->isWiFiConnected() || !network->isMQTTConnected())
         {
             if (CurMillis_ConnectionLost - PrevMillis_ConnectionLost >= TimeOut_ConnectionLost)
             {
@@ -122,7 +117,6 @@ void LedDriver::Run()
             FadeToBlack();
         }
 
-
         // ---- Update LED strip
         // -- Strip 1
         UpdateLEDStrip(1);
@@ -142,21 +136,24 @@ void LedDriver::HandleMultiLEDStripControlLogic()
 {
     MultiLEDStripEffectData *effectData = getMultiLEDStripEffectData();
 
-    if (network->alarm)
+    if (this->network->isAlarm())
     {
         effectData->multiLEDEffect = MultiLEDEffect::Alarm;
     }
     else
     {
-        if (network->parameter_master_present)
+        if (this->network->isMasterPresent())
         {
-            if (networkLEDStrip1Data.power || networkLEDStrip2Data.power)
+            if (this->network->getNetworkLEDStripData(1).power ||
+                this->network->getNetworkLEDStripData(2).power)
             {
                 effectData->multiLEDEffect = MultiLEDEffect::SingleLEDEffect;
             }
             else
             {
-                if (pirReader->motionDetected && network->stNetworkMotionData.motionDetectionEnabled && network->parameter_sun)
+                if (this->pirReader->MotionDetected() &&
+                    this->network->getNetworkMotionData().motionDetectionEnabled &&
+                    this->network->isSunUnderTheHorizon())
                 {
                     effectData->multiLEDEffect = MultiLEDEffect::MotionDetected;
                 }
@@ -224,28 +221,28 @@ void LedDriver::HandleMultiLEDStripEffects()
             break;
 
         case MultiLEDEffect::SingleLEDEffect:
-            HandleSingleLEDStripEffects(1, networkLEDStrip1Data);
-            HandleSingleLEDStripEffects(2, networkLEDStrip2Data);
+            HandleSingleLEDStripEffects(1, this->network->getNetworkLEDStripData(1));
+            HandleSingleLEDStripEffects(2, this->network->getNetworkLEDStripData(2));
             break;
 
         case MultiLEDEffect::MotionDetected:
-            highLevelLEDStripData.redColorValue = networkMotionData.redColorValue;
-            highLevelLEDStripData.greenColorValue = networkMotionData.greenColorValue;
-            highLevelLEDStripData.blueColorValue = networkMotionData.blueColorValue;
-            highLevelLEDStripData.whiteTemperatureValue = networkMotionData.whiteTemperatureValue;
+            highLevelLEDStripData.redColorValue = this->network->getNetworkMotionData().redColorValue;
+            highLevelLEDStripData.greenColorValue = this->network->getNetworkMotionData().greenColorValue;
+            highLevelLEDStripData.blueColorValue = this->network->getNetworkMotionData().blueColorValue;
+            highLevelLEDStripData.whiteTemperatureValue = this->network->getNetworkMotionData().whiteTemperatureValue;
 
             // Check for timebased brightness
-            if (networkMotionData.timeBasedBrightnessChangeEnabled)
+            if (this->network->getNetworkMotionData().timeBasedBrightnessChangeEnabled)
             {
                 // Map brightness value
                 uint8_t percent = getMotionBrightnessPercent();
-                highLevelLEDStripData.colorBrightnessValue = (uint16_t)((double)networkMotionData.colorBrightnessValue * ((double)percent / 100.0));
-                highLevelLEDStripData.whiteBrightnessValue = (uint16_t)((double)networkMotionData.whiteBrightnessValue * ((double)percent / 100.0));
+                highLevelLEDStripData.colorBrightnessValue = (uint16_t)((double)this->network->getNetworkMotionData().colorBrightnessValue * ((double)percent / 100.0));
+                highLevelLEDStripData.whiteBrightnessValue = (uint16_t)((double)this->network->getNetworkMotionData().whiteBrightnessValue * ((double)percent / 100.0));
             }
             else
             {
-                highLevelLEDStripData.colorBrightnessValue = networkMotionData.colorBrightnessValue;
-                highLevelLEDStripData.whiteBrightnessValue = networkMotionData.whiteBrightnessValue;
+                highLevelLEDStripData.colorBrightnessValue = this->network->getNetworkMotionData().colorBrightnessValue;
+                highLevelLEDStripData.whiteBrightnessValue = this->network->getNetworkMotionData().whiteBrightnessValue;
             }
             FadeToColor(1, highLevelLEDStripData);
             FadeToColor(2, highLevelLEDStripData);
@@ -273,9 +270,10 @@ void LedDriver::HandleMultiLEDStripEffects()
                     effectData->subTransitionState = 10;
                 }
                 break;
-            
+
             case 10:
-                if(millis() - effectData->prevMillis >= 500){
+                if (millis() - effectData->prevMillis >= 500)
+                {
                     effectData->subTransitionState = 20;
                 }
                 break;
@@ -291,11 +289,11 @@ void LedDriver::HandleMultiLEDStripEffects()
                 break;
 
             case 30:
-                if(millis() - effectData->prevMillis >= 1500){
+                if (millis() - effectData->prevMillis >= 1500)
+                {
                     effectData->subTransitionState = 0;
                 }
                 break;
-
             }
 
             break;
@@ -535,23 +533,23 @@ uint8_t LedDriver::getMotionBrightnessPercent()
 {
     uint8_t percent = 100;
 
-    if (stTimeBasedMotionBrightness.isSunfallSet && stTimeBasedMotionBrightness.isSunriseSet)
+    if (this->network->getDetailedSunData().isSunfallSet && this->network->getDetailedSunData().isSunriseSet)
     {
-        uint32_t difference = stTimeBasedMotionBrightness.sunfallUnix - stTimeBasedMotionBrightness.sunriseUnix;
-        unsigned long lowestBrightnessUnix = stTimeBasedMotionBrightness.sunfallUnix + (unsigned long)((double)difference / 2.0);
-        unsigned long maxBrightness = stTimeBasedMotionBrightness.sunfallUnix + difference;
-        if (network->stNetworkTimeData.unix <= lowestBrightnessUnix)
+        uint32_t difference = this->network->getDetailedSunData().sunfallUnix - this->network->getDetailedSunData().sunriseUnix;
+        unsigned long lowestBrightnessUnix = this->network->getDetailedSunData().sunfallUnix + (unsigned long)((double)difference / 2.0);
+        unsigned long maxBrightness = this->network->getDetailedSunData().sunfallUnix + difference;
+        if (this->network->getNetworkTimeData().unix <= lowestBrightnessUnix)
         {
-            percent = map(network->stNetworkTimeData.unix, stTimeBasedMotionBrightness.sunfallUnix, lowestBrightnessUnix, 100, 13);
+            percent = map(this->network->getNetworkTimeData().unix, this->network->getDetailedSunData().sunfallUnix, lowestBrightnessUnix, 100, 13);
         }
-        else if (network->stNetworkTimeData.unix > lowestBrightnessUnix)
+        else if (this->network->getNetworkTimeData().unix > lowestBrightnessUnix)
         {
-            percent = map(network->stNetworkTimeData.unix, stTimeBasedMotionBrightness.sunfallUnix, maxBrightness, 13, 100);
+            percent = map(this->network->getNetworkTimeData().unix, this->network->getDetailedSunData().sunfallUnix, maxBrightness, 13, 100);
         }
     }
     else
     {
-        switch (network->stNetworkTimeData.hour)
+        switch (this->network->getNetworkTimeData().hour)
         {
         // 100%
         case 20:

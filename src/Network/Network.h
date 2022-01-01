@@ -11,7 +11,9 @@
 #include <WiFiUdp.h>
 #include "../Enums/Enums.h"
 #include "../Structs/Structs.h"
+#include "../Constants/Constants.h"
 #include "../Filesystem/Filesystem.h"
+#include "../Helper/Helper.h"
 #include "../Information/Information.h"
 #include "../PirReader/PirReader.h"
 #include "../PowerMeasurement/PowerMeasurement.h"
@@ -21,6 +23,7 @@
 
 // Blueprint for compiler. Problem => circular dependency
 class Filesystem;
+class Helper;
 class Information;
 class PirReader;
 class PowerMeasurement;
@@ -32,6 +35,7 @@ class Network : public IBaseClass
 public:
     Network(String codeVersion);
     void setReference(Filesystem *filesystem,
+                      Helper *helper,
                       Information *information,
                       PirReader *pirReader,
                       PowerMeasurement *powerMeasurement);
@@ -47,51 +51,44 @@ public:
 private:
     // ======== External Components ======== //
     Filesystem *filesystem;
+    Helper *helper;
     Information *information;
     PirReader *pirReader;
     PowerMeasurement *powerMeasurement;
 
-    WiFiClient wifiMqtt;
-    WiFiUDP ntpUDP;
-    const long utcOffsetInSeconds = 3600; // UTC +1 (Germany) => 1 * 60 * 60 => 3600
-    NTPClient timeClient = NTPClient(ntpUDP, "europe.pool.ntp.org", utcOffsetInSeconds);
-
-    // Prev Millis
-    unsigned long PrevMillis_WiFiTimeout = 0;
-    unsigned long PrevMillis_MQTTTimeout = 0;
-    unsigned long PrevMillis_NTPTimeout = 0;
-    unsigned long PrevMillis_HeartbeatTimeout = 0;
-
-    // Timeout
-    const unsigned long TimeOut_WiFiTimeout = 5000;      // 5 sec
-    const unsigned long TimeOut_MQTTTimeout = 5000;      // 5 sec
-    const unsigned long TimeOut_NTPTimeout = 60000;      // 60 sec
-    const unsigned long TimeOut_HeartbeatTimeout = 5000; // 5 sec
-
-    bool wifiOneTimePrint = true;
-    bool mqttOneTimePrint = true;
-    bool memWifiConnected = false;
-    bool memMqttConnected = false;
-
     // ==== NTP
+    unsigned long PrevMillis_NTPTimeout = 0;
+    const unsigned long TimeOut_NTPTimeout = 60000; // 1 minute
+    NetworkNTPState ntpState = NetworkNTPState::StartNTP;
+    NetworkNTPState memNtpState = NetworkNTPState::StartNTP;
+    const long utcOffsetInSeconds = 3600; // UTC +1 (Germany) => 1 * 60 * 60 => 3600
+    WiFiUDP ntpUDP;
+    NTPClient ntpTimeClient = NTPClient(ntpUDP, "europe.pool.ntp.org", utcOffsetInSeconds);
 
     // ==== MQTT
-    NetworkMQTTState mqttState = NetworkMQTTState::StartMqtt;
+    unsigned long PrevMillis_MQTTTimeout = 0;
+    const unsigned long TimeOut_MQTTTimeout = 5000; // 5 sec
+    NetworkMQTTState mqttState = NetworkMQTTState::StartMQTT;
+    NetworkMQTTState memMqttState = NetworkMQTTState::StartMQTT;
     PubSubClient mqttClient;
-    bool isMQTTConnected = false;
+    bool MQTTConnected = false;
     int clientState = 0;
+    WiFiClient wifiMqtt;
     DynamicJsonDocument doc = DynamicJsonDocument(2048);
 
     // ==== WiFi
-    NetworkWiFiState wifiState = NetworkWiFiState::StartWifi;
-    bool isWiFiConnected = false;
-    bool isInWiFiMode = true;
+    unsigned long PrevMillis_WiFiTimeout = 0;
+    const unsigned long TimeOut_WiFiTimeout = 5000; // 5 sec
+    NetworkWiFiState wifiState = NetworkWiFiState::StartWiFi;
+    NetworkWiFiState memWifiState = NetworkWiFiState::StartWiFi;
+    bool WiFiConnected = false;
+    bool wiFiMode = true;
     bool shutdownWiFi = false;
     bool changeToWiFiModeRequest = false;
 
     // ==== Access Point
     NetworkAccessPointState accessPointState = NetworkAccessPointState::IdleAccessPoint;
-    bool isInAccessPointMode = false;
+    bool accessPointMode = false;
     bool shutdownAccessPoint = true;
     bool changeToAccessPointModeRequest = false;
     uint8_t accessPointConnectedClients = 0;
@@ -99,30 +96,16 @@ private:
     IPAddress accessPointIPAddress = IPAddress(192, 168, 1, 1);
     IPAddress accessPointSubnetmask = IPAddress(255, 255, 255, 0);
 
-    // ======== Other ======== //
-    String codeVersion = "";
+    // ==== Information Print
+    unsigned long prevMillisInformationPrint = 0;
+    const unsigned long timeoutInformationPrint = 100; // 100 msec
+    bool motionDetectionDataPrint = false;
+    bool ledStripDataPrint[STRIP_COUNT]{false};
 
-public:
-    // Other Data
-    TimeBasedMotionBrightness stTimeBasedMotionBrightness = {};
-
-    // MQTT Data
-    // Sun
-    bool parameter_sun = false;
-    // Time
-    NetworkTimeData stNetworkTimeData = {};
-    // Master
-    bool parameter_master_present = false;
-    // Alarm
-    bool alarm = false;
-    // Motion
-    NetworkMotionData stNetworkMotionData = {};
-    // LED Strip 1
-    NetworkLEDStripData stNetworkLedStrip1Data = {};
-    // LED Strip 2
-    NetworkLEDStripData stNetworkLedStrip2Data = {};
-    // Virtual PIR Sensor
-    bool virtualPIRSensorTriggered = false;
+    // ====  Data
+    NetworkData networkData = {};
+    DetailedSunData detailedSunData = {};
+    NetworkTimeData networkTimeData = {};
 
     // ==== Republish / Publish functions
     unsigned long prevMillisPublishMotionDetected = 0;
@@ -139,8 +122,13 @@ public:
     uint32_t timeoutPublishMotionLEDStripData = 60000;    // 1 Minute
     uint32_t timeoutPublishNetwork = 60000;               // 1 Minute
 
+    // ======== Other ======== //
+    String codeVersion = "";
+
+public:
     // ================ Methods ================ //
 private:
+    // ==== Network
     void HandleWiFi(bool shutdown);
     void HandleAccessPoint(bool shutdown);
     void HandleMqtt();
@@ -148,27 +136,8 @@ private:
     void MqttCallback(char *topic, byte *payload, unsigned int length);
 
     // ==== Republish / Publish functions
-    // == Handle
     void HandleRepublish();
 
-    // == Homeassistant
-    void PublishHomeassistantMotionDetected();
-    void PublishHomeassistantLEDStripData();
-    void PublishHomeassistantElectricalMeasurement();
-    void PublishHomeassistantHeartbeat();
-    void PublishHomeassistantMotionLEDStripData();
-    void PublishHomeassistantNetwork();
-
-    // == Json
-    void PublishJsonMotionDetected();
-    void PublishJsonLEDStripData();
-    void PublishJsonElectricalMeasurement();
-    void PublishJsonHeartbeat();
-    void PublishJsonMotionLEDStripData();
-    void PublishJsonNetwork();
-
-public:
-    // ==== Republish / Publish functions
     void PublishMotionDetected();
     void PublishLEDStripData();
     void PublishElectricalMeasurement();
@@ -177,13 +146,31 @@ public:
     void PublishNetwork();
     void PublishCodeVersion();
 
+public:
     NetworkWiFiState getWiFiState();
     NetworkAccessPointState getAccessPointState();
     NetworkMQTTState getMQTTState();
 
+    bool isWiFiConnected();
+    bool isMQTTConnected();
+
     void RequestChangeToWiFiMode();
+    bool isInWiFiMode();
     void RequestChangeToAccessPointMode();
+    bool isInAccessPointMode();
 
     NetworkWiFiInformation getWiFiInformation();
     NetworkMQTTInformation getMQTTInformation();
+
+    bool isVirtualPIRSensorTriggered();
+    void resetVirtualPIRSensor();
+    bool isMasterPresent();
+    bool isAlarm();
+    bool isSunUnderTheHorizon();
+    NetworkMotionData getNetworkMotionData();
+    NetworkLEDStripData getNetworkLEDStripData(uint8_t stripID);
+
+    NetworkData getNetworkData();
+    DetailedSunData getDetailedSunData();
+    NetworkTimeData getNetworkTimeData();
 };
