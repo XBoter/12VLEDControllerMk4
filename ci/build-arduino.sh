@@ -26,6 +26,8 @@ arduino-cli lib install NTPClient
 arduino-cli lib install pubsubclient
 # Install ArduinoJson Library 
 arduino-cli lib install ArduinoJson
+# Install Websocket Library 
+arduino-cli lib install WebSockets
 # Link Arduino library
 ln -s $GITHUB_WORKSPACE $HOME/Arduino/libraries/CI_Test_Library
 # Compile all *.ino files for the Arduino Uno
