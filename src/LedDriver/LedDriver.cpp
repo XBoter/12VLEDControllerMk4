@@ -15,11 +15,13 @@ LedDriver::LedDriver(uint8_t i2cAddress)
  */
 void LedDriver::setReference(I2C *i2c,
                              Network *network,
-                             PirReader *pirReader)
+                             PirReader *pirReader,
+                             Filesystem *filesystem)
 {
     this->i2c = i2c;
     this->network = network;
     this->pirReader = pirReader;
+    this->filesystem = filesystem;
 };
 
 // # ================================================================ ================================================================ # //
@@ -54,7 +56,7 @@ bool LedDriver::Init()
 
         createInitalTypes();
 
-        // ---- Calculate refresh rate data
+        // ==== Calculate refresh rate data
         intervalRefreshRate = (unsigned long)(1000.0 / LED_STRIP_REFRESH_RATE);
         Serial.print(F("LED Strip get refreshed every '"));
         Serial.print(intervalRefreshRate);
@@ -106,7 +108,7 @@ void LedDriver::Run()
             // Wait a little to receive data from mqtt before showing led strip
             if (currentMillisRefreshRate - prevMillisReconnect >= timeoutReconnect)
             {
-                // -- Handle multi LED strip effects
+                // == Handle multi LED strip effects
                 HandleMultiLEDStripControlLogic();
                 HandleMultiLEDStripEffects();
             }
@@ -117,10 +119,10 @@ void LedDriver::Run()
             FadeToBlack();
         }
 
-        // ---- Update LED strip
-        // -- Strip 1
+        // ==== Update LED strip
+        // == Strip 1
         UpdateLEDStrip(1);
-        // -- Strip 2
+        // == Strip 2
         UpdateLEDStrip(2);
     }
 };
@@ -677,60 +679,60 @@ void LedDriver::createInitalTypes()
 
     // ================================ LOW LEVEL ================================ //
     // ======== defaultLowLevelFadeTimesAndFadeCurves
-    // ---- Color
-    // -- RED
+    // ==== Color
+    // == RED
     defaultLowLevelFadeTimesAndFadeCurves.redColorFadeTime = defaultHighLevelFadeTimesAndFadeCurves.colorFadeTime;
     defaultLowLevelFadeTimesAndFadeCurves.redColorFadeCurve = defaultHighLevelFadeTimesAndFadeCurves.colorFadeCurve;
     defaultLowLevelFadeTimesAndFadeCurves.redBrightnessFadeTime = defaultHighLevelFadeTimesAndFadeCurves.colorBrightnessFadeTime;
     defaultLowLevelFadeTimesAndFadeCurves.redBrightnessFadeCurve = defaultHighLevelFadeTimesAndFadeCurves.colorBrightnessFadeCurve;
-    // -- GREEN
+    // == GREEN
     defaultLowLevelFadeTimesAndFadeCurves.greenColorFadeTime = defaultHighLevelFadeTimesAndFadeCurves.colorFadeTime;
     defaultLowLevelFadeTimesAndFadeCurves.greenColorFadeCurve = defaultHighLevelFadeTimesAndFadeCurves.colorFadeCurve;
     defaultLowLevelFadeTimesAndFadeCurves.greenBrightnessFadeTime = defaultHighLevelFadeTimesAndFadeCurves.colorBrightnessFadeTime;
     defaultLowLevelFadeTimesAndFadeCurves.greenBrightnessFadeCurve = defaultHighLevelFadeTimesAndFadeCurves.colorBrightnessFadeCurve;
-    // -- BLUE
+    // == BLUE
     defaultLowLevelFadeTimesAndFadeCurves.blueColorFadeTime = defaultHighLevelFadeTimesAndFadeCurves.colorFadeTime;
     defaultLowLevelFadeTimesAndFadeCurves.blueColorFadeCurve = defaultHighLevelFadeTimesAndFadeCurves.colorFadeCurve;
     defaultLowLevelFadeTimesAndFadeCurves.blueBrightnessFadeTime = defaultHighLevelFadeTimesAndFadeCurves.colorBrightnessFadeTime;
     defaultLowLevelFadeTimesAndFadeCurves.blueBrightnessFadeCurve = defaultHighLevelFadeTimesAndFadeCurves.colorBrightnessFadeCurve;
 
-    // ---- White
-    // -- CW
+    // ==== White
+    // == CW
     defaultLowLevelFadeTimesAndFadeCurves.cwColorFadeTime = defaultHighLevelFadeTimesAndFadeCurves.whiteTemperatureFadeTime;
     defaultLowLevelFadeTimesAndFadeCurves.cwColorFadeCurve = defaultHighLevelFadeTimesAndFadeCurves.whiteTemperatureFadeCurve;
     defaultLowLevelFadeTimesAndFadeCurves.cwBrightnessFadeTime = defaultHighLevelFadeTimesAndFadeCurves.whiteBrightnessFadeTime;
     defaultLowLevelFadeTimesAndFadeCurves.cwBrightnessFadeCurve = defaultHighLevelFadeTimesAndFadeCurves.whiteBrightnessFadeCurve;
-    // -- WW
+    // == WW
     defaultLowLevelFadeTimesAndFadeCurves.wwColorFadeTime = defaultHighLevelFadeTimesAndFadeCurves.whiteTemperatureFadeTime;
     defaultLowLevelFadeTimesAndFadeCurves.wwColorFadeCurve = defaultHighLevelFadeTimesAndFadeCurves.whiteTemperatureFadeCurve;
     defaultLowLevelFadeTimesAndFadeCurves.wwBrightnessFadeTime = defaultHighLevelFadeTimesAndFadeCurves.whiteBrightnessFadeTime;
     defaultLowLevelFadeTimesAndFadeCurves.wwBrightnessFadeCurve = defaultHighLevelFadeTimesAndFadeCurves.whiteBrightnessFadeCurve;
 
     // ======== instantLowLevelFadeTimesAndCurves
-    // ---- Color
-    // -- RED
+    // ==== Color
+    // == RED
     instantLowLevelFadeTimesAndCurves.redColorFadeTime = 0;
     instantLowLevelFadeTimesAndCurves.redColorFadeCurve = FadeCurve::None;
     instantLowLevelFadeTimesAndCurves.redBrightnessFadeTime = 0;
     instantLowLevelFadeTimesAndCurves.redBrightnessFadeCurve = FadeCurve::None;
-    // -- GREEN
+    // == GREEN
     instantLowLevelFadeTimesAndCurves.greenColorFadeTime = 0;
     instantLowLevelFadeTimesAndCurves.greenColorFadeCurve = FadeCurve::None;
     instantLowLevelFadeTimesAndCurves.greenBrightnessFadeTime = 0;
     instantLowLevelFadeTimesAndCurves.greenBrightnessFadeCurve = FadeCurve::None;
-    // -- BLUE
+    // == BLUE
     instantLowLevelFadeTimesAndCurves.blueColorFadeTime = 0;
     instantLowLevelFadeTimesAndCurves.blueColorFadeCurve = FadeCurve::None;
     instantLowLevelFadeTimesAndCurves.blueBrightnessFadeTime = 0;
     instantLowLevelFadeTimesAndCurves.blueBrightnessFadeCurve = FadeCurve::None;
 
-    // ---- White
-    // -- CW
+    // ==== White
+    // == CW
     instantLowLevelFadeTimesAndCurves.cwColorFadeTime = 0;
     instantLowLevelFadeTimesAndCurves.cwColorFadeCurve = FadeCurve::None;
     instantLowLevelFadeTimesAndCurves.cwBrightnessFadeTime = 0;
     instantLowLevelFadeTimesAndCurves.cwBrightnessFadeCurve = FadeCurve::None;
-    // -- WW
+    // == WW
     instantLowLevelFadeTimesAndCurves.wwColorFadeTime = 0;
     instantLowLevelFadeTimesAndCurves.wwColorFadeCurve = FadeCurve::None;
     instantLowLevelFadeTimesAndCurves.wwBrightnessFadeTime = 0;
@@ -977,20 +979,20 @@ bool LedDriver::FadeToColor(uint8_t stripID,
     // Check if FadeToColor got called last cycle
     if ((ptrCurrentLEDStripData->lastRefreshRateCount + 1) != refreshRateCounter)
     {
-        // ---- Update fade times
-        // -- RED
+        // ==== Update fade times
+        // == RED
         ptrCurrentLEDStripData->prevMillisRedColorFade = curMillis;
         ptrCurrentLEDStripData->prevMillisRedBrightnessFade = curMillis;
-        // -- GREEN
+        // == GREEN
         ptrCurrentLEDStripData->prevMillisGreenColorFade = curMillis;
         ptrCurrentLEDStripData->prevMillisGreenBrightnessFade = curMillis;
-        // -- BLUE
+        // == BLUE
         ptrCurrentLEDStripData->prevMillisBlueColorFade = curMillis;
         ptrCurrentLEDStripData->prevMillisBlueBrightnessFade = curMillis;
-        // -- CW
+        // == CW
         ptrCurrentLEDStripData->prevMillisCwColorFade = curMillis;
         ptrCurrentLEDStripData->prevMillisCwBrightnessFade = curMillis;
-        // -- WW
+        // == WW
         ptrCurrentLEDStripData->prevMillisWwColorFade = curMillis;
         ptrCurrentLEDStripData->prevMillisWwBrightnessFade = curMillis;
 
@@ -1001,8 +1003,8 @@ bool LedDriver::FadeToColor(uint8_t stripID,
         ptrCurrentLEDStripData->lastRefreshRateCount = refreshRateCounter;
     }
 
-    // ---- RED
-    // -- Color
+    // ==== RED
+    // == Color
     if (ptrCurrentLEDStripData->redColorValue != commandLowLevelLEDStripData.redColorValue)
     {
         double percent = 0.0;
@@ -1024,7 +1026,7 @@ bool LedDriver::FadeToColor(uint8_t stripID,
     {
         ptrCurrentLEDStripData->prevMillisRedColorFade = curMillis;
     }
-    // -- Brightness
+    // == Brightness
     if (ptrCurrentLEDStripData->redBrightnessValue != commandLowLevelLEDStripData.redBrightnessValue)
     {
         double percent = 0.0;
@@ -1047,8 +1049,8 @@ bool LedDriver::FadeToColor(uint8_t stripID,
         ptrCurrentLEDStripData->prevMillisRedBrightnessFade = curMillis;
     }
 
-    // ---- GREEN
-    // -- Color
+    // ==== GREEN
+    // == Color
     if (ptrCurrentLEDStripData->greenColorValue != commandLowLevelLEDStripData.greenColorValue)
     {
         double percent = 0.0;
@@ -1070,7 +1072,7 @@ bool LedDriver::FadeToColor(uint8_t stripID,
     {
         ptrCurrentLEDStripData->prevMillisGreenColorFade = curMillis;
     }
-    // -- Brightness
+    // == Brightness
     if (ptrCurrentLEDStripData->greenBrightnessValue != commandLowLevelLEDStripData.greenBrightnessValue)
     {
         double percent = 0.0;
@@ -1093,8 +1095,8 @@ bool LedDriver::FadeToColor(uint8_t stripID,
         ptrCurrentLEDStripData->prevMillisGreenBrightnessFade = curMillis;
     }
 
-    // ---- BLUE
-    // -- Color
+    // ==== BLUE
+    // == Color
     if (ptrCurrentLEDStripData->blueColorValue != commandLowLevelLEDStripData.blueColorValue)
     {
         double percent = 0.0;
@@ -1116,7 +1118,7 @@ bool LedDriver::FadeToColor(uint8_t stripID,
     {
         ptrCurrentLEDStripData->prevMillisBlueColorFade = curMillis;
     }
-    // -- Brightness
+    // == Brightness
     if (ptrCurrentLEDStripData->blueBrightnessValue != commandLowLevelLEDStripData.blueBrightnessValue)
     {
         double percent = 0.0;
@@ -1139,8 +1141,8 @@ bool LedDriver::FadeToColor(uint8_t stripID,
         ptrCurrentLEDStripData->prevMillisBlueBrightnessFade = curMillis;
     }
 
-    // ---- CW
-    // -- Color
+    // ==== CW
+    // == Color
     if (ptrCurrentLEDStripData->cwColorValue != commandLowLevelLEDStripData.cwColorValue)
     {
         double percent = 0.0;
@@ -1162,7 +1164,7 @@ bool LedDriver::FadeToColor(uint8_t stripID,
     {
         ptrCurrentLEDStripData->prevMillisCwColorFade = curMillis;
     }
-    // -- Brightness
+    // == Brightness
     if (ptrCurrentLEDStripData->cwBrightnessValue != commandLowLevelLEDStripData.cwBrightnessValue)
     {
         double percent = 0.0;
@@ -1185,8 +1187,8 @@ bool LedDriver::FadeToColor(uint8_t stripID,
         ptrCurrentLEDStripData->prevMillisCwBrightnessFade = curMillis;
     }
 
-    // ---- WW
-    // -- Color
+    // ==== WW
+    // == Color
     if (ptrCurrentLEDStripData->wwColorValue != commandLowLevelLEDStripData.wwColorValue)
     {
         double percent = 0.0;
@@ -1208,7 +1210,7 @@ bool LedDriver::FadeToColor(uint8_t stripID,
     {
         ptrCurrentLEDStripData->prevMillisWwColorFade = curMillis;
     }
-    // -- Brightness
+    // == Brightness
     if (ptrCurrentLEDStripData->wwBrightnessValue != commandLowLevelLEDStripData.wwBrightnessValue)
     {
         double percent = 0.0;
@@ -1330,7 +1332,6 @@ void LedDriver::UpdateLEDStrip(uint8_t stripID)
 {
     // Get current data of strip
     LEDStripData *ptrCurrentLEDStripData = getCurrentLEDStripData(stripID);
-    LEDStripData *ptrPreviousLEDStripData = getPreviousLEDStripData(stripID);
 
     // Get led reg of strip
     LEDStripColorReg STRIP = getColorRegForLEDStrip(stripID);
@@ -1342,66 +1343,31 @@ void LedDriver::UpdateLEDStrip(uint8_t stripID)
     uint16_t phaseShiftWw = 2459;
     uint16_t phaseShiftBlue = 3279;
 
-    // ---- Update each color channel
-    // -- RED
-    if (ptrCurrentLEDStripData->redColorValue != ptrPreviousLEDStripData->redColorValue || ptrCurrentLEDStripData->redBrightnessValue != ptrPreviousLEDStripData->redBrightnessValue)
-    {
-        UpdateLEDChannel(STRIP.RED_REG,
-                         phaseShiftRed,
-                         ptrCurrentLEDStripData->redColorValue,
-                         ptrCurrentLEDStripData->redBrightnessValue);
+    // ======== Update color channel ======== //
+    UpdateLEDChannel(STRIP.CW_REG,
+                     phaseShiftCw,
+                     this->getBasicDataBasedOnSettings(stripID, 1, ptrCurrentLEDStripData).colorValue,
+                     this->getBasicDataBasedOnSettings(stripID, 1, ptrCurrentLEDStripData).brightnessValue);
 
-        ptrPreviousLEDStripData->redColorValue = ptrCurrentLEDStripData->redColorValue;
-        ptrPreviousLEDStripData->redBrightnessValue = ptrCurrentLEDStripData->redBrightnessValue;
-    }
+    UpdateLEDChannel(STRIP.BLUE_REG,
+                     phaseShiftBlue,
+                     this->getBasicDataBasedOnSettings(stripID, 2, ptrCurrentLEDStripData).colorValue,
+                     this->getBasicDataBasedOnSettings(stripID, 2, ptrCurrentLEDStripData).brightnessValue);
 
-    // -- GREEN
-    if (ptrCurrentLEDStripData->greenColorValue != ptrPreviousLEDStripData->greenColorValue || ptrCurrentLEDStripData->greenBrightnessValue != ptrPreviousLEDStripData->greenBrightnessValue)
-    {
-        UpdateLEDChannel(STRIP.GREEN_REG,
-                         phaseShiftGreen,
-                         ptrCurrentLEDStripData->greenColorValue,
-                         ptrCurrentLEDStripData->greenBrightnessValue);
+    UpdateLEDChannel(STRIP.RED_REG,
+                     phaseShiftRed,
+                     this->getBasicDataBasedOnSettings(stripID, 3, ptrCurrentLEDStripData).colorValue,
+                     this->getBasicDataBasedOnSettings(stripID, 3, ptrCurrentLEDStripData).brightnessValue);
 
-        ptrPreviousLEDStripData->greenColorValue = ptrCurrentLEDStripData->greenColorValue;
-        ptrPreviousLEDStripData->greenBrightnessValue = ptrCurrentLEDStripData->greenBrightnessValue;
-    }
+    UpdateLEDChannel(STRIP.GREEN_REG,
+                     phaseShiftGreen,
+                     this->getBasicDataBasedOnSettings(stripID, 4, ptrCurrentLEDStripData).colorValue,
+                     this->getBasicDataBasedOnSettings(stripID, 4, ptrCurrentLEDStripData).brightnessValue);
 
-    // -- BLUE
-    if (ptrCurrentLEDStripData->blueColorValue != ptrPreviousLEDStripData->blueColorValue || ptrCurrentLEDStripData->blueBrightnessValue != ptrPreviousLEDStripData->blueBrightnessValue)
-    {
-        UpdateLEDChannel(STRIP.BLUE_REG,
-                         phaseShiftBlue,
-                         ptrCurrentLEDStripData->blueColorValue,
-                         ptrCurrentLEDStripData->blueBrightnessValue);
-
-        ptrPreviousLEDStripData->blueColorValue = ptrCurrentLEDStripData->blueColorValue;
-        ptrPreviousLEDStripData->blueBrightnessValue = ptrCurrentLEDStripData->blueBrightnessValue;
-    }
-
-    // -- CW
-    if (ptrCurrentLEDStripData->cwColorValue != ptrPreviousLEDStripData->cwColorValue || ptrCurrentLEDStripData->cwBrightnessValue != ptrPreviousLEDStripData->cwBrightnessValue)
-    {
-        UpdateLEDChannel(STRIP.CW_REG,
-                         phaseShiftCw,
-                         ptrCurrentLEDStripData->cwColorValue,
-                         ptrCurrentLEDStripData->cwBrightnessValue);
-
-        ptrPreviousLEDStripData->cwColorValue = ptrCurrentLEDStripData->cwColorValue;
-        ptrPreviousLEDStripData->cwBrightnessValue = ptrCurrentLEDStripData->cwBrightnessValue;
-    }
-
-    // -- WW
-    if (ptrCurrentLEDStripData->wwColorValue != ptrPreviousLEDStripData->wwColorValue || ptrCurrentLEDStripData->wwBrightnessValue != ptrPreviousLEDStripData->wwBrightnessValue)
-    {
-        UpdateLEDChannel(STRIP.WW_REG,
-                         phaseShiftWw,
-                         ptrCurrentLEDStripData->wwColorValue,
-                         ptrCurrentLEDStripData->wwBrightnessValue);
-
-        ptrPreviousLEDStripData->wwColorValue = ptrCurrentLEDStripData->wwColorValue;
-        ptrPreviousLEDStripData->wwBrightnessValue = ptrCurrentLEDStripData->wwBrightnessValue;
-    }
+    UpdateLEDChannel(STRIP.WW_REG,
+                     phaseShiftWw,
+                     this->getBasicDataBasedOnSettings(stripID, 5, ptrCurrentLEDStripData).colorValue,
+                     this->getBasicDataBasedOnSettings(stripID, 5, ptrCurrentLEDStripData).brightnessValue);
 };
 
 /**
@@ -1557,31 +1523,6 @@ LEDStripData *LedDriver::getCurrentLEDStripData(uint8_t stripID)
 };
 
 /**
- * Returns a pointer to the previous LEDStripData of the coresponding stripID
- * 
- * @parameter stripID   Strip ID of the LED strip
- * 
- * @return Pointer to the previous LEDStripData of the given stripID
- */
-LEDStripData *LedDriver::getPreviousLEDStripData(uint8_t stripID)
-{
-    switch (stripID)
-    {
-    case 1:
-        return &prevLEDStrip1Data;
-        break;
-
-    case 2:
-        return &prevLEDStrip2Data;
-        break;
-
-    default:
-        return &emptyPrevLEDStripData;
-        break;
-    }
-};
-
-/**
  * Returns all color channel registers of the given LED strip ID
  * 
  * @parameter stripID   Strip ID of the LED strip
@@ -1601,11 +1542,11 @@ LEDStripColorReg LedDriver::getColorRegForLEDStrip(uint8_t stripID)
         STRIP.CW_REG.OFF_L = LED3_OFF_L;
         STRIP.CW_REG.OFF_H = LED3_OFF_H;
 
-        // WW
-        STRIP.WW_REG.ON_L = LED7_ON_L;
-        STRIP.WW_REG.ON_H = LED7_ON_H;
-        STRIP.WW_REG.OFF_L = LED7_OFF_L;
-        STRIP.WW_REG.OFF_H = LED7_OFF_H;
+        // BLUE
+        STRIP.BLUE_REG.ON_L = LED4_ON_L;
+        STRIP.BLUE_REG.ON_H = LED4_ON_H;
+        STRIP.BLUE_REG.OFF_L = LED4_OFF_L;
+        STRIP.BLUE_REG.OFF_H = LED4_OFF_H;
 
         // RED
         STRIP.RED_REG.ON_L = LED5_ON_L;
@@ -1619,13 +1560,12 @@ LEDStripColorReg LedDriver::getColorRegForLEDStrip(uint8_t stripID)
         STRIP.GREEN_REG.OFF_L = LED6_OFF_L;
         STRIP.GREEN_REG.OFF_H = LED6_OFF_H;
 
-        // BLUE
-        STRIP.BLUE_REG.ON_L = LED4_ON_L;
-        STRIP.BLUE_REG.ON_H = LED4_ON_H;
-        STRIP.BLUE_REG.OFF_L = LED4_OFF_L;
-        STRIP.BLUE_REG.OFF_H = LED4_OFF_H;
+        // WW
+        STRIP.WW_REG.ON_L = LED7_ON_L;
+        STRIP.WW_REG.ON_H = LED7_ON_H;
+        STRIP.WW_REG.OFF_L = LED7_OFF_L;
+        STRIP.WW_REG.OFF_H = LED7_OFF_H;
 
-        return STRIP;
         break;
 
     case 2:
@@ -1635,11 +1575,11 @@ LEDStripColorReg LedDriver::getColorRegForLEDStrip(uint8_t stripID)
         STRIP.CW_REG.OFF_L = LED8_OFF_L;
         STRIP.CW_REG.OFF_H = LED8_OFF_H;
 
-        // WW
-        STRIP.WW_REG.ON_L = LED12_ON_L;
-        STRIP.WW_REG.ON_H = LED12_ON_H;
-        STRIP.WW_REG.OFF_L = LED12_OFF_L;
-        STRIP.WW_REG.OFF_H = LED12_OFF_H;
+        // BLUE
+        STRIP.BLUE_REG.ON_L = LED9_ON_L;
+        STRIP.BLUE_REG.ON_H = LED9_ON_H;
+        STRIP.BLUE_REG.OFF_L = LED9_OFF_L;
+        STRIP.BLUE_REG.OFF_H = LED9_OFF_H;
 
         // RED
         STRIP.RED_REG.ON_L = LED10_ON_L;
@@ -1653,19 +1593,15 @@ LEDStripColorReg LedDriver::getColorRegForLEDStrip(uint8_t stripID)
         STRIP.GREEN_REG.OFF_L = LED11_OFF_L;
         STRIP.GREEN_REG.OFF_H = LED11_OFF_H;
 
-        // BLUE
-        STRIP.BLUE_REG.ON_L = LED9_ON_L;
-        STRIP.BLUE_REG.ON_H = LED9_ON_H;
-        STRIP.BLUE_REG.OFF_L = LED9_OFF_L;
-        STRIP.BLUE_REG.OFF_H = LED9_OFF_H;
+        // WW
+        STRIP.WW_REG.ON_L = LED12_ON_L;
+        STRIP.WW_REG.ON_H = LED12_ON_H;
+        STRIP.WW_REG.OFF_L = LED12_OFF_L;
+        STRIP.WW_REG.OFF_H = LED12_OFF_H;
 
-        return STRIP;
-        break;
-
-    default:
-        return STRIP;
         break;
     }
+    return STRIP;
 };
 
 /**
@@ -1763,4 +1699,49 @@ bool LedDriver::ConfigureMode()
     }
 
     return finishedConfigureMode;
+}
+
+LEDBasicStripData LedDriver::getBasicDataBasedOnSettings(uint8_t stripID, uint8_t channelID, LEDStripData *ptrData)
+{
+    LEDBasicStripData data;
+    SettingsData settingsData = this->filesystem->getSettingData();
+    if (stripID >= 0 && stripID < STRIP_COUNT)
+    {
+        if (channelID >= 0 && channelID < CHANNEL_COUNT)
+        {
+            data = getBasicDataBasedOnOutput(settingsData.stripChannelOutputs[stripID - 1][channelID - 1], ptrData);
+        }
+    }
+    return data;
+}
+
+LEDBasicStripData LedDriver::getBasicDataBasedOnOutput(LEDOutputType type, LEDStripData *ptrData)
+{
+    LEDBasicStripData data;
+
+    switch (type)
+    {
+    case LEDOutputType::R:
+        data.colorValue = ptrData->redColorValue;
+        data.brightnessValue = ptrData->redBrightnessValue;
+        break;
+    case LEDOutputType::G:
+        data.colorValue = ptrData->greenColorValue;
+        data.brightnessValue = ptrData->greenBrightnessValue;
+        break;
+    case LEDOutputType::B:
+        data.colorValue = ptrData->blueColorValue;
+        data.brightnessValue = ptrData->blueBrightnessValue;
+        break;
+    case LEDOutputType::CW:
+        data.colorValue = ptrData->cwColorValue;
+        data.brightnessValue = ptrData->cwBrightnessValue;
+        break;
+    case LEDOutputType::WW:
+        data.colorValue = ptrData->wwColorValue;
+        data.brightnessValue = ptrData->wwBrightnessValue;
+        break;
+    }
+
+    return data;
 }

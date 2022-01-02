@@ -5,11 +5,15 @@
 #include <ESP8266WebServer.h>
 #include <ESP8266WiFi.h>
 #include <WiFiClient.h>
+#include <Hash.h>
+#include <ESP8266mDNS.h>
+#include <WebSocketsServer.h>
 
 #include "../Structs/Structs.h"
 #include "../Filesystem/Filesystem.h"
 #include "../Helper/Helper.h"
 #include "../Network/Network.h"
+#include "../Constants/Constants.h"
 #include "../src/Webpage/transformed_to_c/ConfigurationPage.h"
 #include "../src/Webpage/transformed_to_c/SubmittedConfigurationPage.h"
 #include "../src/Webpage/transformed_to_c/MainPage.h"
@@ -75,6 +79,9 @@ private:
     bool shutdownNormalMode = false;
     bool changeToNormalModeRequest = false;
 
+    // ======== mDNS ======== //
+    bool mDNSInit = false;
+
     // ================ Functions ================ //
 private:
     // ======== OnBoard LED ======== //
@@ -96,6 +103,9 @@ private:
     void NormalSettingsWebpage();
     void NormalSettingsWebpageEvent();
     void NormalNotFoundWebpage();
+
+    // ================ Websocket ================ //
+    void WebSocketEvent(uint8_t num, WStype_t type, uint8_t *payload, size_t length);
 
 public:
     bool getConfigurationMode();

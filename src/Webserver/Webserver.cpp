@@ -5,6 +5,7 @@
  * 
  */
 ESP8266WebServer server(80);
+WebSocketsServer webSocketServer(81);
 
 /**
  * @brief Construct a new Webserver:: Webserver object
@@ -45,6 +46,10 @@ bool Webserver::Init()
 
         Serial.println(F("Webserver initialized"));
         init = true;
+
+        webSocketServer.begin();
+        webSocketServer.onEvent([this](uint8_t num, WStype_t type, uint8_t *payload, size_t length)
+                                { this->WebSocketEvent(num, type, payload, length); });
     }
     return init;
 };
@@ -59,7 +64,25 @@ void Webserver::Run()
         return;
     }
 
+    webSocketServer.loop();
+
     unsigned long curMillis = millis();
+
+    if (this->filesystem->isConfigurationDataReady() && !this->mDNSInit)
+    {
+        // We use again the configured mqtt client name for the mDNS
+        if (MDNS.begin(filesystem->getConfigurationData().mqttClientName.c_str()))
+        {
+            Serial.println("MDNS responder started");
+            MDNS.addService("http", "tcp", 80);
+            MDNS.addService("ws", "tcp", 81);
+        }
+        else
+        {
+            Serial.println("Error setting up MDNS responder!");
+        }
+        this->mDNSInit = true;
+    }
 
     // == Check flash button press => Change to configuration mode
     if (digitalRead(0) == 0 && this->isInNormalMode && !this->changeToConfigurationModeRequest)
@@ -553,5 +576,107 @@ void Webserver::RequestChangeToNormalMode()
     if (!this->changeToConfigurationModeRequest)
     {
         this->changeToNormalModeRequest = true;
+    }
+}
+
+void Webserver::WebSocketEvent(uint8_t num, WStype_t type, uint8_t *payload, size_t length)
+{
+
+    char message[length + 1];
+    for (unsigned int i = 0; i < length; i++)
+    {
+        message[i] = (char)payload[i];
+    }
+    message[length] = '\0';
+
+    switch (type)
+    {
+    case WStype_DISCONNECTED:
+        Serial.printf("Client [%u] Disconnected!\n", num);
+        break;
+    case WStype_CONNECTED:
+    {
+        IPAddress ip = webSocketServer.remoteIP(num);
+        Serial.printf("Client [%u] Connected from %d.%d.%d.%d url: %s\n", num, ip[0], ip[1], ip[2], ip[3], payload);
+        webSocketServer.sendTXT(num, String("Connected to " + this->filesystem->getConfigurationData().mqttClientName).c_str());
+
+        // ======== Check for valid endpoint's ======== //
+        if (String("/settings").equals(message))
+        {
+            if (this->filesystem->isSettingsDataReady())
+            {
+                Serial.printf("Client [%u] Sending initial settings data", num);
+                for (int i = 0; i < STRIP_COUNT; i++)
+                {
+                    for (int j = 0; j < CHANNEL_COUNT; j++)
+                    {
+                        String msg = "StripConfig#" + String(i + 1) + "#" + String(j + 1) + "#" + String(this->helper->LEDOutputTypeToUint8(this->filesystem->getSettingData().stripChannelOutputs[i][j]));
+                        webSocketServer.sendTXT(num, msg);
+                    }
+                }
+            }
+        }
+        else if (String("/main").equals(message))
+        {
+            if (this->filesystem->isLEDStateDataReady())
+            {
+            }
+        }
+    }
+    break;
+    case WStype_TEXT:
+    {
+        Serial.printf("Client [%u] Text: %s\n", num, payload);
+        String data[MAX_DATA]{""};
+        uint8_t dataCounter = 0;
+        char *pch;
+        pch = strtok(message, "#");
+        while (pch != NULL)
+        {
+            if (dataCounter < MAX_DATA)
+            {
+                data[dataCounter] = pch;
+                dataCounter++;
+            }
+            else
+            {
+                break;
+            }
+            pch = strtok(NULL, "#");
+        }
+
+        Serial.println("Type    : " + data[0]);
+        Serial.println("Data 1  : " + data[1]);
+        Serial.println("Data 2  : " + data[2]);
+        Serial.println("Data 3  : " + data[3]);
+
+        if (data[0].equals("StripConfig"))
+        {
+            uint8_t stripNumber = data[1].toInt();
+            uint8_t channelID = data[2].toInt();
+            uint8_t outputType = data[3].toInt();
+
+            if (stripNumber >= 1 && stripNumber <= STRIP_COUNT)
+            {
+                if (channelID >= 1 && channelID <= CHANNEL_COUNT)
+                {
+                    SettingsData settingsData = this->filesystem->getSettingData();
+                    settingsData.stripChannelOutputs[stripNumber - 1][channelID - 1] = this->helper->Uint8ToLEDOutputType(outputType);
+                    String msg = "StripConfig#" + String(stripNumber) + "#" + String(channelID) + "#" + String(outputType);
+                    // We Broadcast the new data to all connected clients
+                    webSocketServer.broadcastTXT(msg);
+                    this->filesystem->saveSettings(settingsData);
+                }
+            }
+        }
+    }
+    break;
+
+    case WStype_BIN:
+    {
+        Serial.printf("Client [%u] Binary length: %u\n", num, length);
+        hexdump(payload, length);
+    }
+    break;
     }
 }

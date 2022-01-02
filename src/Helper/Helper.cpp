@@ -40,35 +40,6 @@ void Helper::Run()
     }
 };
 
-/**
- * @brief Converts the ENUM LEDOutputType to an uint8_t value
- * 
- * @param value The ENUM LEDOutputType value
- * @return The converted value
- */
-uint8_t Helper::convertLEDOutputTypeToUint8(LEDOutputType value)
-{
-    uint8_t result = 0;
-    switch (value)
-    {
-    case LEDOutputType::R:
-        result = 0;
-        break;
-    case LEDOutputType::G:
-        result = 1;
-        break;
-    case LEDOutputType::B:
-        result = 2;
-        break;
-    case LEDOutputType::CW:
-        result = 3;
-        break;
-    case LEDOutputType::WW:
-        result = 4;
-        break;
-    }
-    return result;
-}
 
 /**
  * @brief Converts the uint8_t value to an ENUM LEDOutputType
@@ -76,7 +47,7 @@ uint8_t Helper::convertLEDOutputTypeToUint8(LEDOutputType value)
  * @param value The uint8_t ENUM value
  * @return The converted value
  */
-LEDOutputType Helper::convertUint8ToLEDOutputType(uint8_t value)
+LEDOutputType Helper::Uint8ToLEDOutputType(uint8_t value)
 {
     LEDOutputType result = LEDOutputType::R;
     switch (value)
@@ -396,3 +367,55 @@ void Helper::InsertPrint()
         Serial.print("");
     }
 };
+
+String Helper::LEDOutputTypeToString(LEDOutputType type)
+{
+    String msg = "";
+
+    switch (type)
+    {
+    case LEDOutputType::R:
+        msg = "R";
+        break;
+    case LEDOutputType::G:
+        msg = "G";
+        break;
+    case LEDOutputType::B:
+        msg = "B";
+        break;
+    case LEDOutputType::CW:
+        msg = "CW";
+        break;
+    case LEDOutputType::WW:
+        msg = "WW";
+        break;
+    }
+
+    return msg;
+}
+
+uint8_t Helper::LEDOutputTypeToUint8(LEDOutputType type)
+{
+    uint8_t data = 0;
+
+    switch (type)
+    {
+    case LEDOutputType::R:
+        data = 0;
+        break;
+    case LEDOutputType::G:
+        data = 1;
+        break;
+    case LEDOutputType::B:
+        data = 2;
+        break;
+    case LEDOutputType::CW:
+        data = 3;
+        break;
+    case LEDOutputType::WW:
+        data = 4;
+        break;
+    }
+
+    return data;
+}

@@ -40,7 +40,8 @@ void LEDControllerMk4::_setup()
                                   &this->network);
     ledDriver.setReference(&this->i2c,
                            &this->network,
-                           &this->pirReader);
+                           &this->pirReader,
+                           &this->filesystem);
     information.setReference(&this->helper);
     pirReader.setReference(&this->network,
                            &this->information,

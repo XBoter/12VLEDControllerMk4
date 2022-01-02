@@ -295,18 +295,28 @@ struct LEDStripData
 };
 
 /**
+ * @brief The basic led strip data type
+ * 
+ */
+struct LEDBasicStripData
+{
+    uint8_t colorValue = 0;
+    uint16_t brightnessValue = 0;
+};
+
+/**
  * @brief Data Type which holds all cirtical information needed for Network connectivity
  * 
  */
 struct ConfigurationData
 {
-    String wifiSSID = "";
-    String wifiPassword = "";
-    String mqttBrokerIpAddress = "";
+    String wifiSSID = "unknown";
+    String wifiPassword = "unknown";
+    String mqttBrokerIpAddress = "unknown";
     uint16_t mqttBrokerPort = 0;
-    String mqttBrokerUsername = "";
-    String mqttBrokerPassword = "";
-    String mqttClientName = "";
+    String mqttBrokerUsername = "unknown";
+    String mqttBrokerPassword = "unknown";
+    String mqttClientName = "unknown";
     // == Flags
     bool isConfigured = false; // If true the data is configured initially
 };
@@ -317,18 +327,7 @@ struct ConfigurationData
  */
 struct SettingsData
 {
-    // == LED Strip 1 Output Config
-    LEDOutputType ledStrip1Output1 = LEDOutputType::R;
-    LEDOutputType ledStrip1Output2 = LEDOutputType::G;
-    LEDOutputType ledStrip1Output3 = LEDOutputType::B;
-    LEDOutputType ledStrip1Output4 = LEDOutputType::CW;
-    LEDOutputType ledStrip1Output5 = LEDOutputType::WW;
-    // == LED Strip 2 Output Config
-    LEDOutputType ledStrip2Output1 = LEDOutputType::R;
-    LEDOutputType ledStrip2Output2 = LEDOutputType::G;
-    LEDOutputType ledStrip2Output3 = LEDOutputType::B;
-    LEDOutputType ledStrip2Output4 = LEDOutputType::CW;
-    LEDOutputType ledStrip2Output5 = LEDOutputType::WW;
+    LEDOutputType stripChannelOutputs[STRIP_COUNT][CHANNEL_COUNT]{LEDOutputType::R};
     // == Flags
     bool isConfigured = false; // If true the data is configured initially
 };

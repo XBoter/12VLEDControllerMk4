@@ -35,8 +35,7 @@ public:
 private:
 public:
     // ======== Helper Method ======== //
-    uint8_t convertLEDOutputTypeToUint8(LEDOutputType value);
-    LEDOutputType convertUint8ToLEDOutputType(uint8_t value);
+    
     uint8_t convertSingleLEDEffectToUint8(SingleLEDEffect value);
     SingleLEDEffect convertUint8ToSingleLEDEffect(uint8_t value);
     void TopSpacerPrint();
@@ -49,4 +48,8 @@ public:
     SingleLEDEffect StringToSingleLEDEffect(String effect);
     String MultiLEDEffectToString(MultiLEDEffect effect);
     String FadeCurveToString(FadeCurve curve);
+    // == LEDOutputType
+    String LEDOutputTypeToString(LEDOutputType type);
+    LEDOutputType Uint8ToLEDOutputType(uint8_t value);
+    uint8_t LEDOutputTypeToUint8(LEDOutputType type);
 };

@@ -67,6 +67,28 @@ void Filesystem::Run()
     {
         return;
     }
+
+    // If the settings data is not configured once we save the default settings to the filesystem
+    if (this->isSettingsDataReady())
+    {
+        if (!this->getSettingData().isConfigured)
+        {
+            // Inital Output config
+            this->settingsData.stripChannelOutputs[0][0] = LEDOutputType::CW;
+            this->settingsData.stripChannelOutputs[0][1] = LEDOutputType::B;
+            this->settingsData.stripChannelOutputs[0][2] = LEDOutputType::R;
+            this->settingsData.stripChannelOutputs[0][3] = LEDOutputType::G;
+            this->settingsData.stripChannelOutputs[0][4] = LEDOutputType::WW;
+            this->settingsData.stripChannelOutputs[1][0] = LEDOutputType::CW;
+            this->settingsData.stripChannelOutputs[1][1] = LEDOutputType::B;
+            this->settingsData.stripChannelOutputs[1][2] = LEDOutputType::R;
+            this->settingsData.stripChannelOutputs[1][3] = LEDOutputType::G;
+            this->settingsData.stripChannelOutputs[1][4] = LEDOutputType::WW;
+
+            this->settingsData.isConfigured = true;
+            this->saveSettings(this->settingsData);
+        }
+    }
 };
 
 /**
@@ -196,70 +218,22 @@ void Filesystem::saveSettings(SettingsData data)
         return;
     }
 
-    // ==== ledStrip1Output1 ==== //
-    if (!file.println(String(this->helper->convertLEDOutputTypeToUint8(data.ledStrip1Output1))))
+    // ==== stripChannelOutputs ==== //
+    for (int i = 0; i < STRIP_COUNT; i++)
     {
-        Serial.println(F("ledStrip1Output1 failed to save"));
-    }
-
-    // ==== ledStrip1Output2 ==== //
-    if (!file.println(String(this->helper->convertLEDOutputTypeToUint8(data.ledStrip1Output2))))
-    {
-        Serial.println(F("ledStrip1Output2 failed to save"));
-    }
-
-    // ==== ledStrip1Output3 ==== //
-    if (!file.println(String(this->helper->convertLEDOutputTypeToUint8(data.ledStrip1Output3))))
-    {
-        Serial.println(F("ledStrip1Output3 failed to save"));
-    }
-
-    // ==== ledStrip1Output4 ==== //
-    if (!file.println(String(this->helper->convertLEDOutputTypeToUint8(data.ledStrip1Output4))))
-    {
-        Serial.println(F("ledStrip1Output4 failed to save"));
-    }
-
-    // ==== ledStrip1Output5 ==== //
-    if (!file.println(String(this->helper->convertLEDOutputTypeToUint8(data.ledStrip1Output5))))
-    {
-        Serial.println(F("ledStrip1Output5 failed to save"));
-    }
-
-    // ==== ledStrip2Output1 ==== //
-    if (!file.println(String(this->helper->convertLEDOutputTypeToUint8(data.ledStrip2Output1))))
-    {
-        Serial.println(F("ledStrip2Output1 failed to save"));
-    }
-
-    // ==== ledStrip2Output2 ==== //
-    if (!file.println(String(this->helper->convertLEDOutputTypeToUint8(data.ledStrip2Output2))))
-    {
-        Serial.println(F("ledStrip2Output2 failed to save"));
-    }
-
-    // ==== ledStrip2Output3 ==== //
-    if (!file.println(String(this->helper->convertLEDOutputTypeToUint8(data.ledStrip2Output3))))
-    {
-        Serial.println(F("ledStrip2Output3 failed to save"));
-    }
-
-    // ==== ledStrip2Output4 ==== //
-    if (!file.println(String(this->helper->convertLEDOutputTypeToUint8(data.ledStrip2Output4))))
-    {
-        Serial.println(F("ledStrip2Output4 failed to save"));
-    }
-
-    // ==== ledStrip2Output5 ==== //
-    if (!file.println(String(this->helper->convertLEDOutputTypeToUint8(data.ledStrip2Output5))))
-    {
-        Serial.println(F("ledStrip2Output5 failed to save"));
+        for (int j = 0; j < CHANNEL_COUNT; j++)
+        {
+            if (!file.println(String(this->helper->LEDOutputTypeToUint8(data.stripChannelOutputs[i][j]))))
+            {
+                Serial.println(F("Settings stripChannelOutputs failed to save"));
+            }
+        }
     }
 
     // ==== isConfigured ==== //
     if (!file.println(String(data.isConfigured)))
     {
-        Serial.println(F("isConfigured failed to save"));
+        Serial.println(F("Settings isConfigured failed to save"));
     }
 
     delay(2000); // Make sure the CREATE and LASTWRITE times are different
@@ -503,6 +477,8 @@ SettingsData Filesystem::loadSettings()
     }
 
     uint8_t state = 0;
+    uint8_t i = 0;
+    uint8_t j = 0;
     String message = "";
     char symbol = '\0';
     while (file.available())
@@ -518,58 +494,30 @@ SettingsData Filesystem::loadSettings()
             {
                 switch (state)
                 {
-                    // ==== ledStrip1Output1 ==== //
+                    // ==== stripChannelOutputs ==== //
                 case 0:
-                    data.ledStrip1Output1 = this->helper->convertUint8ToLEDOutputType(strtol(message.c_str(), NULL, 0));
-                    state++;
+                    if (i < STRIP_COUNT)
+                    {
+                        if (j < CHANNEL_COUNT)
+                        {
+                            data.stripChannelOutputs[i][j] = this->helper->Uint8ToLEDOutputType(strtol(message.c_str(), NULL, 0));
+                            Serial.println("Strip " + String(i + 1) + " Channel " + String(j + 1) + ": " + String(this->helper->LEDOutputTypeToUint8(data.stripChannelOutputs[i][j])));
+                            j++;
+                            if (j >= CHANNEL_COUNT)
+                            {
+                                j = 0;
+                                i++;
+                            }
+                        }
+                    }
+                    else
+                    {
+                        state++;
+                    }
                     break;
-                    // ==== ledStrip1Output2 ==== //
-                case 1:
-                    data.ledStrip1Output2 = this->helper->convertUint8ToLEDOutputType(strtol(message.c_str(), NULL, 0));
-                    state++;
-                    break;
-                    // ==== ledStrip1Output3 ==== //
-                case 2:
-                    data.ledStrip1Output3 = this->helper->convertUint8ToLEDOutputType(strtol(message.c_str(), NULL, 0));
-                    state++;
-                    break;
-                    // ==== ledStrip1Output4 ==== //
-                case 3:
-                    data.ledStrip1Output4 = this->helper->convertUint8ToLEDOutputType(strtol(message.c_str(), NULL, 0));
-                    state++;
-                    break;
-                    // ==== ledStrip1Output5 ==== //
-                case 4:
-                    data.ledStrip1Output5 = this->helper->convertUint8ToLEDOutputType(strtol(message.c_str(), NULL, 0));
-                    state++;
-                    break;
-                    // ==== ledStrip2Output1 ==== //
-                case 5:
-                    data.ledStrip2Output1 = this->helper->convertUint8ToLEDOutputType(strtol(message.c_str(), NULL, 0));
-                    state++;
-                    break;
-                    // ==== ledStrip2Output2 ==== //
-                case 6:
-                    data.ledStrip2Output2 = this->helper->convertUint8ToLEDOutputType(strtol(message.c_str(), NULL, 0));
-                    state++;
-                    break;
-                    // ==== ledStrip2Output3 ==== //
-                case 7:
-                    data.ledStrip2Output3 = this->helper->convertUint8ToLEDOutputType(strtol(message.c_str(), NULL, 0));
-                    state++;
-                    break;
-                    // ==== ledStrip2Output4 ==== //
-                case 8:
-                    data.ledStrip2Output4 = this->helper->convertUint8ToLEDOutputType(strtol(message.c_str(), NULL, 0));
-                    state++;
-                    break;
-                    // ==== ledStrip2Output5 ==== //
-                case 9:
-                    data.ledStrip2Output5 = this->helper->convertUint8ToLEDOutputType(strtol(message.c_str(), NULL, 0));
-                    state++;
-                    break;
+
                     // ==== isConfigured ==== //
-                case 10:
+                case 1:
                     data.isConfigured = bool(message);
                     break;
                 }

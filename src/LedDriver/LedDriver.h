@@ -5,6 +5,7 @@
 #include "../I2C/I2C.h"
 #include "../PirReader/PirReader.h"
 #include "../Network/Network.h"
+#include "../FileSystem/FileSystem.h"
 #include "../Register/PCA9685_LED_Reg.h"
 #include "../Enums/Enums.h"
 #include "../Structs/Structs.h"
@@ -16,6 +17,7 @@
 class I2C;
 class Network;
 class PirReader;
+class FileSystem;
 
 // Classes
 class LedDriver : public IBaseClass
@@ -25,7 +27,8 @@ public:
     LedDriver(uint8_t i2cAddress);
     void setReference(I2C *i2c,
                       Network *network,
-                      PirReader *pirReader);
+                      PirReader *pirReader,
+                      Filesystem *filesystem);
     bool init = false;
 
     // ## Interface ## //
@@ -40,6 +43,7 @@ private:
     I2C *i2c;
     PirReader *pirReader;
     Network *network;
+    Filesystem *filesystem;
 
     // ---- LED Strip Refresh Rate
     unsigned long previousMillisRefreshRate = 0;
@@ -77,10 +81,6 @@ private:
     LEDStripData emptyCurrentLEDStripData = {};
     LEDStripData currentLEDStrip1Data = {};
     LEDStripData currentLEDStrip2Data = {};
-    // -- Previous
-    LEDStripData emptyPrevLEDStripData = {};
-    LEDStripData prevLEDStrip1Data = {};
-    LEDStripData prevLEDStrip2Data = {};
 
 public:
     // ## Functions ## //
@@ -191,9 +191,10 @@ private:
 
     LEDStripData *getCurrentLEDStripData(uint8_t stripID);
 
-    LEDStripData *getPreviousLEDStripData(uint8_t stripID);
-
     LEDStripColorReg getColorRegForLEDStrip(uint8_t stripID);
+
+    LEDBasicStripData getBasicDataBasedOnSettings(uint8_t stripID, uint8_t channelID, LEDStripData *ptrData);
+    LEDBasicStripData getBasicDataBasedOnOutput(LEDOutputType type , LEDStripData *ptrData);
 
     uint16_t linear(double percent,
                     int start,

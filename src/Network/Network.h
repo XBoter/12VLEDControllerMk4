@@ -97,8 +97,6 @@ private:
     IPAddress accessPointSubnetmask = IPAddress(255, 255, 255, 0);
 
     // ==== Information Print
-    unsigned long prevMillisInformationPrint = 0;
-    const unsigned long timeoutInformationPrint = 100; // 100 msec
     bool motionDetectionDataPrint = false;
     bool ledStripDataPrint[STRIP_COUNT]{false};
 

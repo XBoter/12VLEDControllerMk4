@@ -6,6 +6,7 @@
 #include "../Helper/Helper.h"
 
 #include "../Structs/Structs.h"
+#include "../Constants/Constants.h"
 
 // ================================ INTERFACES ================================ //
 #include "../Interface/IBaseClass.h"
