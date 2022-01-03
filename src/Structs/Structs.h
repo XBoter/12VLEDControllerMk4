@@ -327,6 +327,7 @@ struct ConfigurationData
  */
 struct SettingsData
 {
+    // == Settings data
     LEDOutputType stripChannelOutputs[STRIP_COUNT][CHANNEL_COUNT]{LEDOutputType::R};
     // == Flags
     bool isConfigured = false; // If true the data is configured initially
@@ -338,24 +339,15 @@ struct SettingsData
  */
 struct LEDStateData
 {
-    // == LED Strip 1 State
-    bool ledStrip1Power = false;
-    uint8_t ledStrip1RedValue = 0;
-    uint8_t ledStrip1GreenValue = 0;
-    uint8_t ledStrip1BlueValue = 0;
-    uint8_t ledStrip1ColdWhiteValue = 0;
-    uint8_t ledStrip1WarmWhiteValue = 0;
-    uint8_t ledStrip1BrightnessValue = 0;
-    SingleLEDEffect ledStrip1EffectValue = SingleLEDEffect::None;
-    // == LED Strip 2 State
-    bool ledStrip2Power = false;
-    uint8_t ledStrip2RedValue = 0;
-    uint8_t ledStrip2GreenValue = 0;
-    uint8_t ledStrip2BlueValue = 0;
-    uint8_t ledStrip2ColdWhiteValue = 0;
-    uint8_t ledStrip2WarmWhiteValue = 0;
-    uint8_t ledStrip2BrightnessValue = 0;
-    SingleLEDEffect ledStrip2EffectValue = SingleLEDEffect::None;
+    // == LED state data
+    bool Power[STRIP_COUNT]{};
+    uint8_t RedValue[STRIP_COUNT]{0};
+    uint8_t GreenValue[STRIP_COUNT]{0};
+    uint8_t BlueValue[STRIP_COUNT]{0};
+    uint8_t ColdWhiteValue[STRIP_COUNT]{0};
+    uint8_t WarmWhiteValue[STRIP_COUNT]{0};
+    uint8_t BrightnessValue[STRIP_COUNT]{0};
+    SingleLEDEffect EffectValue[STRIP_COUNT]{SingleLEDEffect::None};
     // == Flags
     bool isConfigured = false; // If true the data is configured initially
 };
