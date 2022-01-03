@@ -35,21 +35,25 @@ public:
 private:
 public:
     // ======== Helper Method ======== //
-    
-    uint8_t convertSingleLEDEffectToUint8(SingleLEDEffect value);
-    SingleLEDEffect convertUint8ToSingleLEDEffect(uint8_t value);
+    // == Print
     void TopSpacerPrint();
     void BottomSpacerPrint();
     void InsertPrint();
-    String BoolToString(bool b);
-    String BollToConnectionState(bool b);
-    String IntToClientStateInfo(int i);
+    // == MultiLEDEffect
+    String MultiLEDEffectToString(MultiLEDEffect effect);
+    SingleLEDEffect Uint8ToSingleLEDEffect(uint8_t value);
+    uint8_t MultiLEDEffectToUint8(MultiLEDEffect effect);
+    // == SingleLEDEffect
     String SingleLEDEffectToString(SingleLEDEffect effect);
     SingleLEDEffect StringToSingleLEDEffect(String effect);
-    String MultiLEDEffectToString(MultiLEDEffect effect);
-    String FadeCurveToString(FadeCurve curve);
+    uint8_t SingleLEDEffectToUint8(SingleLEDEffect value);
     // == LEDOutputType
     String LEDOutputTypeToString(LEDOutputType type);
     LEDOutputType Uint8ToLEDOutputType(uint8_t value);
     uint8_t LEDOutputTypeToUint8(LEDOutputType type);
+    // == Other
+    String BoolToString(bool b);
+    String BollToConnectionState(bool b);
+    String IntToClientStateInfo(int i);
+    String FadeCurveToString(FadeCurve curve);
 };

@@ -40,7 +40,6 @@ void Helper::Run()
     }
 };
 
-
 /**
  * @brief Converts the uint8_t value to an ENUM LEDOutputType
  * 
@@ -77,7 +76,7 @@ LEDOutputType Helper::Uint8ToLEDOutputType(uint8_t value)
  * @param value The ENUM SingleLEDEffect value
  * @return The converted value
  */
-uint8_t Helper::convertSingleLEDEffectToUint8(SingleLEDEffect value)
+uint8_t Helper::SingleLEDEffectToUint8(SingleLEDEffect value)
 {
     uint8_t result = 0;
     switch (value)
@@ -100,7 +99,7 @@ uint8_t Helper::convertSingleLEDEffectToUint8(SingleLEDEffect value)
  * @param value The uint8_t ENUM value
  * @return The converted value
  */
-SingleLEDEffect Helper::convertUint8ToSingleLEDEffect(uint8_t value)
+SingleLEDEffect Helper::Uint8ToSingleLEDEffect(uint8_t value)
 {
     SingleLEDEffect result = SingleLEDEffect::None;
     switch (value)
@@ -418,4 +417,27 @@ uint8_t Helper::LEDOutputTypeToUint8(LEDOutputType type)
     }
 
     return data;
+}
+
+uint8_t Helper::MultiLEDEffectToUint8(MultiLEDEffect effect)
+{
+    uint8_t result = 0;
+
+    switch (effect)
+    {
+    case MultiLEDEffect::Idle:
+        result = 0;
+        break;
+    case MultiLEDEffect::SingleLEDEffect:
+        result = 1;
+        break;
+    case MultiLEDEffect::MotionDetected:
+        result = 2;
+        break;
+    case MultiLEDEffect::Alarm:
+        result = 3;
+        break;
+    }
+
+    return result;
 }
