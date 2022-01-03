@@ -79,6 +79,7 @@ void Filesystem::Run()
             this->settingsData.stripChannelOutputs[0][2] = LEDOutputType::R;
             this->settingsData.stripChannelOutputs[0][3] = LEDOutputType::G;
             this->settingsData.stripChannelOutputs[0][4] = LEDOutputType::WW;
+
             this->settingsData.stripChannelOutputs[1][0] = LEDOutputType::CW;
             this->settingsData.stripChannelOutputs[1][1] = LEDOutputType::B;
             this->settingsData.stripChannelOutputs[1][2] = LEDOutputType::R;
@@ -87,6 +88,35 @@ void Filesystem::Run()
 
             this->settingsData.isConfigured = true;
             this->saveSettings(this->settingsData);
+        }
+    }
+
+    // If the led state data is not configured once we save the default data to the filesystem
+    if (this->isLEDStateDataReady())
+    {
+        if (!this->getLEDStateData().isConfigured)
+        {
+            // Inital led state config
+            this->ledStateData.Power[0] = false;
+            this->ledStateData.RedValue[0] = 0;
+            this->ledStateData.GreenValue[0] = 0;
+            this->ledStateData.BlueValue[0] = 0;
+            this->ledStateData.ColdWhiteValue[0] = 0;
+            this->ledStateData.WarmWhiteValue[0] = 0;
+            this->ledStateData.BrightnessValue[0] = 0;
+            this->ledStateData.EffectValue[0] = SingleLEDEffect::None;
+
+            this->ledStateData.Power[1] = false;
+            this->ledStateData.RedValue[1] = 0;
+            this->ledStateData.GreenValue[1] = 0;
+            this->ledStateData.BlueValue[1] = 0;
+            this->ledStateData.ColdWhiteValue[1] = 0;
+            this->ledStateData.WarmWhiteValue[1] = 0;
+            this->ledStateData.BrightnessValue[1] = 0;
+            this->ledStateData.EffectValue[1] = SingleLEDEffect::None;
+
+            this->ledStateData.isConfigured = true;
+            this->saveLEDState(this->ledStateData);
         }
     }
 };
@@ -259,100 +289,76 @@ void Filesystem::saveLEDState(LEDStateData data)
         return;
     }
 
-    // ==== ledStrip1Power ==== //
-    if (!file.println(String(data.ledStrip1Power)))
+    // ==== Power ==== //
+    for (int i = 0; i < STRIP_COUNT; i++)
     {
-        Serial.println(F("ledStrip1Power failed to save"));
+        if (!file.println(String(data.Power[i])))
+        {
+            Serial.println("Strip " + String(i + 1) + " Power failed to save");
+        }
     }
 
-    // ==== ledStrip1RedValue ==== //
-    if (!file.println(String(data.ledStrip1RedValue)))
+    // ==== RedValue ==== //
+    for (int i = 0; i < STRIP_COUNT; i++)
     {
-        Serial.println(F("ledStrip1RedValue failed to save"));
+        if (!file.println(String(data.RedValue[i])))
+        {
+            Serial.println("Strip " + String(i + 1) + " RedValue failed to save");
+        }
     }
 
-    // ==== ledStrip1GreenValue ==== //
-    if (!file.println(String(data.ledStrip1GreenValue)))
+    // ==== GreenValue ==== //
+    for (int i = 0; i < STRIP_COUNT; i++)
     {
-        Serial.println(F("ledStrip1GreenValue failed to save"));
+        if (!file.println(String(data.GreenValue[i])))
+        {
+            Serial.println("Strip " + String(i + 1) + " GreenValue failed to save");
+        }
     }
 
-    // ==== ledStrip1BlueValue ==== //
-    if (!file.println(String(data.ledStrip1BlueValue)))
+    // ==== BlueValue ==== //
+    for (int i = 0; i < STRIP_COUNT; i++)
     {
-        Serial.println(F("ledStrip1BlueValue failed to save"));
+        if (!file.println(String(data.BlueValue[i])))
+        {
+            Serial.println("Strip " + String(i + 1) + " BlueValue failed to save");
+        }
     }
 
-    // ==== ledStrip1ColdWhiteValue ==== //
-    if (!file.println(String(data.ledStrip1ColdWhiteValue)))
+    // ==== ColdWhiteValue ==== //
+    for (int i = 0; i < STRIP_COUNT; i++)
     {
-        Serial.println(F("ledStrip1ColdWhiteValue failed to save"));
+        if (!file.println(String(data.ColdWhiteValue[i])))
+        {
+            Serial.println("Strip " + String(i + 1) + " ColdWhiteValue failed to save");
+        }
     }
 
-    // ==== ledStrip1WarmWhiteValue ==== //
-    if (!file.println(String(data.ledStrip1WarmWhiteValue)))
+    // ==== WarmWhiteValue ==== //
+    for (int i = 0; i < STRIP_COUNT; i++)
     {
-        Serial.println(F("ledStrip1WarmWhiteValue failed to save"));
+        if (!file.println(String(data.WarmWhiteValue[i])))
+        {
+            Serial.println("Strip " + String(i + 1) + " WarmWhiteValue failed to save");
+        }
     }
 
-    // ==== ledStrip1BrightnessValue ==== //
-    if (!file.println(String(data.ledStrip1BrightnessValue)))
+    // ==== BrightnessValue ==== //
+    for (int i = 0; i < STRIP_COUNT; i++)
     {
-        Serial.println(F("ledStrip1BrightnessValue failed to save"));
+        if (!file.println(String(data.BrightnessValue[i])))
+        {
+            Serial.println("Strip " + String(i + 1) + " BrightnessValue failed to save");
+        }
     }
 
-    // ==== ledStrip1EffectValue ==== //
-    if (!file.println(String(this->helper->convertSingleLEDEffectToUint8(data.ledStrip1EffectValue))))
+    // ==== EffectValue ==== //
+    for (int i = 0; i < STRIP_COUNT; i++)
     {
-        Serial.println(F("ledStrip1EffectValue failed to save"));
-    }
-
-    // ==== ledStrip2Power ==== //
-    if (!file.println(String(data.ledStrip2Power)))
-    {
-        Serial.println(F("ledStrip2Power failed to save"));
-    }
-
-    // ==== ledStrip2RedValue ==== //
-    if (!file.println(String(data.ledStrip2RedValue)))
-    {
-        Serial.println(F("ledStrip2RedValue failed to save"));
-    }
-
-    // ==== ledStrip2GreenValue ==== //
-    if (!file.println(String(data.ledStrip2GreenValue)))
-    {
-        Serial.println(F("ledStrip2GreenValue failed to save"));
-    }
-
-    // ==== ledStrip2BlueValue ==== //
-    if (!file.println(String(data.ledStrip2BlueValue)))
-    {
-        Serial.println(F("ledStrip2BlueValue failed to save"));
-    }
-
-    // ==== ledStrip2ColdWhiteValue ==== //
-    if (!file.println(String(data.ledStrip2ColdWhiteValue)))
-    {
-        Serial.println(F("ledStrip2ColdWhiteValue failed to save"));
-    }
-
-    // ==== ledStrip2WarmWhiteValue ==== //
-    if (!file.println(String(data.ledStrip2WarmWhiteValue)))
-    {
-        Serial.println(F("ledStrip2WarmWhiteValue failed to save"));
-    }
-
-    // ==== ledStrip2BrightnessValue ==== //
-    if (!file.println(String(data.ledStrip2BrightnessValue)))
-    {
-        Serial.println(F("ledStrip2BrightnessValue failed to save"));
-    }
-
-    // ==== ledStrip2EffectValue ==== //
-    if (!file.println(String(this->helper->convertSingleLEDEffectToUint8(data.ledStrip2EffectValue))))
-    {
-        Serial.println(F("ledStrip2EffectValue failed to save"));
+        if (!file.println(this->helper->SingleLEDEffectToString(data.EffectValue[i])))
+        {
+            Serial.println("Strip " + String(i + 1) + " EffectValue failed to save");
+        }
     }
 
     // ==== isConfigured ==== //
@@ -496,22 +502,18 @@ SettingsData Filesystem::loadSettings()
                 {
                     // ==== stripChannelOutputs ==== //
                 case 0:
-                    if (i < STRIP_COUNT)
+                    data.stripChannelOutputs[i][j] = this->helper->Uint8ToLEDOutputType(strtol(message.c_str(), NULL, 0));
+                    Serial.println("Strip " + String(i + 1) + " Channel " + String(j + 1) + ": " + String(this->helper->LEDOutputTypeToUint8(data.stripChannelOutputs[i][j])));
+                    j++;
+                    if (j >= CHANNEL_COUNT)
                     {
-                        if (j < CHANNEL_COUNT)
-                        {
-                            data.stripChannelOutputs[i][j] = this->helper->Uint8ToLEDOutputType(strtol(message.c_str(), NULL, 0));
-                            Serial.println("Strip " + String(i + 1) + " Channel " + String(j + 1) + ": " + String(this->helper->LEDOutputTypeToUint8(data.stripChannelOutputs[i][j])));
-                            j++;
-                            if (j >= CHANNEL_COUNT)
-                            {
-                                j = 0;
-                                i++;
-                            }
-                        }
+                        j = 0;
+                        i++;
                     }
-                    else
+                    if (i >= STRIP_COUNT)
                     {
+                        i = 0;
+                        j = 0;
                         state++;
                     }
                     break;
@@ -558,6 +560,7 @@ LEDStateData Filesystem::loadLEDState()
     }
 
     uint8_t state = 0;
+    uint8_t i = 0;
     String message = "";
     char symbol = '\0';
     while (file.available())
@@ -573,88 +576,97 @@ LEDStateData Filesystem::loadLEDState()
             {
                 switch (state)
                 {
-                    // ==== ledStrip1Power ==== //
+                    // ==== Power ==== //
                 case 0:
-                    data.ledStrip1Power = bool(message);
-                    state++;
+                    data.Power[i] = bool(message);
+                    Serial.println("Strip " + String(i + 1) + " Power : " + String(data.Power[i]));
+                    i++;
+                    if (i >= STRIP_COUNT)
+                    {
+                        i = 0;
+                        state++;
+                    }
                     break;
-                    // ==== ledStrip1RedValue ==== //
+                    // ==== RedValue ==== //
                 case 1:
-                    data.ledStrip1RedValue = strtol(message.c_str(), NULL, 0);
-                    state++;
+                    data.RedValue[i] = bool(message);
+                    Serial.println("Strip " + String(i + 1) + " RedValue : " + String(data.RedValue[i]));
+                    i++;
+                    if (i >= STRIP_COUNT)
+                    {
+                        i = 0;
+                        state++;
+                    }
                     break;
-                    // ==== ledStrip1GreenValue ==== //
+                    // ==== GreenValue ==== //
                 case 2:
-                    data.ledStrip1GreenValue = strtol(message.c_str(), NULL, 0);
-                    state++;
+                    data.GreenValue[i] = bool(message);
+                    Serial.println("Strip " + String(i + 1) + " GreenValue : " + String(data.GreenValue[i]));
+                    i++;
+                    if (i >= STRIP_COUNT)
+                    {
+                        i = 0;
+                        state++;
+                    }
                     break;
-                    // ==== ledStrip1BlueValue ==== //
+                    // ==== BlueValue ==== //
                 case 3:
-                    data.ledStrip1BlueValue = strtol(message.c_str(), NULL, 0);
-                    state++;
+                    data.BlueValue[i] = bool(message);
+                    Serial.println("Strip " + String(i + 1) + " BlueValue : " + String(data.BlueValue[i]));
+                    i++;
+                    if (i >= STRIP_COUNT)
+                    {
+                        i = 0;
+                        state++;
+                    }
                     break;
-                    // ==== ledStrip1ColdWhiteValue ==== //
+                    // ==== ColdWhiteValue ==== //
                 case 4:
-                    data.ledStrip1ColdWhiteValue = strtol(message.c_str(), NULL, 0);
-                    state++;
+                    data.ColdWhiteValue[i] = bool(message);
+                    Serial.println("Strip " + String(i + 1) + " ColdWhiteValue : " + String(data.ColdWhiteValue[i]));
+                    i++;
+                    if (i >= STRIP_COUNT)
+                    {
+                        i = 0;
+                        state++;
+                    }
                     break;
-                    // ==== ledStrip1WarmWhiteValue ==== //
+                    // ==== WarmWhiteValue ==== //
                 case 5:
-                    data.ledStrip1WarmWhiteValue = strtol(message.c_str(), NULL, 0);
-                    state++;
+                    data.WarmWhiteValue[i] = bool(message);
+                    Serial.println("Strip " + String(i + 1) + " WarmWhiteValue : " + String(data.WarmWhiteValue[i]));
+                    i++;
+                    if (i >= STRIP_COUNT)
+                    {
+                        i = 0;
+                        state++;
+                    }
                     break;
-                    // ==== ledStrip1BrightnessValue ==== //
+                    // ==== BrightnessValue ==== //
                 case 6:
-                    data.ledStrip1BrightnessValue = strtol(message.c_str(), NULL, 0);
-                    state++;
+                    data.BrightnessValue[i] = bool(message);
+                    Serial.println("Strip " + String(i + 1) + " BrightnessValue : " + String(data.BrightnessValue[i]));
+                    i++;
+                    if (i >= STRIP_COUNT)
+                    {
+                        i = 0;
+                        state++;
+                    }
                     break;
-                    // ==== ledStrip1EffectValue ==== //
+                    // ==== EffectValue ==== //
                 case 7:
-                    data.ledStrip1EffectValue = this->helper->convertUint8ToSingleLEDEffect(strtol(message.c_str(), NULL, 0));
-                    state++;
+                    data.EffectValue[i] = this->helper->Uint8ToSingleLEDEffect(strtol(message.c_str(), NULL, 0));
+                    Serial.println("Strip " + String(i + 1) + " EffectValue : " + this->helper->SingleLEDEffectToString(data.EffectValue[i]));
+                    i++;
+                    if (i >= STRIP_COUNT)
+                    {
+                        i = 0;
+                        state++;
+                    }
                     break;
-                    // ==== ledStrip2Power ==== //
-                case 8:
-                    data.ledStrip2Power = bool(message);
-                    state++;
-                    break;
-                    // ==== ledStrip2RedValue ==== //
-                case 9:
-                    data.ledStrip2RedValue = strtol(message.c_str(), NULL, 0);
-                    state++;
-                    break;
-                    // ==== ledStrip2GreenValue ==== //
-                case 10:
-                    data.ledStrip2GreenValue = strtol(message.c_str(), NULL, 0);
-                    state++;
-                    break;
-                    // ==== ledStrip2BlueValue ==== //
-                case 11:
-                    data.ledStrip2BlueValue = strtol(message.c_str(), NULL, 0);
-                    state++;
-                    break;
-                    // ==== ledStrip2ColdWhiteValue ==== //
-                case 12:
-                    data.ledStrip2ColdWhiteValue = strtol(message.c_str(), NULL, 0);
-                    state++;
-                    break;
-                    // ==== ledStrip2WarmWhiteValue ==== //
-                case 13:
-                    data.ledStrip2WarmWhiteValue = strtol(message.c_str(), NULL, 0);
-                    state++;
-                    break;
-                    // ==== ledStrip2BrightnessValue ==== //
-                case 14:
-                    data.ledStrip2BrightnessValue = strtol(message.c_str(), NULL, 0);
-                    state++;
-                    break;
-                    // ==== ledStrip2EffectValue ==== //
-                case 15:
-                    data.ledStrip2EffectValue = this->helper->convertUint8ToSingleLEDEffect(strtol(message.c_str(), NULL, 0));
-                    state++;
-                    break;
+
                     // ==== isConfigured ==== //
-                case 16:
+                case 8:
                     data.isConfigured = bool(message);
                     break;
                 }
