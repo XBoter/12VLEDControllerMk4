@@ -340,7 +340,7 @@ struct SettingsData
 struct LEDStateData
 {
     // == LED state data
-    bool Power[STRIP_COUNT]{};
+    bool Power[STRIP_COUNT]{false};
     uint8_t RedValue[STRIP_COUNT]{0};
     uint8_t GreenValue[STRIP_COUNT]{0};
     uint8_t BlueValue[STRIP_COUNT]{0};
