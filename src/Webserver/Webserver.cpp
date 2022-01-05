@@ -4,8 +4,9 @@
  * @brief ESP Webserver instance which we use to display the webpages
  * 
  */
-ESP8266WebServer server(80);
-WebSocketsServer webSocketServer(81);
+AsyncWebServer asyncWebServer(80);
+AsyncWebSocket asyncWebSocketMain("/ws/main");
+AsyncWebSocket asyncWebSocketSettings("/ws/Settings");
 
 /**
  * @brief Construct a new Webserver:: Webserver object
@@ -47,9 +48,10 @@ bool Webserver::Init()
         Serial.println(F("Webserver initialized"));
         init = true;
 
-        webSocketServer.begin();
-        webSocketServer.onEvent([this](uint8_t num, WStype_t type, uint8_t *payload, size_t length)
-                                { this->WebSocketEvent(num, type, payload, length); });
+        asyncWebSocketMain.onEvent([this](AsyncWebSocket *server, AsyncWebSocketClient *client, AwsEventType type, void *arg, uint8_t *data, size_t len)
+                                   { this->WebSocketEventMain(server, client, type, arg, data, len); });
+        asyncWebSocketSettings.onEvent([this](AsyncWebSocket *server, AsyncWebSocketClient *client, AwsEventType type, void *arg, uint8_t *data, size_t len)
+                                       { this->WebSocketEventSettings(server, client, type, arg, data, len); });
     }
     return init;
 };
@@ -63,8 +65,6 @@ void Webserver::Run()
     {
         return;
     }
-
-    webSocketServer.loop();
 
     unsigned long curMillis = millis();
 
@@ -204,13 +204,13 @@ void Webserver::ConfigurationModeHandler(bool shutdown)
                 }
                 else
                 {
-                    server.on("/", [this]()
-                              { this->ConfigurationWebpage(); });
-                    server.on("/submitted", [this]()
-                              { this->ConfigurationWebpageSubmitted(); });
-                    server.onNotFound([this]()
-                                      { this->ConfigurationNotFoundWebpage(); });
-                    server.begin();
+                    asyncWebServer.on("/", HTTP_GET, [this](AsyncWebServerRequest *request)
+                                      { this->ConfigurationWebpage(request); });
+                    asyncWebServer.on("/submitted", HTTP_GET, [this](AsyncWebServerRequest *request)
+                                      { this->ConfigurationWebpageSubmitted(request); });
+                    asyncWebServer.onNotFound([this](AsyncWebServerRequest *request)
+                                              { this->ConfigurationNotFoundWebpage(request); });
+                    asyncWebServer.begin();
                     this->configurationModeSubState = WebserverConfigurationModeSubState::HandleClients;
                 }
                 break;
@@ -221,11 +221,6 @@ void Webserver::ConfigurationModeHandler(bool shutdown)
                 {
                     this->configurationModeSubState = WebserverConfigurationModeSubState::StopWebServer;
                 }
-                else
-                {
-                    server.handleClient();
-                    client = server.client();
-                }
                 break;
 
                 // ================================ StopWebServer ================================ //
@@ -233,6 +228,9 @@ void Webserver::ConfigurationModeHandler(bool shutdown)
 
                 this->filesystem->resetConfiguration();
                 this->filesystem->saveConfiguration(this->configurationData);
+
+                asyncWebServer.end();
+                asyncWebServer.reset();
 
                 this->configurationModeState = WebserverConfigurationModeState::ShutdownConfigurationMode;
                 break;
@@ -319,17 +317,15 @@ void Webserver::NormalModeHandler(bool shutdown)
                 }
                 else
                 {
-                    server.on("/", [this]()
-                              { this->NormalMainWebpage(); });
-                    server.on("/event", [this]()
-                              { this->NormalMainWebpageEvent(); });
-                    server.on("/settings", [this]()
-                              { this->NormalSettingsWebpage(); });
-                    server.on("/settings/event", [this]()
-                              { this->NormalSettingsWebpageEvent(); });
-                    server.onNotFound([this]()
-                                      { this->NormalNotFoundWebpage(); });
-                    server.begin();
+                    asyncWebServer.on("/", HTTP_GET, [this](AsyncWebServerRequest *request)
+                                      { this->NormalMainWebpage(request); });
+                    asyncWebServer.on("/settings", HTTP_GET, [this](AsyncWebServerRequest *request)
+                                      { this->NormalSettingsWebpage(request); });
+                    asyncWebServer.onNotFound([this](AsyncWebServerRequest *request)
+                                              { this->NormalNotFoundWebpage(request); });
+                    asyncWebServer.addHandler(&asyncWebSocketMain);
+                    asyncWebServer.addHandler(&asyncWebSocketSettings);
+                    asyncWebServer.begin();
                     this->normalModeSubState = WebserverNormalModeSubState::HandleClients;
                 }
                 break;
@@ -340,16 +336,12 @@ void Webserver::NormalModeHandler(bool shutdown)
                 {
                     this->normalModeSubState = WebserverNormalModeSubState::StopWebServer;
                 }
-                else
-                {
-                    server.handleClient();
-                    client = server.client();
-                }
                 break;
 
                 // ================================ StopWebServer ================================ //
             case WebserverNormalModeSubState::StopWebServer:
-                server.stop();
+                asyncWebServer.end();
+                asyncWebServer.reset();
                 this->normalModeState = WebserverNormalModeState::ShutdownNormalMode;
                 break;
             }
@@ -419,50 +411,50 @@ void Webserver::turnOffOnBoardLED()
  * @brief Displays the configuration webpage
  * 
  */
-void Webserver::ConfigurationWebpage()
+void Webserver::ConfigurationWebpage(AsyncWebServerRequest *request)
 {
-    server.send(200, "text/html", ConfigurationPage);
+    request->send_P(200, "text/html", ConfigurationPage);
 };
 
 /**
  * @brief Reads the arguments from the configuration webpage and displays the configuration submitted webpage
  * 
  */
-void Webserver::ConfigurationWebpageSubmitted()
+void Webserver::ConfigurationWebpageSubmitted(AsyncWebServerRequest *request)
 {
 
-    if (server.hasArg("wifiSSID"))
+    if (request->hasParam("wifiSSID", true))
     {
-        this->configurationData.wifiSSID = server.arg("wifiSSID");
+        this->configurationData.wifiSSID = request->getParam("wifiSSID", true)->value();
     }
-    if (server.hasArg("wifiPassword"))
+    if (request->hasParam("wifiPassword", true))
     {
-        this->configurationData.wifiPassword = server.arg("wifiPassword");
+        this->configurationData.wifiPassword = request->getParam("wifiPassword", true)->value();
     }
-    if (server.hasArg("mqttBrokerIpAddress"))
+    if (request->hasParam("mqttBrokerIpAddress", true))
     {
-        this->configurationData.mqttBrokerIpAddress = server.arg("mqttBrokerIpAddress");
+        this->configurationData.mqttBrokerIpAddress = request->getParam("mqttBrokerIpAddress", true)->value();
     }
-    if (server.hasArg("mqttBrokerUsername"))
+    if (request->hasParam("mqttBrokerUsername", true))
     {
-        this->configurationData.mqttBrokerUsername = server.arg("mqttBrokerUsername");
+        this->configurationData.mqttBrokerUsername = request->getParam("mqttBrokerUsername", true)->value();
     }
-    if (server.hasArg("mqttBrokerPassword"))
+    if (request->hasParam("mqttBrokerPassword", true))
     {
-        this->configurationData.mqttBrokerPassword = server.arg("mqttBrokerPassword");
+        this->configurationData.mqttBrokerPassword = request->getParam("mqttBrokerPassword", true)->value();
     }
-    if (server.hasArg("mqttBrokerPort"))
+    if (request->hasParam("mqttBrokerPort", true))
     {
         this->configurationData.mqttBrokerPort =
-            strtol(server.arg("mqttBrokerPort").c_str(), NULL, 0);
+            strtol(request->getParam("mqttBrokerPort", true)->value().c_str(), NULL, 0);
     }
-    if (server.hasArg("mqttClientName"))
+    if (request->hasParam("mqttClientName", true))
     {
-        this->configurationData.mqttClientName = server.arg("mqttClientName");
+        this->configurationData.mqttClientName = request->getParam("mqttClientName", true)->value();
     }
     this->configurationData.isConfigured = true;
 
-    server.send(200, "text/html", SubmittedConfigurationPage);
+    request->send_P(200, "text/html", SubmittedConfigurationPage);
 
     this->helper->TopSpacerPrint();
     this->helper->InsertPrint();
@@ -477,80 +469,39 @@ void Webserver::ConfigurationWebpageSubmitted()
  * @brief Sends a 404 error message to the client with a "Configuration page not found" message
  * 
  */
-void Webserver::ConfigurationNotFoundWebpage()
+void Webserver::ConfigurationNotFoundWebpage(AsyncWebServerRequest *request)
 {
-    String message = "Configuration page not found\n\n";
-    message += "URI: ";
-    message += server.uri();
-    message += "\nMethod: ";
-    message += (server.method() == HTTP_GET) ? "GET" : "POST";
-    message += "\nArguments: ";
-    message += server.args();
-    message += "\n";
-
-    for (uint8_t i = 0; i < server.args(); i++)
-    {
-        message += " " + server.argName(i) + ": " + server.arg(i) + "\n";
-    }
-
-    server.send(404, "text/plain", message);
+    request->send(404, "text/plain", "Configuration page not found");
 }
 
 /**
  * @brief Displays the main page in normal mode
  * 
  */
-void Webserver::NormalMainWebpage()
+void Webserver::NormalMainWebpage(AsyncWebServerRequest *request)
 {
-    server.send(200, "text/html", MainPage);
+    request->send_P(200, "text/html", MainPage);
 };
 
 /**
- * @brief Gets called if there is a event on the main page
- * 
- */
-void Webserver::NormalMainWebpageEvent(){
 
-};
 
 /**
  * @brief Displays the settings page in normal mode
  * 
  */
-void Webserver::NormalSettingsWebpage()
+void Webserver::NormalSettingsWebpage(AsyncWebServerRequest *request)
 {
-    server.send(200, "text/html", SettingsPage);
-};
-
-/**
- * @brief Gets called if there is a event on the settings page
- * 
- */
-void Webserver::NormalSettingsWebpageEvent(){
-
+    request->send_P(200, "text/html", SettingsPage);
 };
 
 /**
  * @brief Sends a 404 error message to the client with a "Normal page not found" message
  * 
  */
-void Webserver::NormalNotFoundWebpage()
+void Webserver::NormalNotFoundWebpage(AsyncWebServerRequest *request)
 {
-    String message = "Normal page not found\n\n";
-    message += "URI: ";
-    message += server.uri();
-    message += "\nMethod: ";
-    message += (server.method() == HTTP_GET) ? "GET" : "POST";
-    message += "\nArguments: ";
-    message += server.args();
-    message += "\n";
-
-    for (uint8_t i = 0; i < server.args(); i++)
-    {
-        message += " " + server.argName(i) + ": " + server.arg(i) + "\n";
-    }
-
-    server.send(404, "text/plain", message);
+    request->send(404, "text/plain", "Normal page not found");
 }
 
 bool Webserver::getConfigurationMode()
@@ -579,104 +530,355 @@ void Webserver::RequestChangeToNormalMode()
     }
 }
 
-void Webserver::WebSocketEvent(uint8_t num, WStype_t type, uint8_t *payload, size_t length)
+void Webserver::WebSocketEventMain(AsyncWebSocket *server, AsyncWebSocketClient *client, AwsEventType type, void *arg, uint8_t *data, size_t len)
 {
-
-    char message[length + 1];
-    for (unsigned int i = 0; i < length; i++)
+    switch (type)
     {
-        message[i] = (char)payload[i];
+        // ================================ WS_EVT_DISCONNECT ================================ //
+    case AwsEventType::WS_EVT_DISCONNECT:
+        Serial.printf("ws[%s][%u] connect\n", server->url(), client->id());
+        break;
+        // ================================ WS_EVT_ERROR ================================ //
+    case AwsEventType::WS_EVT_ERROR:
+        Serial.printf("ws[%s][%u] error(%u): %s\n", server->url(), client->id(), *((uint16_t *)arg), (char *)data);
+        break;
+        // ================================ WS_EVT_PONG ================================ //
+    case AwsEventType::WS_EVT_PONG:
+        Serial.printf("ws[%s][%u] pong[%u]: %s\n", server->url(), client->id(), len, (len) ? (char *)data : "");
+        break;
+        // ================================ WS_EVT_CONNECT ================================ //
+    case AwsEventType::WS_EVT_CONNECT:
+    {
+        Serial.printf("ws[%s][%u] connect\n", server->url(), client->id());
+        if (this->filesystem->isLEDStateDataReady())
+        {
+            Serial.printf("ws[%u] Sending initial led state data \n", client->id());
+            for (int i = 0; i < STRIP_COUNT; i++)
+            {
+                String msg = this->BuildWebsocketMessage("Power", String(i + 1), String(this->filesystem->getLEDStateData().Power[i]));
+                server->text(client->id(), msg);
+                msg = this->BuildWebsocketMessage("RedValue", String(i + 1), String(this->filesystem->getLEDStateData().RedValue[i]));
+                server->text(client->id(), msg);
+                msg = this->BuildWebsocketMessage("GreenValue", String(i + 1), String(this->filesystem->getLEDStateData().GreenValue[i]));
+                server->text(client->id(), msg);
+                msg = this->BuildWebsocketMessage("BlueValue", String(i + 1), String(this->filesystem->getLEDStateData().BlueValue[i]));
+                server->text(client->id(), msg);
+                msg = this->BuildWebsocketMessage("ColdWhiteValue", String(i + 1), String(this->filesystem->getLEDStateData().ColdWhiteValue[i]));
+                server->text(client->id(), msg);
+                msg = this->BuildWebsocketMessage("WarmWhiteValue", String(i + 1), String(this->filesystem->getLEDStateData().WarmWhiteValue[i]));
+                server->text(client->id(), msg);
+                msg = this->BuildWebsocketMessage("BrightnessValue", String(i + 1), String(this->filesystem->getLEDStateData().BrightnessValue[i]));
+                server->text(client->id(), msg);
+                msg = this->BuildWebsocketMessage("EffectValue", String(i + 1), String(this->helper->SingleLEDEffectToUint8(this->filesystem->getLEDStateData().EffectValue[i])));
+                server->text(client->id(), msg);
+            }
+        }
+        else
+        {
+            Serial.printf("ws[%u] Cant send initial led state data because filesystem is not ready \n", client->id());
+        }
     }
-    message[length] = '\0';
+    break;
+    // ================================ WS_EVT_DATA ================================ //
+    case AwsEventType::WS_EVT_DATA:
+    {
+        AwsFrameInfo *info = (AwsFrameInfo *)arg;
+        if (info->final && info->index == 0 && info->len == len)
+        {
+            Serial.printf("ws[%s][%u] data %s-message[%llu]: ", server->url(), client->id(), (info->opcode == WS_TEXT) ? "text" : "binary", info->len);
+            if (info->opcode == WS_TEXT)
+            {
+                data[len] = 0;
+                Serial.printf("%s\n", (char *)data);
+            }
+            else
+            {
+                Serial.println("We only support text");
+                return;
+            }
+
+            Serial.printf("ws[%u] Text: %s\n", client->id(), (char *)data);
+            String dataArray[MAX_DATA]{""};
+            uint8_t dataCounter = 0;
+            char *pch;
+            pch = strtok((char *)data, "#");
+            while (pch != NULL)
+            {
+                if (dataCounter < MAX_DATA)
+                {
+                    dataArray[dataCounter] = pch;
+                    dataCounter++;
+                }
+                else
+                {
+                    break;
+                }
+                pch = strtok(NULL, "#");
+            }
+
+            Serial.println("Type    : " + dataArray[0]);
+            Serial.println("Data 1  : " + dataArray[1]);
+            Serial.println("Data 2  : " + dataArray[2]);
+            Serial.println("Data 3  : " + dataArray[3]);
+
+            // ================================ Power ================================ //
+            if (dataArray[0].equals("Power"))
+            {
+                uint8_t stripNumber = dataArray[1].toInt();
+                uint8_t power = dataArray[2].toInt();
+
+                if (stripNumber >= 1 && stripNumber <= STRIP_COUNT)
+                {
+                    LEDStateData ledStateData = this->filesystem->getLEDStateData();
+                    ledStateData.Power[stripNumber - 1] = power;
+                    String msg = this->BuildWebsocketMessage("Power", String(stripNumber), String(power));
+                    // We Broadcast the new data to all connected clients
+                    server->textAll(msg);
+                    this->filesystem->saveLEDState(ledStateData);
+                }
+            }
+            // ================================ RedValue ================================ //
+            else if (dataArray[0].equals("RedValue"))
+            {
+                uint8_t stripNumber = dataArray[1].toInt();
+                uint8_t redValue = dataArray[2].toInt();
+
+                if (stripNumber >= 1 && stripNumber <= STRIP_COUNT)
+                {
+                    LEDStateData ledStateData = this->filesystem->getLEDStateData();
+                    ledStateData.RedValue[stripNumber - 1] = redValue;
+                    String msg = this->BuildWebsocketMessage("RedValue", String(stripNumber), String(redValue));
+                    // We Broadcast the new data to all connected clients
+                    server->textAll(msg);
+                    this->filesystem->saveLEDState(ledStateData);
+                }
+            }
+            // ================================ GreenValue ================================ //
+            else if (dataArray[0].equals("GreenValue"))
+            {
+                uint8_t stripNumber = dataArray[1].toInt();
+                uint8_t greenValue = dataArray[2].toInt();
+
+                if (stripNumber >= 1 && stripNumber <= STRIP_COUNT)
+                {
+                    LEDStateData ledStateData = this->filesystem->getLEDStateData();
+                    ledStateData.GreenValue[stripNumber - 1] = greenValue;
+                    String msg = this->BuildWebsocketMessage("GreenValue", String(stripNumber), String(greenValue));
+                    // We Broadcast the new data to all connected clients
+                    server->textAll(msg);
+                    this->filesystem->saveLEDState(ledStateData);
+                }
+            }
+            // ================================ BlueValue ================================ //
+            else if (dataArray[0].equals("BlueValue"))
+            {
+                uint8_t stripNumber = dataArray[1].toInt();
+                uint8_t blueValue = dataArray[2].toInt();
+
+                if (stripNumber >= 1 && stripNumber <= STRIP_COUNT)
+                {
+                    LEDStateData ledStateData = this->filesystem->getLEDStateData();
+                    ledStateData.BlueValue[stripNumber - 1] = blueValue;
+                    String msg = this->BuildWebsocketMessage("BlueValue", String(stripNumber), String(blueValue));
+                    // We Broadcast the new data to all connected clients
+                    server->textAll(msg);
+                    this->filesystem->saveLEDState(ledStateData);
+                }
+            }
+            // ================================ ColdWhiteValue ================================ //
+            else if (dataArray[0].equals("ColdWhiteValue"))
+            {
+                uint8_t stripNumber = dataArray[1].toInt();
+                uint8_t coldWhiteValue = dataArray[2].toInt();
+
+                if (stripNumber >= 1 && stripNumber <= STRIP_COUNT)
+                {
+                    LEDStateData ledStateData = this->filesystem->getLEDStateData();
+                    ledStateData.ColdWhiteValue[stripNumber - 1] = coldWhiteValue;
+                    String msg = this->BuildWebsocketMessage("ColdWhiteValue", String(stripNumber), String(coldWhiteValue));
+                    // We Broadcast the new data to all connected clients
+                    server->textAll(msg);
+                    this->filesystem->saveLEDState(ledStateData);
+                }
+            }
+            // ================================ WarmWhiteValue ================================ //
+            else if (dataArray[0].equals("WarmWhiteValue"))
+            {
+                uint8_t stripNumber = dataArray[1].toInt();
+                uint8_t warmWhiteValue = dataArray[2].toInt();
+
+                if (stripNumber >= 1 && stripNumber <= STRIP_COUNT)
+                {
+                    LEDStateData ledStateData = this->filesystem->getLEDStateData();
+                    ledStateData.WarmWhiteValue[stripNumber - 1] = warmWhiteValue;
+                    String msg = this->BuildWebsocketMessage("WarmWhiteValue", String(stripNumber), String(warmWhiteValue));
+                    // We Broadcast the new data to all connected clients
+                    server->textAll(msg);
+                    this->filesystem->saveLEDState(ledStateData);
+                }
+            }
+            // ================================ BrightnessValue ================================ //
+            else if (dataArray[0].equals("BrightnessValue"))
+            {
+                uint8_t stripNumber = dataArray[1].toInt();
+                uint8_t brightnessValue = dataArray[2].toInt();
+
+                if (stripNumber >= 1 && stripNumber <= STRIP_COUNT)
+                {
+                    LEDStateData ledStateData = this->filesystem->getLEDStateData();
+                    ledStateData.BrightnessValue[stripNumber - 1] = brightnessValue;
+                    String msg = this->BuildWebsocketMessage("BrightnessValue", String(stripNumber), String(brightnessValue));
+                    // We Broadcast the new data to all connected clients
+                    server->textAll(msg);
+                    this->filesystem->saveLEDState(ledStateData);
+                }
+            }
+            // ================================ EffectValue ================================ //
+            else if (dataArray[0].equals("EffectValue"))
+            {
+                uint8_t stripNumber = dataArray[1].toInt();
+                uint8_t effectValue = dataArray[2].toInt();
+
+                if (stripNumber >= 1 && stripNumber <= STRIP_COUNT)
+                {
+                    LEDStateData ledStateData = this->filesystem->getLEDStateData();
+                    ledStateData.EffectValue[stripNumber - 1] = this->helper->Uint8ToSingleLEDEffect(effectValue);
+                    String msg = this->BuildWebsocketMessage("EffectValue", String(stripNumber), String(effectValue));
+                    // We Broadcast the new data to all connected clients
+                    server->textAll(msg);
+                    this->filesystem->saveLEDState(ledStateData);
+                }
+            }
+        }
+    }
+    break;
+    }
+}
+
+void Webserver::WebSocketEventSettings(AsyncWebSocket *server, AsyncWebSocketClient *client, AwsEventType type, void *arg, uint8_t *data, size_t len)
+{
 
     switch (type)
     {
-    case WStype_DISCONNECTED:
-        Serial.printf("Client [%u] Disconnected!\n", num);
+        // ================================ WS_EVT_DISCONNECT ================================ //
+    case AwsEventType::WS_EVT_DISCONNECT:
+        Serial.printf("ws[%s][%u] connect\n", server->url(), client->id());
         break;
-    case WStype_CONNECTED:
+        // ================================ WS_EVT_ERROR ================================ //
+    case AwsEventType::WS_EVT_ERROR:
+        Serial.printf("ws[%s][%u] error(%u): %s\n", server->url(), client->id(), *((uint16_t *)arg), (char *)data);
+        break;
+        // ================================ WS_EVT_PONG ================================ //
+    case AwsEventType::WS_EVT_PONG:
+        Serial.printf("ws[%s][%u] pong[%u]: %s\n", server->url(), client->id(), len, (len) ? (char *)data : "");
+        break;
+        // ================================ WS_EVT_CONNECT ================================ //
+    case AwsEventType::WS_EVT_CONNECT:
     {
-        IPAddress ip = webSocketServer.remoteIP(num);
-        Serial.printf("Client [%u] Connected from %d.%d.%d.%d url: %s\n", num, ip[0], ip[1], ip[2], ip[3], payload);
-        webSocketServer.sendTXT(num, String("Connected to " + this->filesystem->getConfigurationData().mqttClientName).c_str());
-
-        // ======== Check for valid endpoint's ======== //
-        if (String("/settings").equals(message))
+        Serial.printf("ws[%s][%u] connect\n", server->url(), client->id());
+        if (this->filesystem->isSettingsDataReady())
         {
-            if (this->filesystem->isSettingsDataReady())
+            Serial.printf("ws[%u] Sending initial settings data \n", client->id());
+            for (int i = 0; i < STRIP_COUNT; i++)
             {
-                Serial.printf("Client [%u] Sending initial settings data", num);
-                for (int i = 0; i < STRIP_COUNT; i++)
+                for (int j = 0; j < CHANNEL_COUNT; j++)
                 {
-                    for (int j = 0; j < CHANNEL_COUNT; j++)
+                    String msg = this->BuildWebsocketMessage("StripConfig", String(i + 1), String(j + 1), String(this->helper->LEDOutputTypeToUint8(this->filesystem->getSettingData().stripChannelOutputs[i][j])));
+                    server->text(client->id(), msg);
+                }
+            }
+        }
+        else
+        {
+            Serial.printf("ws[%u] Cant send initial settings data because filesystem is not ready \n", client->id());
+        }
+    }
+    break;
+    // ================================ WS_EVT_DATA ================================ //
+    case AwsEventType::WS_EVT_DATA:
+    {
+        AwsFrameInfo *info = (AwsFrameInfo *)arg;
+        if (info->final && info->index == 0 && info->len == len)
+        {
+            Serial.printf("ws[%s][%u] %s-message[%llu]: ", server->url(), client->id(), (info->opcode == WS_TEXT) ? "text" : "binary", info->len);
+            if (info->opcode == WS_TEXT)
+            {
+                data[len] = 0;
+                Serial.printf("%s\n", (char *)data);
+            }
+            else
+            {
+                Serial.println("We only support text");
+                return;
+            }
+
+            Serial.printf("ws[%u] Text: %s\n", client->id(), (char *)data);
+            String dataArray[MAX_DATA]{""};
+            uint8_t dataCounter = 0;
+            char *pch;
+            pch = strtok((char *)data, "#");
+            while (pch != NULL)
+            {
+                if (dataCounter < MAX_DATA)
+                {
+                    dataArray[dataCounter] = pch;
+                    dataCounter++;
+                }
+                else
+                {
+                    break;
+                }
+                pch = strtok(NULL, "#");
+            }
+
+            Serial.println("Type    : " + dataArray[0]);
+            Serial.println("Data 1  : " + dataArray[1]);
+            Serial.println("Data 2  : " + dataArray[2]);
+            Serial.println("Data 3  : " + dataArray[3]);
+
+            // ================================ StripConfig ================================ //
+            if (dataArray[0].equals("StripConfig"))
+            {
+                uint8_t stripNumber = dataArray[1].toInt();
+                uint8_t channelID = dataArray[2].toInt();
+                uint8_t outputType = dataArray[3].toInt();
+
+                if (stripNumber >= 1 && stripNumber <= STRIP_COUNT)
+                {
+                    if (channelID >= 1 && channelID <= CHANNEL_COUNT)
                     {
-                        String msg = "StripConfig#" + String(i + 1) + "#" + String(j + 1) + "#" + String(this->helper->LEDOutputTypeToUint8(this->filesystem->getSettingData().stripChannelOutputs[i][j]));
-                        webSocketServer.sendTXT(num, msg);
+                        SettingsData settingsData = this->filesystem->getSettingData();
+                        settingsData.stripChannelOutputs[stripNumber - 1][channelID - 1] = this->helper->Uint8ToLEDOutputType(outputType);
+                        String msg = this->BuildWebsocketMessage("StripConfig", String(stripNumber), String(channelID), String(outputType));
+                        // We Broadcast the new data to all connected clients
+                        server->textAll(msg);
+                        this->filesystem->saveSettings(settingsData);
                     }
                 }
             }
         }
-        else if (String("/main").equals(message))
-        {
-            if (this->filesystem->isLEDStateDataReady())
-            {
-            }
-        }
-    }
-    break;
-    case WStype_TEXT:
-    {
-        Serial.printf("Client [%u] Text: %s\n", num, payload);
-        String data[MAX_DATA]{""};
-        uint8_t dataCounter = 0;
-        char *pch;
-        pch = strtok(message, "#");
-        while (pch != NULL)
-        {
-            if (dataCounter < MAX_DATA)
-            {
-                data[dataCounter] = pch;
-                dataCounter++;
-            }
-            else
-            {
-                break;
-            }
-            pch = strtok(NULL, "#");
-        }
-
-        Serial.println("Type    : " + data[0]);
-        Serial.println("Data 1  : " + data[1]);
-        Serial.println("Data 2  : " + data[2]);
-        Serial.println("Data 3  : " + data[3]);
-
-        if (data[0].equals("StripConfig"))
-        {
-            uint8_t stripNumber = data[1].toInt();
-            uint8_t channelID = data[2].toInt();
-            uint8_t outputType = data[3].toInt();
-
-            if (stripNumber >= 1 && stripNumber <= STRIP_COUNT)
-            {
-                if (channelID >= 1 && channelID <= CHANNEL_COUNT)
-                {
-                    SettingsData settingsData = this->filesystem->getSettingData();
-                    settingsData.stripChannelOutputs[stripNumber - 1][channelID - 1] = this->helper->Uint8ToLEDOutputType(outputType);
-                    String msg = "StripConfig#" + String(stripNumber) + "#" + String(channelID) + "#" + String(outputType);
-                    // We Broadcast the new data to all connected clients
-                    webSocketServer.broadcastTXT(msg);
-                    this->filesystem->saveSettings(settingsData);
-                }
-            }
-        }
-    }
-    break;
-
-    case WStype_BIN:
-    {
-        Serial.printf("Client [%u] Binary length: %u\n", num, length);
-        hexdump(payload, length);
     }
     break;
     }
+}
+
+String Webserver::BuildWebsocketMessage(String type, String data1, String data2, String data3)
+{
+    String msg = "";
+    msg = type + "#" + data1 + "#" + data2 + "#" + data3;
+    return msg;
+}
+
+String Webserver::BuildWebsocketMessage(String type, String data1, String data2)
+{
+    String msg = "";
+    msg = BuildWebsocketMessage(type, data1, data2, "0");
+    return msg;
+}
+
+String Webserver::BuildWebsocketMessage(String type, String data1)
+{
+    String msg = "";
+    msg = BuildWebsocketMessage(type, data1, "0");
+    return msg;
 }

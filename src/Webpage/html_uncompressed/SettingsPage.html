@@ -335,7 +335,8 @@
         </div>
     </div>
     <script>
-        var connection = new WebSocket("ws://" + location.hostname + ":81/settings", [
+        // ================================ Websocket ================================ //
+        var connection = new WebSocket("ws://" + location.hostname + "/ws/settings", [
             "arduino",
         ]);
         // ================================ onopen ================================ //
@@ -358,7 +359,7 @@
         };
         // ================================ sendStripConfig ================================ //
         function sendStripConfig(stripID, channelID, domID) {
-            outputConfig = document.getElementById(domID).value
+            outputConfig = document.getElementById(domID).value;
             var message = "StripConfig#" + stripID + "#" + channelID + "#" + outputConfig;
             console.log(message);
             connection.send(message);

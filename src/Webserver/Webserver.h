@@ -2,12 +2,12 @@
 
 // ================================ INCLUDES ================================ //
 #include <Arduino.h>
-#include <ESP8266WebServer.h>
 #include <ESP8266WiFi.h>
 #include <WiFiClient.h>
 #include <Hash.h>
 #include <ESP8266mDNS.h>
-#include <WebSocketsServer.h>
+#include <ESPAsyncTCP.h>
+#include <ESPAsyncWebServer.h>
 
 #include "../Structs/Structs.h"
 #include "../Filesystem/Filesystem.h"
@@ -91,21 +91,23 @@ private:
     // ==== Handler
     void ConfigurationModeHandler(bool shutdown);
     // ==== Webpages
-    void ConfigurationWebpage();
-    void ConfigurationWebpageSubmitted();
-    void ConfigurationNotFoundWebpage();
+    void ConfigurationWebpage(AsyncWebServerRequest *request);
+    void ConfigurationWebpageSubmitted(AsyncWebServerRequest *request);
+    void ConfigurationNotFoundWebpage(AsyncWebServerRequest *request);
     // ======== Normal Mode ======== //
     // ==== Handler
     void NormalModeHandler(bool shutdown);
     // ==== Webpages
-    void NormalMainWebpage();
-    void NormalMainWebpageEvent();
-    void NormalSettingsWebpage();
-    void NormalSettingsWebpageEvent();
-    void NormalNotFoundWebpage();
+    void NormalMainWebpage(AsyncWebServerRequest *request);
+    void NormalSettingsWebpage(AsyncWebServerRequest *request);
+    void NormalNotFoundWebpage(AsyncWebServerRequest *request);
 
     // ================ Websocket ================ //
-    void WebSocketEvent(uint8_t num, WStype_t type, uint8_t *payload, size_t length);
+    void WebSocketEventMain(AsyncWebSocket *server, AsyncWebSocketClient *client, AwsEventType type, void *arg, uint8_t *data, size_t len);
+    void WebSocketEventSettings(AsyncWebSocket *server, AsyncWebSocketClient *client, AwsEventType type, void *arg, uint8_t *data, size_t len);
+    String BuildWebsocketMessage(String type, String data1, String data2, String data3);
+    String BuildWebsocketMessage(String type, String data1, String data2);
+    String BuildWebsocketMessage(String type, String data1);
 
 public:
     bool getConfigurationMode();
