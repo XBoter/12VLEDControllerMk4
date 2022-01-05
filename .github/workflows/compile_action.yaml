@@ -13,12 +13,12 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2
         with:
-          repository: "https://github.com/me-no-dev/ESPAsyncWebServer.git"
+          repository: "me-no-dev/ESPAsyncWebServer"
           path: "$HOME/Arduino/libraries"
       - name: Checkout
         uses: actions/checkout@v2
         with:
-          repository: "https://github.com/me-no-dev/ESPAsyncTCP.git"
+          repository: "me-no-dev/ESPAsyncTCP"
           path: "$HOME/Arduino/libraries"
       - name: Compile Source Code on Arduino CLI
         run: bash ci/build-arduino.sh
