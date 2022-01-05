@@ -29,7 +29,7 @@ arduino-cli lib install ArduinoJson
 # Link Arduino library
 ln -s $GITHUB_WORKSPACE $HOME/Arduino/libraries/CI_Test_Library
 # Print lib folder location
-echo $GITHUB_WORKSPACE
+echo $($GITHUB_WORKSPACE)
 # Compile all *.ino files for the Arduino Uno
 for f in **/*.ino ; do
     arduino-cli compile --fqbn esp8266:esp8266:nodemcu $f
