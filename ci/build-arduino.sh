@@ -26,10 +26,10 @@ arduino-cli lib install NTPClient
 arduino-cli lib install pubsubclient
 # Install ArduinoJson Library 
 arduino-cli lib install ArduinoJson
-# Print lib folder location
-echo "Arduino lib locations $HOME/Arduino/libraries/CI_Test_Library"
 # Link Arduino library
 ln -s $GITHUB_WORKSPACE $HOME/Arduino/libraries/CI_Test_Library
+# Print lib folder location
+echo $GITHUB_WORKSPACE
 # Compile all *.ino files for the Arduino Uno
 for f in **/*.ino ; do
     arduino-cli compile --fqbn esp8266:esp8266:nodemcu $f
