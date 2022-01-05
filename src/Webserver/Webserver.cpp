@@ -22,11 +22,13 @@ Webserver::Webserver(){
  */
 void Webserver::setReference(Filesystem *filesystem,
                              Helper *helper,
-                             Network *network)
+                             Network *network,
+                             Parameterhandler *parameterhandler)
 {
     this->filesystem = filesystem;
     this->helper = helper;
     this->network = network;
+    this->parameterhandler = parameterhandler;
 };
 
 /**

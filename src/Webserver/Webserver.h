@@ -13,6 +13,7 @@
 #include "../Filesystem/Filesystem.h"
 #include "../Helper/Helper.h"
 #include "../Network/Network.h"
+#include "../Parameterhandler/Parameterhandler.h"
 #include "../Constants/Constants.h"
 #include "../src/Webpage/transformed_to_c/ConfigurationPage.h"
 #include "../src/Webpage/transformed_to_c/SubmittedConfigurationPage.h"
@@ -26,6 +27,7 @@
 class Filesystem;
 class Helper;
 class Network;
+class Parameterhandler;
 
 // ================================ CLASS ================================ //
 /**
@@ -41,7 +43,8 @@ public:
     Webserver();
     void setReference(Filesystem *filesystem,
                       Helper *helper,
-                      Network *network);
+                      Network *network,
+                      Parameterhandler *parameterhandler);
     bool init = false;
 
     // ================ Interface ================ //
@@ -55,6 +58,7 @@ private:
     Filesystem *filesystem;
     Helper *helper;
     Network *network;
+    Parameterhandler *parameterhandler;
 
     // ======== OnBoard LED ======== //
     bool onboardLEDState = false;

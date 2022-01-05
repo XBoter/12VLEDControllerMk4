@@ -11,9 +11,11 @@ Filesystem::Filesystem(){
 /**
  * @brief Sets the needed refernce for the filesystem
  */
-void Filesystem::setReference(Helper *helper)
+void Filesystem::setReference(Helper *helper,
+                              Parameterhandler *parameterhandler)
 {
     this->helper = helper;
+    this->parameterhandler = parameterhandler;
 };
 
 /**

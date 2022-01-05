@@ -6,6 +6,7 @@
 #include "../Helper/Helper.h"
 
 #include "../Structs/Structs.h"
+#include "../Parameterhandler/Parameterhandler.h"
 #include "../Constants/Constants.h"
 
 // ================================ INTERFACES ================================ //
@@ -13,6 +14,7 @@
 
 // Blueprint for compiler. Problem => circular dependency
 class Helper;
+class Parameterhandler;
 
 // ================================ CLASS ================================ //
 /**
@@ -23,7 +25,8 @@ class Filesystem : public IBaseClass
     // ================ Constructor / Reference ================ //
 public:
     Filesystem();
-    void setReference(Helper *helper);
+    void setReference(Helper *helper,
+                      Parameterhandler *parameterhandler);
     bool init = false;
 
     // ================ Interface ================ //
@@ -36,6 +39,7 @@ public:
 private:
     // ======== External Components ======== //
     Helper *helper;
+    Parameterhandler *parameterhandler;
     // ======== Configuration ======== //
     String configurationFilename = "config.txt";
     ConfigurationData configurationData = {};

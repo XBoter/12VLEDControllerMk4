@@ -28,29 +28,33 @@ void LEDControllerMk4::_setup()
     Serial.println("");
 
     // ================ Component references ================ //
-    ota.setReference(&this->network,
-                     &this->filesystem);
-    i2c.setReference();
-    network.setReference(&this->filesystem,
-                         &this->helper,
-                         &this->information,
-                         &this->pirReader,
-                         &this->powerMessurement);
-    powerMessurement.setReference(&this->i2c,
-                                  &this->network);
-    ledDriver.setReference(&this->i2c,
-                           &this->network,
-                           &this->pirReader,
+    this->ota.setReference(&this->network,
                            &this->filesystem);
-    information.setReference(&this->helper);
-    pirReader.setReference(&this->network,
-                           &this->information,
-                           &this->helper);
-    webserver.setReference(&this->filesystem,
-                           &this->helper,
-                           &this->network);
-    helper.setReference();
-    filesystem.setReference(&this->helper);
+    this->i2c.setReference();
+    this->network.setReference(&this->filesystem,
+                               &this->helper,
+                               &this->information,
+                               &this->pirReader,
+                               &this->powerMessurement,
+                               &this->parameterhandler);
+    this->powerMessurement.setReference(&this->i2c,
+                                        &this->network);
+    this->ledDriver.setReference(&this->i2c,
+                                 &this->network,
+                                 &this->pirReader,
+                                 &this->filesystem);
+    this->information.setReference(&this->helper);
+    this->pirReader.setReference(&this->network,
+                                 &this->information,
+                                 &this->helper);
+    this->webserver.setReference(&this->filesystem,
+                                 &this->helper,
+                                 &this->network,
+                                 &this->parameterhandler);
+    this->helper.setReference();
+    this->filesystem.setReference(&this->helper,
+                                  &this->parameterhandler);
+    this->parameterhandler.setReference();
 
     Serial.println("# ==== Setup finished ==== #");
     Serial.println("");
@@ -85,6 +89,7 @@ void LEDControllerMk4::_loop()
         this->webserver.init = false;
         this->filesystem.init = false;
         this->helper.init = false;
+        this->parameterhandler.init = false;
         state++;
         break;
 
@@ -100,6 +105,7 @@ void LEDControllerMk4::_loop()
         this->filesystem.Init();
         this->webserver.Init();
         this->helper.Init();
+        this->parameterhandler.Init();
         state++;
         break;
 
@@ -107,54 +113,59 @@ void LEDControllerMk4::_loop()
     case 2:
         // ======== OTA ======== //
         x = micros();
-        ota.Run();
+        this->ota.Run();
         yield();
         difTimeOTA[cycleCounter] = micros() - x;
         // ======== I2C ======== //
         x = micros();
-        i2c.Run();
+        this->i2c.Run();
         yield();
         difTimeI2C[cycleCounter] = micros() - x;
         // ======== NETWORK ======== //
         x = micros();
-        network.Run();
+        this->network.Run();
         yield();
         difTimeNetwork[cycleCounter] = micros() - x;
         // ======== POWER MESSUREMENT ======== //
         x = micros();
-        //powerMessurement.Run();
+        //this->powerMessurement.Run();
         //yield();
         difTimePowerMeasurement[cycleCounter] = micros() - x;
         // ======== I2C ======== //
         x = micros();
-        ledDriver.Run();
+        this->ledDriver.Run();
         yield();
         difTimeLED[cycleCounter] = micros() - x;
         // ======== INFORMATION ======== //
         x = micros();
-        information.Run();
+        this->information.Run();
         yield();
         difTimeInformation[cycleCounter] = micros() - x;
         // ======== PIR ======== //
         x = micros();
-        pirReader.Run();
+        this->pirReader.Run();
         yield();
         difTimePIR[cycleCounter] = micros() - x;
         // ======== WEBSERVER ======== //
         x = micros();
-        webserver.Run();
+        this->webserver.Run();
         yield();
         difTimeWebserver[cycleCounter] = micros() - x;
         // ======== HELPER ======== //
         x = micros();
-        helper.Run();
+        this->helper.Run();
         yield();
         difTimeHelper[cycleCounter] = micros() - x;
         // ======== FILESYSTEM ======== //
         x = micros();
-        filesystem.Run();
+        this->filesystem.Run();
         yield();
         difTimeFilesystem[cycleCounter] = micros() - x;
+        // ======== PARAMETERHANDLER ======== //
+        x = micros();
+        this->parameterhandler.Run();
+        yield();
+        difTimeParameterhandler[cycleCounter] = micros() - x;
         // Reset virtual pir sensor at end of current loop after all components got called
         network.resetVirtualPIRSensor();
         break;
@@ -188,6 +199,7 @@ void LEDControllerMk4::CalcPerformance()
     unsigned long avgTimeInformation = 0;
     unsigned long avgTimeFilesystem = 0;
     unsigned long avgTimeHelper = 0;
+    unsigned long avgTimeParameterhandler = 0;
     unsigned long avgTimeAll = 0;
 
     double percent = 0.0;
@@ -204,6 +216,7 @@ void LEDControllerMk4::CalcPerformance()
         avgTimeInformation += difTimeInformation[i];
         avgTimeFilesystem += difTimeFilesystem[i];
         avgTimeHelper += difTimeHelper[i];
+        avgTimeParameterhandler += difTimeParameterhandler[i];
         avgTimeAll += difTimeAll[i];
     }
 
@@ -217,6 +230,7 @@ void LEDControllerMk4::CalcPerformance()
     avgTimeInformation = avgTimeInformation / localCycle;
     avgTimeFilesystem = avgTimeFilesystem / localCycle;
     avgTimeHelper = avgTimeHelper / localCycle;
+    avgTimeParameterhandler = avgTimeParameterhandler / localCycle;
     avgTimeAll = avgTimeAll / localCycle;
 
     if (avgTimeAll == 0)
@@ -229,72 +243,79 @@ void LEDControllerMk4::CalcPerformance()
     // ================ I2C ================ //
     percent = double(avgTimeI2C) / double(avgTimeAll) * 100;
     helper.InsertPrint();
-    Serial.print(F("I2C Time            : "));
+    Serial.print(F("I2C Time                    : "));
     Serial.println(avgTimeI2C);
-    Serial.print(F("I2C Percent         : "));
+    Serial.print(F("I2C Percent                 : "));
     Serial.println(percent);
     // ============ WEBSERVER ================ //
     percent = double(avgTimeWebserver) / double(avgTimeAll) * 100;
     helper.InsertPrint();
-    Serial.print(F("Webserver Time      : "));
+    Serial.print(F("Webserver Time              : "));
     Serial.println(avgTimeWebserver);
-    Serial.print(F("Webserver Percent   : "));
+    Serial.print(F("Webserver Percent           : "));
     Serial.println(percent);
     // ============ NETWORK ================ //
     percent = double(avgTimeNetwork) / double(avgTimeAll) * 100;
     helper.InsertPrint();
-    Serial.print(F("Network Time        : "));
+    Serial.print(F("Network Time                : "));
     Serial.println(avgTimeNetwork);
-    Serial.print(F("Network Percent     : "));
+    Serial.print(F("Network Percent             : "));
     Serial.println(percent);
     // ============ OTA ================ //
     percent = double(avgTimeOTA) / double(avgTimeAll) * 100;
     helper.InsertPrint();
-    Serial.print(F("OTA Time            : "));
+    Serial.print(F("OTA Time                    : "));
     Serial.println(avgTimeOTA);
-    Serial.print(F("OTA Percent         : "));
+    Serial.print(F("OTA Percent                 : "));
     Serial.println(percent);
     // ============ POWER MEASUREMENT ================ //
     percent = double(avgTimePowerMeasurement) / double(avgTimeAll) * 100;
     helper.InsertPrint();
-    Serial.print(F("Power Time          : "));
+    Serial.print(F("Power Time                  : "));
     Serial.println(avgTimePowerMeasurement);
-    Serial.print(F("Power Percent       : "));
+    Serial.print(F("Power Percent               : "));
     Serial.println(percent);
     // ============ PIR ================ //
     percent = double(avgTimePIR) / double(avgTimeAll) * 100;
     helper.InsertPrint();
-    Serial.print(F("PIR Time            : "));
+    Serial.print(F("PIR Time                    : "));
     Serial.println(avgTimePIR);
-    Serial.print(F("PIR Percent         : "));
+    Serial.print(F("PIR Percent                 : "));
     Serial.println(percent);
     // ============ LED ================ //
     percent = double(avgTimeLED) / double(avgTimeAll) * 100;
     helper.InsertPrint();
-    Serial.print(F("LED Time            : "));
+    Serial.print(F("LED Time                    : "));
     Serial.println(avgTimeLED);
-    Serial.print(F("LED Percent         : "));
+    Serial.print(F("LED Percent                 : "));
     Serial.println(percent);
     // ============ INFORMATION ================ //
     percent = double(avgTimeInformation) / double(avgTimeAll) * 100;
     helper.InsertPrint();
-    Serial.print(F("Info Time           : "));
+    Serial.print(F("Info Time                   : "));
     Serial.println(avgTimeInformation);
-    Serial.print(F("Info Percent        : "));
+    Serial.print(F("Info Percent                : "));
     Serial.println(percent);
     // ============ HELPER ================ //
     percent = double(avgTimeHelper) / double(avgTimeAll) * 100;
     helper.InsertPrint();
-    Serial.print(F("Helper Time         : "));
+    Serial.print(F("Helper Time                 : "));
     Serial.println(avgTimeHelper);
-    Serial.print(F("Helper Percent      : "));
+    Serial.print(F("Helper Percent              : "));
     Serial.println(percent);
     // ============ FILESYSTEM ================ //
     percent = double(avgTimeFilesystem) / double(avgTimeAll) * 100;
     helper.InsertPrint();
-    Serial.print(F("Filesystem Time     : "));
+    Serial.print(F("Filesystem Time             : "));
     Serial.println(avgTimeFilesystem);
-    Serial.print(F("Filesystem Percent  : "));
+    Serial.print(F("Filesystem Percent          : "));
+    Serial.println(percent);
+    // ============ FILESYSTEM ================ //
+    percent = double(avgTimeParameterhandler) / double(avgTimeAll) * 100;
+    helper.InsertPrint();
+    Serial.print(F("Parameterhandler Time       : "));
+    Serial.println(avgTimeParameterhandler);
+    Serial.print(F("Parameterhandler Percent    : "));
     Serial.println(percent);
     // ==== All
     helper.InsertPrint();

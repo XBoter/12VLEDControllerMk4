@@ -11,6 +11,7 @@
 #include "PirReader/PirReader.h"
 #include "PowerMeasurement/PowerMeasurement.h"
 #include "Filesystem/Filesystem.h"
+#include "Parameterhandler/Parameterhandler.h"
 #include "Helper/Helper.h"
 #include "Register/INA219AIDR_Reg.h"
 #include "Register/PCA9685_LED_Reg.h"
@@ -56,6 +57,7 @@ private:
                                     PIR_SENSOR_2_PIN);
     LedDriver ledDriver = LedDriver(PCA9685PW_I2C_ADDRESS);
     Information information = Information();
+    Parameterhandler parameterhandler = Parameterhandler();
 
     // ================ Performance Calculation ================ //
     bool enablePerformanceMonitor = false;
@@ -70,6 +72,7 @@ private:
     unsigned long difTimeInformation[cycle];
     unsigned long difTimeHelper[cycle];
     unsigned long difTimeFilesystem[cycle];
+    unsigned long difTimeParameterhandler[cycle];
     unsigned long difTimeAll[cycle];
 
     uint16_t localCycle = 10;

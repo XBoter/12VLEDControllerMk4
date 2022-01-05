@@ -16,13 +16,15 @@ void Network::setReference(Filesystem *filesystem,
                            Helper *helper,
                            Information *information,
                            PirReader *pirReader,
-                           PowerMeasurement *powerMeasurement)
+                           PowerMeasurement *powerMeasurement,
+                           Parameterhandler *parameterhandler)
 {
     this->filesystem = filesystem;
     this->helper = helper;
     this->information = information;
     this->pirReader = pirReader;
     this->powerMeasurement = powerMeasurement;
+    this->parameterhandler = parameterhandler;
 };
 
 /**
@@ -1228,30 +1230,6 @@ void Network::RequestChangeToWiFiMode()
 }
 
 /**
- * @return The current WiFi state
- */
-NetworkWiFiState Network::getWiFiState()
-{
-    return this->wifiState;
-}
-
-/**
- * @return The current access point state
- */
-NetworkAccessPointState Network::getAccessPointState()
-{
-    return this->accessPointState;
-}
-
-/**
- * @return The current MQTT state
- */
-NetworkMQTTState Network::getMQTTState()
-{
-    return this->mqttState;
-}
-
-/**
  * @return The current WiFi this->helper based on the used WiFi mode (AP or STA) 
  */
 NetworkWiFiInformation Network::getWiFiInformation()
@@ -1337,6 +1315,12 @@ NetworkMotionData Network::getNetworkMotionData()
     return this->networkData.networkMotionData;
 }
 
+void Network::UpdateNetworkMotionData(NetworkMotionData data)
+{
+    this->networkData.networkMotionData = data;
+    this->PublishMotionLEDStripData();
+}
+
 /**
  * @brief Returns the network led strip data of the given strip
  * 
@@ -1354,6 +1338,17 @@ NetworkLEDStripData Network::getNetworkLEDStripData(uint8_t stripID)
     }
 
     return data;
+}
+
+void Network::UpdateNetworkLEDStripData(uint8_t stripID, NetworkLEDStripData data)
+{
+    // Strip ID's are 1 and 2 but the index of the array starts at 0
+    stripID--;
+    if (stripID >= 0 && stripID <= sizeof(this->networkData.networkLEDStripData))
+    {
+        this->networkData.networkLEDStripData[stripID] = data;
+        this->PublishLEDStripData();
+    }
 }
 
 NetworkData Network::getNetworkData()

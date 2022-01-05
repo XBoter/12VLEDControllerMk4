@@ -16,6 +16,7 @@
 #include "../Helper/Helper.h"
 #include "../Information/Information.h"
 #include "../PirReader/PirReader.h"
+#include "../Parameterhandler/Parameterhandler.h"
 #include "../PowerMeasurement/PowerMeasurement.h"
 
 // ================================ INTERFACES ================================ //
@@ -27,6 +28,7 @@ class Helper;
 class Information;
 class PirReader;
 class PowerMeasurement;
+class Parameterhandler;
 
 // ================================ CLASS ================================ //
 class Network : public IBaseClass
@@ -38,7 +40,8 @@ public:
                       Helper *helper,
                       Information *information,
                       PirReader *pirReader,
-                      PowerMeasurement *powerMeasurement);
+                      PowerMeasurement *powerMeasurement,
+                      Parameterhandler *parameterhandler);
     bool init = false;
 
     // ================ Interface ================ //
@@ -55,6 +58,7 @@ private:
     Information *information;
     PirReader *pirReader;
     PowerMeasurement *powerMeasurement;
+    Parameterhandler *parameterhandler;
 
     // ==== NTP
     unsigned long PrevMillis_NTPTimeout = 0;
@@ -145,10 +149,6 @@ private:
     void PublishCodeVersion();
 
 public:
-    NetworkWiFiState getWiFiState();
-    NetworkAccessPointState getAccessPointState();
-    NetworkMQTTState getMQTTState();
-
     bool isWiFiConnected();
     bool isMQTTConnected();
 
@@ -165,8 +165,12 @@ public:
     bool isMasterPresent();
     bool isAlarm();
     bool isSunUnderTheHorizon();
+
     NetworkMotionData getNetworkMotionData();
+    void UpdateNetworkMotionData(NetworkMotionData data);
+
     NetworkLEDStripData getNetworkLEDStripData(uint8_t stripID);
+    void UpdateNetworkLEDStripData(uint8_t stripID, NetworkLEDStripData data);
 
     NetworkData getNetworkData();
     DetailedSunData getDetailedSunData();
