@@ -29,8 +29,8 @@ bool OTA::Init()
 
         if (network->isWiFiConnected() && filesystem->isConfigurationDataReady())
         {
-            ArduinoOTA.setHostname(filesystem->getConfigurationData().mqttClientName.c_str());
-            ArduinoOTA.setPassword(filesystem->getConfigurationData().mqttBrokerPassword.c_str());
+            ArduinoOTA.setHostname(filesystem->getConfigurationData().MQTTClientName.c_str());
+            ArduinoOTA.setPassword(filesystem->getConfigurationData().MQTTBrokerPassword.c_str());
 
             ArduinoOTA.onStart([]()
                                {

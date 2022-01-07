@@ -5,6 +5,7 @@
 #include "../I2C/I2C.h"
 #include "../PirReader/PirReader.h"
 #include "../Network/Network.h"
+#include "../Parameterhandler/Parameterhandler.h"
 #include "../Filesystem/Filesystem.h"
 #include "../Register/PCA9685_LED_Reg.h"
 #include "../Enums/Enums.h"
@@ -18,6 +19,7 @@ class I2C;
 class Network;
 class PirReader;
 class FileSystem;
+class Parameterhandler;
 
 // Classes
 class LedDriver : public IBaseClass
@@ -28,7 +30,8 @@ public:
     void setReference(I2C *i2c,
                       Network *network,
                       PirReader *pirReader,
-                      Filesystem *filesystem);
+                      Filesystem *filesystem,
+                      Parameterhandler *parameterhandler);
     bool init = false;
 
     // ## Interface ## //
@@ -44,6 +47,7 @@ private:
     PirReader *pirReader;
     Network *network;
     Filesystem *filesystem;
+    Parameterhandler *parameterhandler;
 
     // ---- LED Strip Refresh Rate
     unsigned long previousMillisRefreshRate = 0;
@@ -78,9 +82,9 @@ private:
 
     // ---- LED Strip data
     // -- Current
-    LEDStripData emptyCurrentLEDStripData = {};
-    LEDStripData currentLEDStrip1Data = {};
-    LEDStripData currentLEDStrip2Data = {};
+    RawLEDStripData emptyCurrentLEDStripData = {};
+    RawLEDStripData currentLEDStrip1Data = {};
+    RawLEDStripData currentLEDStrip2Data = {};
 
 public:
     // ## Functions ## //
@@ -94,7 +98,7 @@ private:
     void HandleMultiLEDStripEffects();
 
     void HandleSingleLEDStripEffects(uint8_t stripID,
-                                     NetworkLEDStripData commandNetworkLEDStripData);
+                                     LEDStripParameter ledStripParameter);
 
     uint8_t getMotionBrightnessPercent();
 
@@ -123,21 +127,21 @@ private:
     /*
         Data Level Hierarchy
 
-        Top     NetworkLEDStripData
+        Top     LEDStripParameter
         Middle  HighLevelLEDStripData
         Low     LowLevelLEDStripData
     */
-    HighLevelLEDStripData convertNetworkDataToHighLevelData(NetworkLEDStripData networkData,
-                                                            HighLevelLEDStripData highLevelFadeTimesAndCurves);
-    LowLevelLEDStripData convertHighLevelDataToLowLevelData(HighLevelLEDStripData highLevelLEDStripData,
-                                                            LowLevelLEDStripData lowLevelFadeTimesAndCurves);
+    HighLevelLEDStripData LEDStripParameterToHighLevelLEDStripData(LEDStripParameter ledStripParameter,
+                                                                   HighLevelLEDStripData highLevelFadeTimesAndCurves);
+    LowLevelLEDStripData HighLevelLEDStripDataToLowLevelLEDStripData(HighLevelLEDStripData highLevelLEDStripData,
+                                                                     LowLevelLEDStripData lowLevelFadeTimesAndCurves);
     LowLevelLEDStripData combineLowLevelDataToLowLevelData(LowLevelLEDStripData lowLevelLEDStripData,
                                                            LowLevelLEDStripData lowLevelFadeTimesAndCurves);
 
     // ---- SetColor
     // -- Single Strip
     bool SetColor(uint8_t stripID,
-                  NetworkLEDStripData commandNetworkLEDStripData);
+                  LEDStripParameter ledStripParameter);
 
     bool SetColor(uint8_t stripID,
                   HighLevelLEDStripData commandHighLevelLEDStripData);
@@ -146,7 +150,7 @@ private:
                   LowLevelLEDStripData commandHighLevelLEDStripData);
 
     // -- Multi Strip
-    bool SetColor(NetworkLEDStripData commandNetworkLEDStripData);
+    bool SetColor(LEDStripParameter ledStripParameter);
 
     bool SetColor(HighLevelLEDStripData commandHighLevelLEDStripData);
 
@@ -155,7 +159,7 @@ private:
     // ---- FadeToColor
     // -- Single Strip
     bool FadeToColor(uint8_t stripID,
-                     NetworkLEDStripData commandNetworkLEDStripData);
+                     LEDStripParameter ledStripParameter);
 
     bool FadeToColor(uint8_t stripID,
                      HighLevelLEDStripData commandHighLevelLEDStripData);
@@ -163,7 +167,7 @@ private:
     bool FadeToColor(uint8_t stripID,
                      LowLevelLEDStripData commandLowLevelLEDStripData);
     // -- Multi Strip
-    bool FadeToColor(NetworkLEDStripData commandHighLevelLEDStripData);
+    bool FadeToColor(LEDStripParameter ledStripParameter);
 
     bool FadeToColor(HighLevelLEDStripData commandHighLevelLEDStripData);
 
@@ -189,12 +193,12 @@ private:
                            int start,
                            int end);
 
-    LEDStripData *getCurrentLEDStripData(uint8_t stripID);
+    RawLEDStripData *getCurrentLEDStripData(uint8_t stripID);
 
     LEDStripColorReg getColorRegForLEDStrip(uint8_t stripID);
 
-    LEDBasicStripData getBasicDataBasedOnSettings(uint8_t stripID, uint8_t channelID, LEDStripData *ptrData);
-    LEDBasicStripData getBasicDataBasedOnOutput(LEDOutputType type , LEDStripData *ptrData);
+    LEDBasicStripData getBasicDataBasedOnSettings(uint8_t stripID, uint8_t channelID, RawLEDStripData *ptrData);
+    LEDBasicStripData getBasicDataBasedOnOutput(LEDOutputType type, RawLEDStripData *ptrData);
 
     uint16_t linear(double percent,
                     int start,

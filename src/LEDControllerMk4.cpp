@@ -42,7 +42,8 @@ void LEDControllerMk4::_setup()
     this->ledDriver.setReference(&this->i2c,
                                  &this->network,
                                  &this->pirReader,
-                                 &this->filesystem);
+                                 &this->filesystem,
+                                 &this->parameterhandler);
     this->information.setReference(&this->helper);
     this->pirReader.setReference(&this->network,
                                  &this->information,
@@ -54,7 +55,8 @@ void LEDControllerMk4::_setup()
     this->helper.setReference();
     this->filesystem.setReference(&this->helper,
                                   &this->parameterhandler);
-    this->parameterhandler.setReference();
+    this->parameterhandler.setReference(&this->filesystem,
+                                        &this->network);
 
     Serial.println("# ==== Setup finished ==== #");
     Serial.println("");

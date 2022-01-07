@@ -59,24 +59,6 @@ struct DetailedSunData
 };
 
 /**
- * Holds the data for the motion detection
- */
-struct NetworkMotionData
-{
-    bool motionDetectionEnabled = false;
-    bool timeBasedBrightnessChangeEnabled = false;
-    uint16_t timeout = 0;
-    // RGB
-    uint8_t redColorValue = 0;
-    uint8_t greenColorValue = 0;
-    uint8_t blueColorValue = 0;
-    uint16_t colorBrightnessValue = 0;
-    // White
-    uint16_t whiteTemperatureValue = 0;
-    uint16_t whiteBrightnessValue = 0;
-};
-
-/**
  * Holds all register for one LED Color
  */
 struct LEDColorReg
@@ -160,16 +142,6 @@ struct HighLevelLEDStripData
 };
 
 /**
- * The LED strip data received via mqtt
- */
-struct NetworkLEDStripData
-{
-    bool power = false;
-    HighLevelLEDStripData ledStripData;
-    SingleLEDEffect effect = SingleLEDEffect::None;
-};
-
-/**
  * Holds data about the individual color channels of a RGB/CW/WW LED strip
  * For each channel there is:
  *   - Color Value              => The value of the color channel
@@ -233,64 +205,55 @@ struct LowLevelLEDStripData
 };
 
 /**
- * Hold the actual values of the LED strip and prev fade times
+ * @brief The raw Data that gets used by the LED Strip
+ * 
  */
-struct LEDStripData
+struct RawLEDStripData
 {
-    // ---- Refresh Rate
+    // ==== Refresh Rate
     unsigned long lastRefreshRateCount = 0; // Needed to check if FadeColor got called every refresh cycle or if skipped
 
-    // ---- RED
-    // -- Color
+    // ==== RED
     uint8_t redColorValue = 0;
     uint8_t prevRedColorValue = 0;
     unsigned long prevMillisRedColorFade = 0;
-    // -- Brightness
     uint16_t redBrightnessValue = 0;
     uint16_t prevRedBrightnessValue = 0;
     unsigned long prevMillisRedBrightnessFade = 0;
 
-    // ---- GREEN
-    // -- Color
+    // ==== GREEN
     uint8_t greenColorValue = 0;
     uint8_t prevGreenColorValue = 0;
     unsigned long prevMillisGreenColorFade = 0;
-    // -- Brightness
     uint16_t greenBrightnessValue = 0;
     uint16_t prevGreenBrightnessValue = 0;
     unsigned long prevMillisGreenBrightnessFade = 0;
 
-    // ---- BLUE
-    // -- Color
+    // ==== BLUE
     uint8_t blueColorValue = 0;
     uint8_t prevBlueColorValue = 0;
     unsigned long prevMillisBlueColorFade = 0;
-    // -- Brightness
     uint16_t blueBrightnessValue = 0;
     uint16_t prevBlueBrightnessValue = 0;
     unsigned long prevMillisBlueBrightnessFade = 0;
 
-    // ---- CW
-    // -- Color
+    // ==== CW
     uint8_t cwColorValue = 0;
     uint8_t prevCwColorValue = 0;
     unsigned long prevMillisCwColorFade = 0;
-    // -- Brightness
     uint16_t cwBrightnessValue = 0;
     uint16_t prevCwBrightnessValue = 0;
     unsigned long prevMillisCwBrightnessFade = 0;
 
-    // ---- WW
-    // -- Color
+    // ==== WW
     uint8_t wwColorValue = 0;
     uint8_t prevWwColorValue = 0;
     unsigned long prevMillisWwColorFade = 0;
-    // -- Brightness
     uint16_t wwBrightnessValue = 0;
     uint16_t prevWwBrightnessValue = 0;
     unsigned long prevMillisWwBrightnessFade = 0;
 
-    // ---- INFO
+    // ==== FLAGS
     bool fadeFinished = false;
 };
 
@@ -302,54 +265,6 @@ struct LEDBasicStripData
 {
     uint8_t colorValue = 0;
     uint16_t brightnessValue = 0;
-};
-
-/**
- * @brief Data Type which holds all cirtical information needed for Network connectivity
- * 
- */
-struct ConfigurationData
-{
-    String wifiSSID = "unknown";
-    String wifiPassword = "unknown";
-    String mqttBrokerIpAddress = "unknown";
-    uint16_t mqttBrokerPort = 0;
-    String mqttBrokerUsername = "unknown";
-    String mqttBrokerPassword = "unknown";
-    String mqttClientName = "unknown";
-    // == Flags
-    bool isConfigured = false; // If true the data is configured initially
-};
-
-/**
- * @brief Data Type which holds the settings data for example the hardware LED Strip output config
- * 
- */
-struct SettingsData
-{
-    // == Settings data
-    LEDOutputType stripChannelOutputs[STRIP_COUNT][CHANNEL_COUNT]{LEDOutputType::R};
-    // == Flags
-    bool isConfigured = false; // If true the data is configured initially
-};
-
-/**
- * @brief Data Type which holds the last state of the LED Strip
- * 
- */
-struct LEDStateData
-{
-    // == LED state data
-    bool Power[STRIP_COUNT]{false};
-    uint8_t RedValue[STRIP_COUNT]{0};
-    uint8_t GreenValue[STRIP_COUNT]{0};
-    uint8_t BlueValue[STRIP_COUNT]{0};
-    uint8_t ColdWhiteValue[STRIP_COUNT]{0};
-    uint8_t WarmWhiteValue[STRIP_COUNT]{0};
-    uint8_t BrightnessValue[STRIP_COUNT]{0};
-    SingleLEDEffect EffectValue[STRIP_COUNT]{SingleLEDEffect::None};
-    // == Flags
-    bool isConfigured = false; // If true the data is configured initially
 };
 
 /**
@@ -365,16 +280,106 @@ struct PIRReaderData
     bool virtualSensorTriggered = false;
 };
 
-/**
- * @brief Holds all the data received/transmitted over MQTT needed for the led operations
- * 
- */
-struct NetworkData
+// ================================================ Settings ================================================ //
+struct SettingsStripParameter
 {
-    bool masterPresent = false;
-    bool sunUnderTheHorizon = false;
-    bool alarm = false;
-    bool virtualPIRSensorTriggered = false;
-    NetworkMotionData networkMotionData = {};
-    NetworkLEDStripData networkLEDStripData[STRIP_COUNT] = {};
+    // ==== OUTPUT TYPE
+    LEDOutputType ChannelOutputType[CHANNEL_COUNT]{LEDOutputType::R};
+};
+
+struct FilesystemSettingsStripData : public SettingsStripParameter
+{
+    bool isConfigured = false;
+};
+
+// ================================================ Configuration ================================================ //
+// We use a char array here, so that we can easy save/load the data to the LittleFS system
+struct ConfigurationParameter
+{
+    String WiFiSSID = "unknown";
+    String WiFiPassword = "unknown";
+    String MQTTBrokerIpAddress = "unknown";
+    uint16_t MQTTBrokerPort = 0;
+    String MQTTBrokerUsername = "unknown";
+    String MQTTBrokerPassword = "unknown";
+    String MQTTClientName = "unknown";
+};
+
+struct FilesystemConfigurationData : public ConfigurationParameter
+{
+    bool isConfigured = false;
+    bool isFullyConfigured = false;
+    bool isStandaloneMode = false;
+};
+
+// ================================================ Motion ================================================ //
+struct MotionParameter
+{
+    // ==== MOTION
+    bool MotionDetectionEnabled = false;
+    bool TimeBasedBrightnessChangeEnabled = false;
+    uint16_t MotionDetectionTimeout = 0;
+    // ==== MOTION RGB
+    uint8_t Red = 0;
+    uint8_t Green = 0;
+    uint8_t Blue = 0;
+    uint16_t ColorFadeTime = 0;
+    FadeCurve ColorFadeCurve = FadeCurve::None;
+    uint16_t ColorBrightness = 0;
+    uint16_t ColorBrightnessFadeTime = 0;
+    FadeCurve ColorBrightnessFadeCurve = FadeCurve::None;
+    // ==== MOTION WHITE
+    uint16_t WhiteTemperature = 250;
+    uint16_t WhiteTemperatureFadeTime = 0;
+    FadeCurve WhiteTemperatureFadeCurve = FadeCurve::None;
+    uint16_t WhiteTemperatureBrightness = 0;
+    uint16_t WhiteTemperatureBrightnessFadeTime = 0;
+    FadeCurve WhiteTemperatureBrightnessFadeCurve = FadeCurve::None;
+};
+
+struct FilesystemMotionData : public MotionParameter
+{
+    bool isConfigured = false;
+};
+
+struct NetworkMotionData : public MotionParameter
+{
+    bool SunUnderTheHorizon = false;
+    bool VirtualPIRSensorTriggered = false;
+};
+
+// ================================================ LED Strip ================================================ //
+struct LEDStripParameter
+{
+    // ==== POWER
+    bool Power = false;
+    // ==== RGB
+    uint8_t Red = 0;
+    uint8_t Green = 0;
+    uint8_t Blue = 0;
+    uint16_t ColorFadeTime = 0;
+    FadeCurve ColorFadeCurve = FadeCurve::None;
+    uint16_t ColorBrightness = 0;
+    uint16_t ColorBrightnessFadeTime = 0;
+    FadeCurve ColorBrightnessFadeCurve = FadeCurve::None;
+    // ==== WHITE
+    uint16_t WhiteTemperature = 250;
+    uint16_t WhiteTemperatureFadeTime = 0;
+    FadeCurve WhiteTemperatureFadeCurve = FadeCurve::None;
+    uint16_t WhiteTemperatureBrightness = 0;
+    uint16_t WhiteTemperatureBrightnessFadeTime = 0;
+    FadeCurve WhiteTemperatureBrightnessFadeCurve = FadeCurve::None;
+    // ==== EFFECT
+    SingleLEDEffect Effect = SingleLEDEffect::None;
+};
+
+struct FilesystemLEDStripData : public LEDStripParameter
+{
+    bool isConfigured = false;
+};
+
+struct NetworkLEDStripData : public LEDStripParameter
+{
+    bool MasterPresent = false;
+    bool AlarmActive = false;
 };

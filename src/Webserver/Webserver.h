@@ -60,14 +60,20 @@ private:
     Network *network;
     Parameterhandler *parameterhandler;
 
-    // ======== OnBoard LED ======== //
-    bool onboardLEDState = false;
-    unsigned long prevMillisBlinkOnBoardLED = 0;
+    // ======== Webserver / Websocket ======== //
+    AsyncWebServer asyncWebServer = AsyncWebServer(80);
+    AsyncWebSocket asyncWebSocketMain = AsyncWebSocket("/ws/main");
+    AsyncWebSocket asyncWebSocketSettings = AsyncWebSocket("/ws/settings");
+    unsigned long prevMillisWebsocketCleanup = 0;
+    const uint16_t timeoutWebsocketCleanup = 500; // 500 ms
+    AsyncWebHandler *indexHandle;
+    AsyncWebHandler *submittedHandle;
+    AsyncWebHandler *settingsHandle;
+    uint8_t webserverResetState = 0;
 
     // ======== Configuration Mode ======== //
     unsigned long prevMillisConfigurationMode = 0;
     unsigned long timeoutConfigurationMode = 5000; // 5 sec
-    ConfigurationData configurationData = {};
     WebserverConfigurationModeState configurationModeState = WebserverConfigurationModeState::StartConfigurationMode;
     WebserverConfigurationModeSubState configurationModeSubState = WebserverConfigurationModeSubState::BeginWebserver;
     bool isInConfigurationMode = false;
@@ -84,21 +90,21 @@ private:
     bool changeToNormalModeRequest = false;
 
     // ======== mDNS ======== //
+    bool restartMDNS = false;
+    uint8_t restartStateMDNS = 20;
     bool mDNSInit = false;
 
     // ================ Functions ================ //
 private:
-    // ======== OnBoard LED ======== //
-    void blinkOnBoardLED(uint16_t interval);
-    void turnOffOnBoardLED();
-    // ======== Configuration Mode ======== //
+    // ================ Webpages ================ //
+    // ======== Configuration mode
     // ==== Handler
     void ConfigurationModeHandler(bool shutdown);
     // ==== Webpages
     void ConfigurationWebpage(AsyncWebServerRequest *request);
     void ConfigurationWebpageSubmitted(AsyncWebServerRequest *request);
     void ConfigurationNotFoundWebpage(AsyncWebServerRequest *request);
-    // ======== Normal Mode ======== //
+    // ======== Normal Mode
     // ==== Handler
     void NormalModeHandler(bool shutdown);
     // ==== Webpages
@@ -112,6 +118,9 @@ private:
     String BuildWebsocketMessage(String type, String data1, String data2, String data3);
     String BuildWebsocketMessage(String type, String data1, String data2);
     String BuildWebsocketMessage(String type, String data1);
+
+    // ================ MDNS ================ //
+    void HandleMDNS();
 
 public:
     bool getConfigurationMode();

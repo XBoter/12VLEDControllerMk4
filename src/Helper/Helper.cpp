@@ -22,6 +22,13 @@ bool Helper::Init()
 {
     if (!init)
     {
+        // == Configure Flash button on the nodemcu as reset putton
+        pinMode(0, INPUT_PULLUP);
+
+        // == Configure the onBoard LED
+        pinMode(LED_BUILTIN, OUTPUT);
+        this->turnOffOnBoardLED();
+
         Serial.println(F("Helper initialized"));
         init = true;
     }
@@ -363,7 +370,7 @@ void Helper::InsertPrint()
 {
     for (uint8_t i = 0; i < insertLength; i++)
     {
-        Serial.print("");
+        Serial.print(" ");
     }
 };
 
@@ -391,6 +398,58 @@ String Helper::LEDOutputTypeToString(LEDOutputType type)
     }
 
     return msg;
+}
+
+FadeCurve Helper::Uint8ToFadeCurve(uint8_t value)
+{
+    FadeCurve result = FadeCurve::None;
+
+    switch (value)
+    {
+    case 0:
+        result = FadeCurve::None;
+        break;
+    case 1:
+        result = FadeCurve::Linear;
+        break;
+    case 2:
+        result = FadeCurve::EaseIn;
+        break;
+    case 3:
+        result = FadeCurve::EaseOut;
+        break;
+    case 4:
+        result = FadeCurve::EaseInOut;
+        break;
+    }
+
+    return result;
+}
+
+uint8_t Helper::FadeCurveToUint8(FadeCurve type)
+{
+    uint8_t result = 0;
+
+    switch (type)
+    {
+    case FadeCurve::None:
+        result = 0;
+        break;
+    case FadeCurve::Linear:
+        result = 1;
+        break;
+    case FadeCurve::EaseIn:
+        result = 2;
+        break;
+    case FadeCurve::EaseOut:
+        result = 3;
+        break;
+    case FadeCurve::EaseInOut:
+        result = 4;
+        break;
+    }
+
+    return result;
 }
 
 uint8_t Helper::LEDOutputTypeToUint8(LEDOutputType type)
@@ -440,4 +499,54 @@ uint8_t Helper::MultiLEDEffectToUint8(MultiLEDEffect effect)
     }
 
     return result;
+}
+
+/**
+ * @brief Blinks the onBoard LED in the given interval
+ * 
+ * @param interval The blink intervall in milliseconds
+ */
+void Helper::blinkOnBoardLED(uint16_t interval)
+{
+    if (millis() >= (this->prevMillisBlinkOnBoardLED + interval))
+    {
+        this->prevMillisBlinkOnBoardLED = millis();
+        this->onboardLEDState = !this->onboardLEDState;
+        if (this->onboardLEDState)
+        {
+            digitalWrite(LED_BUILTIN, LOW);
+        }
+        else
+        {
+            digitalWrite(LED_BUILTIN, HIGH);
+        }
+    }
+}
+
+/**
+ * @brief Turns off the onBoard LED
+ * 
+ */
+void Helper::turnOffOnBoardLED()
+{
+    this->onboardLEDState = false;
+    digitalWrite(LED_BUILTIN, HIGH);
+}
+
+/**
+ * @brief Turns on the onBoard LED
+ * 
+ */
+void Helper::turnOnOnBoardLED()
+{
+    this->onboardLEDState = true;
+    digitalWrite(LED_BUILTIN, LOW);
+}
+
+void Helper::SimplePrint(String msg)
+{
+    this->TopSpacerPrint();
+    this->InsertPrint();
+    Serial.println(msg);
+    this->BottomSpacerPrint();
 }

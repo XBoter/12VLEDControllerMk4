@@ -101,7 +101,7 @@ void PirReader::Run()
     }
 
     // Update motionDetected based on timeout
-    if (millis() - prevMillisMotion >= (network->getNetworkMotionData().timeout * 1000))
+    if (millis() - prevMillisMotion >= (network->getNetworkMotionData().MotionDetectionTimeout * 1000))
     {
         motionDetected = false;
     }

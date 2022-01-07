@@ -92,6 +92,7 @@ private:
 
     // ==== Access Point
     NetworkAccessPointState accessPointState = NetworkAccessPointState::IdleAccessPoint;
+    bool accessPointReady = false;
     bool accessPointMode = false;
     bool shutdownAccessPoint = true;
     bool changeToAccessPointModeRequest = false;
@@ -105,23 +106,20 @@ private:
     bool ledStripDataPrint[STRIP_COUNT]{false};
 
     // ====  Data
-    NetworkData networkData = {};
+    NetworkMotionData networkMotionData = {};
+    NetworkLEDStripData networkLEDStripData[STRIP_COUNT] = {};
     DetailedSunData detailedSunData = {};
     NetworkTimeData networkTimeData = {};
 
     // ==== Republish / Publish functions
     unsigned long prevMillisPublishMotionDetected = 0;
-    unsigned long prevMillisPublishLEDStripData = 0;
     unsigned long prevMillisPublishElectricalMeasurement = 0;
     unsigned long prevMillisPublishHeartbeat = 0;
-    unsigned long prevMillisPublishMotionLEDStripData = 0;
     unsigned long prevMillisPublishNetwork = 0;
 
     uint32_t timeoutPublishMotionDetected = 60000;        // 1 Minute
-    uint32_t timeoutPublishLEDStripData = 60000;          // 1 Minute
     uint32_t timeoutPublishElectricalMeasurement = 60000; // 1 Minute
     uint32_t timeoutPublishHeartbeat = 5000;              // 5 Seconds
-    uint32_t timeoutPublishMotionLEDStripData = 60000;    // 1 Minute
     uint32_t timeoutPublishNetwork = 60000;               // 1 Minute
 
     // ======== Other ======== //
@@ -141,7 +139,6 @@ private:
     void HandleRepublish();
 
     void PublishMotionDetected();
-    void PublishLEDStripData();
     void PublishElectricalMeasurement();
     void PublishHeartbeat();
     void PublishMotionLEDStripData();
@@ -150,6 +147,7 @@ private:
 
 public:
     bool isWiFiConnected();
+    bool isAccessPointReady();
     bool isMQTTConnected();
 
     void RequestChangeToWiFiMode();
@@ -162,17 +160,16 @@ public:
 
     bool isVirtualPIRSensorTriggered();
     void resetVirtualPIRSensor();
-    bool isMasterPresent();
-    bool isAlarm();
+    bool isMasterPresent(uint8_t stripID);
+    bool isAlarm(uint8_t stripID);
     bool isSunUnderTheHorizon();
 
     NetworkMotionData getNetworkMotionData();
-    void UpdateNetworkMotionData(NetworkMotionData data);
+    void UpdateNetworkMotionData(NetworkMotionData data, bool republish = false);
 
     NetworkLEDStripData getNetworkLEDStripData(uint8_t stripID);
-    void UpdateNetworkLEDStripData(uint8_t stripID, NetworkLEDStripData data);
+    void UpdateNetworkLEDStripData(uint8_t stripID, NetworkLEDStripData data, bool republish = false);
 
-    NetworkData getNetworkData();
     DetailedSunData getDetailedSunData();
     NetworkTimeData getNetworkTimeData();
 };

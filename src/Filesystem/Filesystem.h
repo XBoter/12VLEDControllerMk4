@@ -40,51 +40,65 @@ private:
     // ======== External Components ======== //
     Helper *helper;
     Parameterhandler *parameterhandler;
+
+    // ======== Motion ======== //
+    String motionDataFilename = "MotionData.dat";
+    FilesystemMotionData motionData = {};
+    bool motionDataReady = false;
+
     // ======== Configuration ======== //
-    String configurationFilename = "config.txt";
-    ConfigurationData configurationData = {};
+    String configurationDataFilename = "ConfigurationData.dat";
+    FilesystemConfigurationData configurationData = {};
     bool configurationDataReady = false;
 
     // ======== Settings ======== //
-    String settingsFilename = "settings.txt";
-    SettingsData settingsData = {};
-    bool settingsDataReady = false;
+    String settingsStripDataFilename[STRIP_COUNT]{"SettingsStripData1.dat", "SettingsStripData2.dat"};
+    FilesystemSettingsStripData settingsStripData[STRIP_COUNT]{};
+    bool settingsStripDataReady[STRIP_COUNT]{false};
 
     // ================ LED State ================ //
-    String ledStateFilename = "ledstate.txt";
-    LEDStateData ledStateData = {};
-    bool ledStateDataReady = false;
+    String ledStripDataFilename[STRIP_COUNT]{"LedStripData1.dat", "LedStripData2.dat"};
+    FilesystemLEDStripData ledStripData[STRIP_COUNT]{};
+    bool ledStripDataReady[STRIP_COUNT]{false};
 
     // ======== Other ======== //
     uint state = 0;
+    const uint16_t FILE_LAST_WRITE_DELAY = 50;
 
     // ================ Methods ================ //
 private:
+    // ======== Motion ======== //
+    FilesystemMotionData loadMotionData();
     // ======== Configuration ======== //
-    ConfigurationData loadConfiguration();
+    FilesystemConfigurationData loadConfigurationData();
     // ======== Settings ======== //
-    SettingsData loadSettings();
+    FilesystemSettingsStripData loadSettingsStripData(uint8_t stripID);
     // ======== LED State ======== //
-    LEDStateData loadLEDState();
+    FilesystemLEDStripData loadLEDStripData(uint8_t stripID);
     // ======== File Operations ======== //
     void createFileIfMissing(String filename);
     void resetFileIfExists(String filename);
     void listAllFiles();
 
 public:
-    // ======== Configuration ======== //
-    void resetConfiguration();
-    void saveConfiguration(ConfigurationData data);
-    ConfigurationData getConfigurationData();
+    // ======== Motion Data ======== //
+    void resetMotionData();
+    void saveMotionData(FilesystemMotionData data);
+    FilesystemMotionData getMotionData();
+    bool isMotionDataReady();
+    // ======== Configuration Data ======== //
+    void resetConfigurationData();
+    void saveConfigurationData(FilesystemConfigurationData data);
+    FilesystemConfigurationData getConfigurationData();
     bool isConfigurationDataReady();
-    // ======== Settings ======== //
-    void resetSettings();
-    void saveSettings(SettingsData data);
-    SettingsData getSettingData();
-    bool isSettingsDataReady();
-    // ======== LED State ======== //
-    void resetLEDState();
-    void saveLEDState(LEDStateData data);
-    LEDStateData getLEDStateData();
-    bool isLEDStateDataReady();
+    // ======== Settings Data ======== //
+    void resetSettingsStripData(uint8_t stripID);
+    void saveSettingsStripData(uint8_t stripID, FilesystemSettingsStripData data);
+    FilesystemSettingsStripData getSettingStripData(uint8_t stripID);
+    bool isSettingsStripDataReady(uint8_t stripID);
+    // ======== LED Strip Data ======== //
+    void resetLEDStripData(uint8_t stripID);
+    void saveLEDStripData(uint8_t stripID, FilesystemLEDStripData data);
+    FilesystemLEDStripData getLEDStripData(uint8_t stripID);
+    bool isLEDStripDataReady(uint8_t stripID);
 };

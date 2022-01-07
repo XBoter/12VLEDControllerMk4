@@ -16,12 +16,14 @@ LedDriver::LedDriver(uint8_t i2cAddress)
 void LedDriver::setReference(I2C *i2c,
                              Network *network,
                              PirReader *pirReader,
-                             Filesystem *filesystem)
+                             Filesystem *filesystem,
+                             Parameterhandler *parameterhandler)
 {
     this->i2c = i2c;
     this->network = network;
     this->pirReader = pirReader;
     this->filesystem = filesystem;
+    this->parameterhandler = parameterhandler;
 };
 
 // # ================================================================ ================================================================ # //
@@ -138,23 +140,23 @@ void LedDriver::HandleMultiLEDStripControlLogic()
 {
     MultiLEDStripEffectData *effectData = getMultiLEDStripEffectData();
 
-    if (this->network->isAlarm())
+    if (this->network->isAlarm(1) && this->network->isAlarm(2))
     {
         effectData->multiLEDEffect = MultiLEDEffect::Alarm;
     }
     else
     {
-        if (this->network->isMasterPresent())
+        if (this->network->isMasterPresent(1) && this->network->isMasterPresent(2))
         {
-            if (this->network->getNetworkLEDStripData(1).power ||
-                this->network->getNetworkLEDStripData(2).power)
+            if (this->parameterhandler->getLEDStripParameter(0).Power ||
+                this->parameterhandler->getLEDStripParameter(1).Power)
             {
                 effectData->multiLEDEffect = MultiLEDEffect::SingleLEDEffect;
             }
             else
             {
                 if (this->pirReader->MotionDetected() &&
-                    this->network->getNetworkMotionData().motionDetectionEnabled &&
+                    this->parameterhandler->getMotionParameter().MotionDetectionEnabled &&
                     this->network->isSunUnderTheHorizon())
                 {
                     effectData->multiLEDEffect = MultiLEDEffect::MotionDetected;
@@ -223,28 +225,28 @@ void LedDriver::HandleMultiLEDStripEffects()
             break;
 
         case MultiLEDEffect::SingleLEDEffect:
-            HandleSingleLEDStripEffects(1, this->network->getNetworkLEDStripData(1));
-            HandleSingleLEDStripEffects(2, this->network->getNetworkLEDStripData(2));
+            HandleSingleLEDStripEffects(1, this->parameterhandler->getLEDStripParameter(0));
+            HandleSingleLEDStripEffects(2, this->parameterhandler->getLEDStripParameter(1));
             break;
 
         case MultiLEDEffect::MotionDetected:
-            highLevelLEDStripData.redColorValue = this->network->getNetworkMotionData().redColorValue;
-            highLevelLEDStripData.greenColorValue = this->network->getNetworkMotionData().greenColorValue;
-            highLevelLEDStripData.blueColorValue = this->network->getNetworkMotionData().blueColorValue;
-            highLevelLEDStripData.whiteTemperatureValue = this->network->getNetworkMotionData().whiteTemperatureValue;
+            highLevelLEDStripData.redColorValue = this->parameterhandler->getMotionParameter().Red;
+            highLevelLEDStripData.greenColorValue = this->parameterhandler->getMotionParameter().Green;
+            highLevelLEDStripData.blueColorValue = this->parameterhandler->getMotionParameter().Blue;
+            highLevelLEDStripData.whiteTemperatureValue = this->parameterhandler->getMotionParameter().WhiteTemperature;
 
             // Check for timebased brightness
-            if (this->network->getNetworkMotionData().timeBasedBrightnessChangeEnabled)
+            if (this->parameterhandler->getMotionParameter().TimeBasedBrightnessChangeEnabled)
             {
                 // Map brightness value
                 uint8_t percent = getMotionBrightnessPercent();
-                highLevelLEDStripData.colorBrightnessValue = (uint16_t)((double)this->network->getNetworkMotionData().colorBrightnessValue * ((double)percent / 100.0));
-                highLevelLEDStripData.whiteBrightnessValue = (uint16_t)((double)this->network->getNetworkMotionData().whiteBrightnessValue * ((double)percent / 100.0));
+                highLevelLEDStripData.colorBrightnessValue = (uint16_t)((double)this->parameterhandler->getMotionParameter().ColorBrightness * ((double)percent / 100.0));
+                highLevelLEDStripData.whiteBrightnessValue = (uint16_t)((double)this->parameterhandler->getMotionParameter().WhiteTemperatureBrightness * ((double)percent / 100.0));
             }
             else
             {
-                highLevelLEDStripData.colorBrightnessValue = this->network->getNetworkMotionData().colorBrightnessValue;
-                highLevelLEDStripData.whiteBrightnessValue = this->network->getNetworkMotionData().whiteBrightnessValue;
+                highLevelLEDStripData.colorBrightnessValue = this->parameterhandler->getMotionParameter().ColorBrightness;
+                highLevelLEDStripData.whiteBrightnessValue = this->parameterhandler->getMotionParameter().WhiteTemperatureBrightness;
             }
             FadeToColor(1, highLevelLEDStripData);
             FadeToColor(2, highLevelLEDStripData);
@@ -306,30 +308,30 @@ void LedDriver::HandleMultiLEDStripEffects()
 };
 
 /**
- * Handels the display of single LED strip effects
+ * @brief Handels the display of single LED strip effects
  * 
- * @parameter stripID                      The ID of the used led strip 
- * @parameter commandNetworkLEDStripData   NetworkLEDStripData for the used LED strip define in stripID
+ * @param stripID The ID of the used led strip 
+ * @param ledStripParameter  LEDStripParameter for the used LED strip define in stripID
  */
 void LedDriver::HandleSingleLEDStripEffects(uint8_t stripID,
-                                            NetworkLEDStripData commandNetworkLEDStripData)
+                                            LEDStripParameter ledStripParameter)
 {
     // Get Effect data
     SingleLEDStripEffectData *effectData = getSingleLEDStripEffectData(stripID);
     LowLevelLEDStripData lowLevelLEDStripData = getLowLevelFadeTimesAndCurves();
 
     // Check fo power
-    if (commandNetworkLEDStripData.power)
+    if (ledStripParameter.Power)
     {
 
         // Check for effect change
-        if (commandNetworkLEDStripData.effect != effectData->singleLEDEffect)
+        if (ledStripParameter.Effect != effectData->singleLEDEffect)
         {
             effectData->fadeFinished = false;
             effectData->counter = 0;
             effectData->transitionState = 0;
             effectData->subTransitionState = 0;
-            effectData->singleLEDEffect = commandNetworkLEDStripData.effect;
+            effectData->singleLEDEffect = ledStripParameter.Effect;
         }
 
         // effect change state machine
@@ -352,16 +354,16 @@ void LedDriver::HandleSingleLEDStripEffects(uint8_t stripID,
             {
 
             case SingleLEDEffect::None:
-                FadeToColor(stripID, commandNetworkLEDStripData);
+                FadeToColor(stripID, ledStripParameter);
                 break;
 
             case SingleLEDEffect::TriplePulse:
                 // Red
-                lowLevelLEDStripData.redColorValue = commandNetworkLEDStripData.ledStripData.redColorValue;
+                lowLevelLEDStripData.redColorValue = ledStripParameter.Red;
                 // Green
-                lowLevelLEDStripData.greenColorValue = commandNetworkLEDStripData.ledStripData.greenColorValue;
+                lowLevelLEDStripData.greenColorValue = ledStripParameter.Green;
                 //Blue
-                lowLevelLEDStripData.blueColorValue = commandNetworkLEDStripData.ledStripData.blueColorValue;
+                lowLevelLEDStripData.blueColorValue = ledStripParameter.Blue;
 
                 switch (effectData->subTransitionState)
                 {
@@ -476,13 +478,13 @@ void LedDriver::HandleSingleLEDStripEffects(uint8_t stripID,
 
             case SingleLEDEffect::Rainbow:
                 // Red
-                lowLevelLEDStripData.redBrightnessValue = commandNetworkLEDStripData.ledStripData.colorBrightnessValue;
+                lowLevelLEDStripData.redBrightnessValue = ledStripParameter.ColorBrightness;
                 lowLevelLEDStripData.redColorFadeTime = 6000;
                 // Green
-                lowLevelLEDStripData.greenBrightnessValue = commandNetworkLEDStripData.ledStripData.colorBrightnessValue;
+                lowLevelLEDStripData.greenBrightnessValue = ledStripParameter.ColorBrightness;
                 lowLevelLEDStripData.greenColorFadeTime = 6000;
                 //Blue
-                lowLevelLEDStripData.blueBrightnessValue = commandNetworkLEDStripData.ledStripData.colorBrightnessValue;
+                lowLevelLEDStripData.blueBrightnessValue = ledStripParameter.ColorBrightness;
                 lowLevelLEDStripData.blueColorFadeTime = 6000;
 
                 switch (effectData->subTransitionState)
@@ -791,19 +793,19 @@ LowLevelLEDStripData LedDriver::getInstantLowLevelFadeTimesAndCurves()
  * 
  * @return Converted HighLevelLEDStripData
  */
-HighLevelLEDStripData LedDriver::convertNetworkDataToHighLevelData(NetworkLEDStripData networkData,
-                                                                   HighLevelLEDStripData highLevelFadeTimesAndCurves)
+HighLevelLEDStripData LedDriver::LEDStripParameterToHighLevelLEDStripData(LEDStripParameter ledStripParameter,
+                                                                          HighLevelLEDStripData highLevelFadeTimesAndCurves)
 {
     HighLevelLEDStripData highLevelLEDStripData = highLevelFadeTimesAndCurves;
 
     // Color Data
-    highLevelLEDStripData.redColorValue = networkData.ledStripData.redColorValue;
-    highLevelLEDStripData.greenColorValue = networkData.ledStripData.greenColorValue;
-    highLevelLEDStripData.blueColorValue = networkData.ledStripData.blueColorValue;
-    highLevelLEDStripData.colorBrightnessValue = networkData.ledStripData.colorBrightnessValue;
+    highLevelLEDStripData.redColorValue = ledStripParameter.Red;
+    highLevelLEDStripData.greenColorValue = ledStripParameter.Green;
+    highLevelLEDStripData.blueColorValue = ledStripParameter.Blue;
+    highLevelLEDStripData.colorBrightnessValue = ledStripParameter.ColorBrightness;
 
-    highLevelLEDStripData.whiteTemperatureValue = networkData.ledStripData.whiteTemperatureValue;
-    highLevelLEDStripData.whiteBrightnessValue = networkData.ledStripData.whiteBrightnessValue;
+    highLevelLEDStripData.whiteTemperatureValue = ledStripParameter.WhiteTemperature;
+    highLevelLEDStripData.whiteBrightnessValue = ledStripParameter.WhiteTemperatureBrightness;
 
     return highLevelLEDStripData;
 }
@@ -813,8 +815,8 @@ HighLevelLEDStripData LedDriver::convertNetworkDataToHighLevelData(NetworkLEDStr
  * 
  * @return Converted LowLevelLEDStripData
  */
-LowLevelLEDStripData LedDriver::convertHighLevelDataToLowLevelData(HighLevelLEDStripData highLevelLEDStripData,
-                                                                   LowLevelLEDStripData lowLevelFadeTimesAndCurves)
+LowLevelLEDStripData LedDriver::HighLevelLEDStripDataToLowLevelLEDStripData(HighLevelLEDStripData highLevelLEDStripData,
+                                                                            LowLevelLEDStripData lowLevelFadeTimesAndCurves)
 {
     LowLevelLEDStripData lowLevelLEDStripData = lowLevelFadeTimesAndCurves;
 
@@ -887,16 +889,16 @@ LowLevelLEDStripData LedDriver::combineLowLevelDataToLowLevelData(LowLevelLEDStr
 // # ================================================================ ================================================================ # //
 
 bool LedDriver::SetColor(uint8_t stripID,
-                         NetworkLEDStripData commandNetworkLEDStripData)
+                         LEDStripParameter ledStripParameter)
 {
-    bool fadeFinished = FadeToColor(stripID, convertNetworkDataToHighLevelData(commandNetworkLEDStripData, getInstantHighLevelFadeTimesAndCurves()));
+    bool fadeFinished = FadeToColor(stripID, LEDStripParameterToHighLevelLEDStripData(ledStripParameter, getInstantHighLevelFadeTimesAndCurves()));
     return fadeFinished;
 };
 
 bool LedDriver::SetColor(uint8_t stripID,
                          HighLevelLEDStripData commandHighLevelLEDStripData)
 {
-    bool fadeFinished = FadeToColor(stripID, convertHighLevelDataToLowLevelData(commandHighLevelLEDStripData, getInstantLowLevelFadeTimesAndCurves()));
+    bool fadeFinished = FadeToColor(stripID, HighLevelLEDStripDataToLowLevelLEDStripData(commandHighLevelLEDStripData, getInstantLowLevelFadeTimesAndCurves()));
     return fadeFinished;
 };
 
@@ -907,10 +909,10 @@ bool LedDriver::SetColor(uint8_t stripID,
     return fadeFinished;
 };
 
-bool LedDriver::SetColor(NetworkLEDStripData commandNetworkLEDStripData)
+bool LedDriver::SetColor(LEDStripParameter ledStripParameter)
 {
-    bool fadeStrip1Finished = FadeToColor(1, convertNetworkDataToHighLevelData(commandNetworkLEDStripData, getInstantHighLevelFadeTimesAndCurves()));
-    bool fadeStrip2Finished = FadeToColor(2, convertNetworkDataToHighLevelData(commandNetworkLEDStripData, getInstantHighLevelFadeTimesAndCurves()));
+    bool fadeStrip1Finished = FadeToColor(1, LEDStripParameterToHighLevelLEDStripData(ledStripParameter, getInstantHighLevelFadeTimesAndCurves()));
+    bool fadeStrip2Finished = FadeToColor(2, LEDStripParameterToHighLevelLEDStripData(ledStripParameter, getInstantHighLevelFadeTimesAndCurves()));
     if (fadeStrip1Finished && fadeStrip2Finished)
     {
         return true;
@@ -923,8 +925,8 @@ bool LedDriver::SetColor(NetworkLEDStripData commandNetworkLEDStripData)
 
 bool LedDriver::SetColor(HighLevelLEDStripData commandHighLevelLEDStripData)
 {
-    bool fadeStrip1Finished = FadeToColor(1, convertHighLevelDataToLowLevelData(commandHighLevelLEDStripData, getInstantLowLevelFadeTimesAndCurves()));
-    bool fadeStrip2Finished = FadeToColor(2, convertHighLevelDataToLowLevelData(commandHighLevelLEDStripData, getInstantLowLevelFadeTimesAndCurves()));
+    bool fadeStrip1Finished = FadeToColor(1, HighLevelLEDStripDataToLowLevelLEDStripData(commandHighLevelLEDStripData, getInstantLowLevelFadeTimesAndCurves()));
+    bool fadeStrip2Finished = FadeToColor(2, HighLevelLEDStripDataToLowLevelLEDStripData(commandHighLevelLEDStripData, getInstantLowLevelFadeTimesAndCurves()));
     if (fadeStrip1Finished && fadeStrip2Finished)
     {
         return true;
@@ -954,16 +956,16 @@ bool LedDriver::SetColor(LowLevelLEDStripData commandLowLevelLEDStripData)
 // # ================================================================ ================================================================ # //
 
 bool LedDriver::FadeToColor(uint8_t stripID,
-                            NetworkLEDStripData commandNetworkLEDStripData)
+                            LEDStripParameter ledStripParameter)
 {
-    bool fadeFinished = FadeToColor(stripID, convertNetworkDataToHighLevelData(commandNetworkLEDStripData, getHighLevelFadeTimesAndCurves()));
+    bool fadeFinished = FadeToColor(stripID, LEDStripParameterToHighLevelLEDStripData(ledStripParameter, getHighLevelFadeTimesAndCurves()));
     return fadeFinished;
 };
 
 bool LedDriver::FadeToColor(uint8_t stripID,
                             HighLevelLEDStripData commandHighLevelLEDStripData)
 {
-    bool fadeFinished = FadeToColor(stripID, convertHighLevelDataToLowLevelData(commandHighLevelLEDStripData, getLowLevelFadeTimesAndCurves()));
+    bool fadeFinished = FadeToColor(stripID, HighLevelLEDStripDataToLowLevelLEDStripData(commandHighLevelLEDStripData, getLowLevelFadeTimesAndCurves()));
     return fadeFinished;
 };
 
@@ -974,7 +976,7 @@ bool LedDriver::FadeToColor(uint8_t stripID,
     unsigned long curMillis = previousMillisRefreshRate;
 
     // Get current data of strip
-    LEDStripData *ptrCurrentLEDStripData = getCurrentLEDStripData(stripID);
+    RawLEDStripData *ptrCurrentLEDStripData = getCurrentLEDStripData(stripID);
 
     // Check if FadeToColor got called last cycle
     if ((ptrCurrentLEDStripData->lastRefreshRateCount + 1) != refreshRateCounter)
@@ -1237,10 +1239,10 @@ bool LedDriver::FadeToColor(uint8_t stripID,
     return fadeFinished;
 };
 
-bool LedDriver::FadeToColor(NetworkLEDStripData commandNetworkLEDStripData)
+bool LedDriver::FadeToColor(LEDStripParameter ledStripParameter)
 {
-    bool fadeStrip1Finished = FadeToColor(1, convertNetworkDataToHighLevelData(commandNetworkLEDStripData, getHighLevelFadeTimesAndCurves()));
-    bool fadeStrip2Finished = FadeToColor(2, convertNetworkDataToHighLevelData(commandNetworkLEDStripData, getHighLevelFadeTimesAndCurves()));
+    bool fadeStrip1Finished = FadeToColor(1, LEDStripParameterToHighLevelLEDStripData(ledStripParameter, getHighLevelFadeTimesAndCurves()));
+    bool fadeStrip2Finished = FadeToColor(2, LEDStripParameterToHighLevelLEDStripData(ledStripParameter, getHighLevelFadeTimesAndCurves()));
     if (fadeStrip1Finished && fadeStrip2Finished)
     {
         return true;
@@ -1253,8 +1255,8 @@ bool LedDriver::FadeToColor(NetworkLEDStripData commandNetworkLEDStripData)
 
 bool LedDriver::FadeToColor(HighLevelLEDStripData commandHighLevelLEDStripData)
 {
-    bool fadeStrip1Finished = FadeToColor(1, convertHighLevelDataToLowLevelData(commandHighLevelLEDStripData, getLowLevelFadeTimesAndCurves()));
-    bool fadeStrip2Finished = FadeToColor(2, convertHighLevelDataToLowLevelData(commandHighLevelLEDStripData, getLowLevelFadeTimesAndCurves()));
+    bool fadeStrip1Finished = FadeToColor(1, HighLevelLEDStripDataToLowLevelLEDStripData(commandHighLevelLEDStripData, getLowLevelFadeTimesAndCurves()));
+    bool fadeStrip2Finished = FadeToColor(2, HighLevelLEDStripDataToLowLevelLEDStripData(commandHighLevelLEDStripData, getLowLevelFadeTimesAndCurves()));
     if (fadeStrip1Finished && fadeStrip2Finished)
     {
         return true;
@@ -1331,7 +1333,7 @@ bool LedDriver::FadeToBlack()
 void LedDriver::UpdateLEDStrip(uint8_t stripID)
 {
     // Get current data of strip
-    LEDStripData *ptrCurrentLEDStripData = getCurrentLEDStripData(stripID);
+    RawLEDStripData *ptrCurrentLEDStripData = getCurrentLEDStripData(stripID);
 
     // Get led reg of strip
     LEDStripColorReg STRIP = getColorRegForLEDStrip(stripID);
@@ -1504,7 +1506,7 @@ uint16_t LedDriver::getCurveValue(FadeCurve curve,
  * 
  * @return Pointer to the current LEDStripData of the given stripID
  */
-LEDStripData *LedDriver::getCurrentLEDStripData(uint8_t stripID)
+RawLEDStripData *LedDriver::getCurrentLEDStripData(uint8_t stripID)
 {
     switch (stripID)
     {
@@ -1701,21 +1703,21 @@ bool LedDriver::ConfigureMode()
     return finishedConfigureMode;
 }
 
-LEDBasicStripData LedDriver::getBasicDataBasedOnSettings(uint8_t stripID, uint8_t channelID, LEDStripData *ptrData)
+LEDBasicStripData LedDriver::getBasicDataBasedOnSettings(uint8_t stripID, uint8_t channelID, RawLEDStripData *ptrData)
 {
     LEDBasicStripData data;
-    SettingsData settingsData = this->filesystem->getSettingData();
+    SettingsStripParameter settingsStripParameter = this->parameterhandler->getSettingsStripParameter(stripID);
     if (stripID >= 0 && stripID < STRIP_COUNT)
     {
         if (channelID >= 0 && channelID < CHANNEL_COUNT)
         {
-            data = getBasicDataBasedOnOutput(settingsData.stripChannelOutputs[stripID - 1][channelID - 1], ptrData);
+            data = getBasicDataBasedOnOutput(settingsStripParameter.ChannelOutputType[channelID], ptrData);
         }
     }
     return data;
 }
 
-LEDBasicStripData LedDriver::getBasicDataBasedOnOutput(LEDOutputType type, LEDStripData *ptrData)
+LEDBasicStripData LedDriver::getBasicDataBasedOnOutput(LEDOutputType type, RawLEDStripData *ptrData)
 {
     LEDBasicStripData data;
 

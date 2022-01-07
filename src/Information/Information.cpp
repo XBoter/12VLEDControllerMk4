@@ -95,10 +95,13 @@ void Information::FormatPrintTime(String name,
     this->helper->InsertPrint();
     Serial.print(F("Hour    : "));
     Serial.println(hour);
+    this->helper->InsertPrint();
     Serial.print(F("Minute  : "));
     Serial.println(minute);
+    this->helper->InsertPrint();
     Serial.print(F("Second  : "));
     Serial.println(second);
+    this->helper->InsertPrint();
     Serial.print(F("Unix    : "));
     Serial.println(unix);
 
