@@ -1,8 +1,8 @@
+# Info
+:warning: Source code got archived and is getting replaced by the newer version '12V LED Controller Mk4 V2' :warning:
+
+
 # 12VLEDControllerMk4
-
-[![Compile Arduino Code](https://github.com/XBoter/12VLEDControllerMk4/actions/workflows/compile_action.yaml/badge.svg)](https://github.com/XBoter/12VLEDControllerMk4/actions/workflows/compile_action.yaml)
-
-[![Compress HTML Files](https://github.com/XBoter/12VLEDControllerMk4/actions/workflows/html_compression_action.yaml/badge.svg)](https://github.com/XBoter/12VLEDControllerMk4/actions/workflows/html_compression_action.yaml)
 
 ## Features
 - Control for 2x 12V RGBCWWW LED Strips 
@@ -30,6 +30,3 @@ For more information and guids for installation and configuration head over to t
 ## Warning
 I am not responsible for any failure or fire, destruction or other damage caused by the LED controller.
 Use at your own risk
-
-## Buy me a coffee or sponsor the project
-[![PayPal](https://img.shields.io/badge/paypal-donate-yellow.svg)](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=5UD82M4V6M2XC)  
